@@ -18,12 +18,16 @@ classifiers = [
 line-length = 88
 target-version = "py38"
 # You can select rule sets here; for now we activate common ones
-select = [
+lint.select = [
     "E",
     "F",
     "W",
     "I",
     "N",
+]
+# You can also ignore specific rules
+lint.ignore = [
+    "N803",
 ]
 # Optional: you can auto-fix issues
 fix = true
