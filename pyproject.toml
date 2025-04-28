@@ -1,0 +1,41 @@
+[project]
+name = "class_gradual_typing"
+version = "0.1.0"
+description = "Implementation of a static and gradual type system for classes in Python."
+authors = [
+    { name="Javier Kauer", email="kauer.javier01@gmail.com" }
+]
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["your_package"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py38"
+# You can select rule sets here; for now we activate common ones
+select = [
+    "E",
+    "F",
+    "W",
+    "I",
+    "N",
+]
+# Optional: you can auto-fix issues
+fix = true
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
