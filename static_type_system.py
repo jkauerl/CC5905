@@ -7,6 +7,7 @@ class Type(ABC):
 
     :param ABC: Abstract Base Class
     """
+
     pass
 
 
@@ -15,6 +16,7 @@ class FunctionType(Type):
 
     :param Type: The type of the function.
     """
+
     def __init__(self, domain: list[Type], codomain: Type):
         self.domain = domain
         self.codomain = codomain
@@ -25,35 +27,36 @@ class ClassName(Type):
 
     :param Type: The type of the class.
     """
+
     def __init__(self, name: str):
         self.name = name
 
 
 class Edge:
-    """Represents a directed edge in the type system.
-    """
+    """Represents a directed edge in the type system."""
+
     def __init__(self, source: ClassName, target: ClassName):
         self.source = source
         self.target = target
 
 
 class Signature:
-    """Represents a signature in the type system.
-    """
+    """Represents a signature in the type system."""
+
     def __init__(self, var: str, type: Type):
         self.var = var
         self.type = type
 
 
 class Psi:
-    """Represents the class (node) relationship in the type system.
-    """
+    """Represents the class (node) relationship in the type system."""
+
     def __init__(
         self, Ns: list[ClassName], Es: list[Edge], sigma: map[str, list[Signature]]
     ):
         self.Ns = Ns
         self.Es = Es
-        self.sigma = sigma # This represents a function
+        self.sigma = sigma  # This represents a function
 
 
 def build_adjacency_list(psi: Psi) -> dict:
