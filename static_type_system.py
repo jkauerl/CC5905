@@ -125,10 +125,19 @@ def is_valid_type(psi: Psi, type: Type) -> bool:
 
 
 def is_valid_record(psi: Psi, record: list[Signature]) -> bool:
-    """Check if the given record is valid in the Psi object.
+    """Check if the given record is valid in the Psi object. This is a list of signatures.
 
     :param psi: The Psi object representing the type system.
     :param record: The record to check.
     :return: True if the record is valid, False otherwise.
     """
     return all([is_valid_type(psi, signature.type) for signature in record])
+
+def is_valid_function(psi: Psi, function: FunctionType) -> bool:
+    """Check if the given function is valid in the Psi object.
+
+    :param psi: The Psi object representing the type system.
+    :param function: The function to check.
+    :return: True if the function is valid, False otherwise.
+    """
+    return all([is_valid_type(psi, t) for t in function.domain]) and is_valid_type(psi, function.codomain)
