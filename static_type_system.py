@@ -48,13 +48,6 @@ class Signature:
         self.type = type
 
 
-class Specificiation:
-    """Represents the specification of a class in the type system."""
-    def __init__(self, class_name: ClassName, signatures: list[Signature]):
-        self.class_name = class_name
-        self.signatures = signatures
-
-
 class Psi:
     """Represents the class (node) relationship in the type system."""
 
@@ -64,6 +57,14 @@ class Psi:
         self.Ns = Ns
         self.Es = Es
         self.sigma = sigma  # This represents a function
+
+
+class Specificiation:
+    """Represents the specification of a class in the type system."""
+    def __init__(self, psi: Psi, signatures: list[Signature]):
+        self.psi = psi
+        self.signatures = signatures
+
 
 
 def build_adjacency_list(psi: Psi) -> dict:
