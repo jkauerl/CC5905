@@ -110,6 +110,9 @@ def acyclic(psi: Psi) -> bool:
     return True
 
 
+""" Validation of types
+"""
+
 def is_valid_type(psi: Psi, type: Type) -> bool:
     """Check if the given type is valid in the Psi object.
 
@@ -124,6 +127,10 @@ def is_valid_type(psi: Psi, type: Type) -> bool:
             return name in [n.name for n in psi.Ns]
 
 
+"""
+Validation of functions and records
+"""
+
 def is_valid_record(psi: Psi, record: list[Signature]) -> bool:
     """Check if the given record is valid in the Psi object. This is a list of signatures.
 
@@ -132,6 +139,7 @@ def is_valid_record(psi: Psi, record: list[Signature]) -> bool:
     :return: True if the record is valid, False otherwise.
     """
     return all([is_valid_type(psi, signature.type) for signature in record])
+
 
 def is_valid_function(psi: Psi, function: FunctionType) -> bool:
     """Check if the given function is valid in the Psi object.
