@@ -66,6 +66,19 @@ class Specificiation:
         self.signatures = signatures
 
 
+def get_all_parent_specifications(
+    psi: Psi, class_name: ClassName
+) -> list[Specificiation]:
+    """Get all parent specifications of a given class name.
+
+    :param psi: The Psi object representing the type system.
+    :param class_name: The class name to get the parent specifications for.
+    :return: A list of parent specifications.
+    """
+    if class_name not in [n.name for n in psi.Ns]:
+        raise ValueError(f"Class {class_name} not found in Psi object.")
+    return [Specificiation(psi, psi.sigma[class_name.name])]
+
 
 def build_adjacency_list(psi: Psi) -> dict:
     """Funtion to build an adjacency list from the given Psi object.
