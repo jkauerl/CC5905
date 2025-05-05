@@ -48,6 +48,13 @@ class Signature:
         self.type = type
 
 
+class Specificiation:
+    """Represents the specification of a class in the type system."""
+    def __init__(self, class_name: ClassName, signatures: list[Signature]):
+        self.class_name = class_name
+        self.signatures = signatures
+
+
 class Psi:
     """Represents the class (node) relationship in the type system."""
 
