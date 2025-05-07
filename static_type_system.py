@@ -76,7 +76,13 @@ def get_all_parent_specifications(
     """
     if class_name not in [n.name for n in psi.Ns]:
         raise ValueError(f"Class {class_name} not found in Psi object.")
-    return [Specificiation(psi, psi.sigma[class_name.name])]
+    parent_specifications = []
+    for edge in psi.Ns:
+        if edge.name == class_name.name:
+            for parent in psi.Es:
+                if parent.target == edge:
+                    parent_specifications.append(parent)
+    return parent_specifications
 
 
 def get_minimal_specification(class_name: ClassName, psi: Psi) -> Specificiation:
