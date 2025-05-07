@@ -2,6 +2,7 @@ from abc import ABC
 from collections import defaultdict
 
 
+
 class Type(ABC):
     """Abstract base class for all types.
 
@@ -85,17 +86,29 @@ def get_all_parent_specifications(
     return parent_specifications
 
 
-def get_minimal_specification(class_name: ClassName, psi: Psi) -> Specification:
-    """Get the minimal specification of a given class name.
+def is_direct_subtype(psi: Psi, class_name_1: ClassName, class_name_2: ClassName) -> bool:
+    """Check if class_name_1 is a direct subtype of class_name_2.
 
-    :param class_name: The class name to get
     :param psi: The Psi object representing the type system.
-    :return: The minimal specification of the class name.
+    :param class_name_1: The first class name to check.
+    :param class_name_2: The second class name to check.
+    :return: True if class_name_1 is a direct subtype of class_name_2, False otherwise.
     """
-    for parent_spec in get_all_parent_specifications(psi, class_name):
-        if parent_spec.signatures:
-            return parent_spec
-    raise ValueError(f"Minimal specification for {class_name} not found.")
+    for edge in psi.Es:
+        if edge.source == class_name_1 and edge.target == class_name_2:
+            return True
+    return False
+
+
+def get_minimal_specification(class_name: ClassName, psi: Psi) -> Specification:
+    """
+    Get the minimal specification of a given class name in Ψ.
+
+    :param class_name: The class name N to get the minimal specification for.
+    :param psi: The Psi object representing the type system.
+    :return: The minimal specification s such that s <: sp for all sp ∈ PΨ(N).
+    """
+    pass
 
 
 def build_adjacency_list(psi: Psi) -> dict:
