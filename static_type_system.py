@@ -80,6 +80,19 @@ def get_all_parent_specifications(
     return [Specificiation(psi, psi.sigma[class_name.name])]
 
 
+def get_minimal_specification(class_name: ClassName, psi: Psi) -> Specificiation:
+    """Get the minimal specification of a given class name.
+
+    :param class_name: The class name to get
+    :param psi: The Psi object representing the type system.
+    :return: The minimal specification of the class name.
+    """
+    for parent_spec in get_all_parent_specifications(psi, class_name):
+        if parent_spec.psi == psi:
+            return parent_spec
+    raise ValueError(f"Minimal specification for {class_name} not found.")
+
+
 def build_adjacency_list(psi: Psi) -> dict:
     """Funtion to build an adjacency list from the given Psi object.
 
