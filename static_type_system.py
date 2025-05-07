@@ -59,7 +59,7 @@ class Psi:
         self.sigma = sigma  # This represents a function
 
 
-class Specificiation:
+class Specification:
     """Represents the specification of a class in the type system."""
     def __init__(self, signatures: list[Signature]):
         self.signatures = signatures
@@ -67,7 +67,7 @@ class Specificiation:
 
 def get_all_parent_specifications(
     psi: Psi, class_name: ClassName
-) -> list[Specificiation]:
+) -> list[Specification]:
     """Get all parent specifications of a given class name.
 
     :param psi: The Psi object representing the type system.
@@ -85,7 +85,7 @@ def get_all_parent_specifications(
     return parent_specifications
 
 
-def get_minimal_specification(class_name: ClassName, psi: Psi) -> Specificiation:
+def get_minimal_specification(class_name: ClassName, psi: Psi) -> Specification:
     """Get the minimal specification of a given class name.
 
     :param class_name: The class name to get
@@ -93,7 +93,7 @@ def get_minimal_specification(class_name: ClassName, psi: Psi) -> Specificiation
     :return: The minimal specification of the class name.
     """
     for parent_spec in get_all_parent_specifications(psi, class_name):
-        if parent_spec.psi == psi:
+        if parent_spec.signatures:
             return parent_spec
     raise ValueError(f"Minimal specification for {class_name} not found.")
 
