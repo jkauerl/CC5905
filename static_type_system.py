@@ -66,26 +66,6 @@ class Specification:
         self.signatures = signatures
 
 
-def get_all_parent_specifications(
-    psi: Psi, class_name: ClassName
-) -> list[Specification]:
-    """Get all parent specifications of a given class name.
-
-    :param psi: The Psi object representing the type system.
-    :param class_name: The class name to get the parent specifications for.
-    :return: A list of parent specifications.
-    """
-    if class_name not in [n.name for n in psi.Ns]:
-        raise ValueError(f"Class {class_name} not found in Psi object.")
-    parent_specifications = []
-    for edge in psi.Ns:
-        if edge.name == class_name.name:
-            for parent in psi.Es:
-                if parent.target == edge:
-                    parent_specifications.append(parent)
-    return parent_specifications
-
-
 def is_direct_subtype(psi: Psi, class_name_1: ClassName, class_name_2: ClassName) -> bool:
     """Check if class_name_1 is a direct subtype of class_name_2.
 
@@ -116,6 +96,26 @@ def is_subtype(psi: Psi, class_name_1: ClassName, class_name_2: ClassName) -> bo
         elif edge.source == class_name_1:
             return is_subtype(psi, edge.target, class_name_2)
     return False
+
+
+def get_all_parent_specifications(
+    psi: Psi, class_name: ClassName
+) -> list[Specification]:
+    """Get all parent specifications of a given class name. By checking that the class name is a direct subtype of the parent class.
+
+    :param psi: The Psi object representing the type system.
+    :param class_name: The class name to get the parent specifications for.
+    :return: A list of parent specifications.
+    """
+    if class_name.name not in [n.name for n in psi.Ns]:
+        raise ValueError(f"Class name {class_name.name} not found in Psi object.")
+
+    parent_specifications = []
+    for edge in psi.Es:
+        if is_direct_subtype(psi, class_name, edge.target):
+            parent_specifications.append(psi.sigma[edge.target.name])
+    return parent_specifications
+    
 
 def get_minimal_specification(class_name: ClassName, psi: Psi) -> Specification:
     """
