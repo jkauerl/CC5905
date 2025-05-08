@@ -71,11 +71,17 @@ class Specification:
 """ Functions of the type system
 """
 
+def names(s: Specification) -> set[str]:
+    """Get the names of the signatures in the specification.
+
+    :param s: The specification to get the names from.
+    :return: A list of names.
+    """
+    return {sig.var for sig in s.signatures}
 
 
 """ Propositions to check the type system
 """
-
 
 def is_direct_subtype(psi: Psi, class_name_1: ClassName, class_name_2: ClassName) -> bool:
     """Check if class_name_1 is a direct subtype of class_name_2.
@@ -168,6 +174,53 @@ def is_minimal_specification(class_name: ClassName, s: Specification, psi: Psi) 
         if not is_subtype_spec(s, Specification(sp), psi):
             return False
     return True
+
+
+def is_includes_node(class_name: ClassName, s: Specification) -> bool:
+    """Check if the given specification includes the given class name.
+
+    :param class_name: The class name to check.
+    :param s: The specification to check.
+    :return: True if the specification includes the class name, False otherwise.
+    """
+    for sig in s.signatures:
+        if sig.var == class_name.name:
+            return True
+    return False
+
+
+def exists_all_signatures(psi: Psi, class_name: ClassName, s: Specification) -> bool:
+    """
+    Check if the specification s includes exactly the signatures that are
+    either declared by the class N or inherited from its parents, with no extra methods.
+    
+    :param psi: The Psi object representing the type system.
+    :param class_name: The class name to check.
+    :param s: The specification to check.
+    :return: True if all signatures are correct, False otherwise.
+    """
+    
+    given_signatures = names(s)
+
+    # Gather the method names declared by class N
+    own_signatures = {sig.var for sig in psi.sigma[class_name.name]}
+    
+    parent_specs = get_all_parent_specifications(psi, class_name)
+    inherited_signatures = {sig.var for parent in parent_specs for sig in parent.signatures}
+    
+    expected_signatures = own_signatures.union(inherited_signatures)
+    
+    
+    return given_signatures == expected_signatures
+
+
+def no_overloading(s: Specification) -> bool:
+    """Check if the given specification has no overloading.
+    
+    :param s: The specification to check.
+    :return: True if there is no overloading, False otherwise.
+    """
+    return len(s.signatures) == len(set(sig.var for sig in s.signatures))
 
 
 """ Functions to check for cycles in the type system
