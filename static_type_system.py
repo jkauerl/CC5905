@@ -319,3 +319,15 @@ def is_valid_function(psi: Psi, function: FunctionType) -> bool:
 """ Validation of the graph
 """
 
+def is_valid_node(psi: Psi, node: ClassName) -> bool:
+    """Check if the given node is valid in the Psi object.
+
+    :param psi: The Psi object representing the type system.
+    :param node: The node to check.
+    :return: True if the node is valid, False otherwise.
+    """
+    if is_minimal_specification(node, psi.sigma[node.name], psi):
+        if is_includes_node(node, psi.sigma[node.name]):
+            if exists_all_signatures(psi, node, psi.sigma[node.name]):
+                if no_overloading(psi.sigma[node.name]):
+                    return True
