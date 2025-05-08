@@ -2,7 +2,6 @@ from abc import ABC
 from collections import defaultdict
 
 
-
 class Type(ABC):
     """Abstract base class for all types.
 
@@ -119,14 +118,31 @@ def get_all_parent_specifications(
 
 def get_minimal_specification(class_name: ClassName, psi: Psi) -> Specification:
     """
-    Get the minimal specification of a given class name in Ψ.
+    Get the minimal specification for a given class name. This is the specification that is a subtype of all parent specifications.
 
-    :param class_name: The class name N to get the minimal specification for.
+    :param class_name: The class name to get the minimal specification for.
     :param psi: The Psi object representing the type system.
-    :return: The minimal specification s such that s <: sp for all sp ∈ PΨ(N).
+    :return: The minimal specification for the given class name.
     """
-    pass
+    parent_specs = get_all_parent_specifications(psi, class_name)
 
+    # Combine all signatures from all parent specs
+    merged_signatures = {}
+    for spec in parent_specs:
+        for sig in spec:
+            if sig.var in merged_signatures:
+                # Avoid overloading (NoOverloadingΨ): error if method name repeats with different type
+                existing_type = merged_signatures[sig.var].type
+                if existing_type != sig.type:
+                    raise ValueError(f"Overloading detected in method {sig.var}")
+            else:
+                merged_signatures[sig.var] = sig
+
+    return Specification(list(merged_signatures.values()))
+
+
+""" Functions to check for cycles in the type system
+"""
 
 def build_adjacency_list(psi: Psi) -> dict:
     """Funtion to build an adjacency list from the given Psi object.
@@ -196,8 +212,7 @@ def is_valid_type(psi: Psi, type: Type) -> bool:
             return name in [n.name for n in psi.Ns]
 
 
-"""
-Validation of functions and records
+""" Validation of functions and records
 """
 
 def is_valid_record(psi: Psi, record: list[Signature]) -> bool:
