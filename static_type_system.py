@@ -297,7 +297,7 @@ def is_valid_type(psi: Psi, type: Type) -> bool:
 """ Validation of functions and signatures
 """
 
-def is_valid_signatures(psi: Psi, signature: list[Signature]) -> bool:
+def is_valid_signature(psi: Psi, signature: list[Signature]) -> bool:
     """Check if the given signature is valid in the Psi object. This is a list of signatures.
 
     :param psi: The Psi object representing the type system.
@@ -357,7 +357,7 @@ def is_valid_fun(psi: Psi) -> bool:
     """
     for class_name in psi.Ns:
         if class_name.name in psi.sigma:
-            if not is_valid_signatures(psi, psi.sigma[class_name.name]):
+            if not is_valid_signature(psi, psi.sigma[class_name.name]):
                 return False
     return True
 
@@ -367,18 +367,21 @@ def is_valid_graph(psi: Psi) -> bool:
     :param psi: The Psi object representing the type system.
     :return: True if the graph is valid, False otherwise.
     """
-    if psi.Es is None:
-        return False
-    if psi.Ns is None:
-        return False
-    if psi.sigma is None:
-        return False
-    if not acyclic(psi):
+    if not is_valid_fun(psi):
         return False
     for class_name in psi.Ns:
-        if not is_valid_node(psi, class_name):
-            return False
+            if class_name.name not in psi.sigma:
+                return False
+            spec = Specification(psi.sigma[class_name.name])
+            if not is_minimal_specification(class_name, spec, psi):
+                return False
+            if not exists_all_signatures(class_name, spec, psi):
+                return False
+            if not is_valid_signature(psi, spec.signatures):
+                return False
     for edge in psi.Es:
         if not is_valid_edge(psi, edge.source, edge.target):
             return False
+    if not acyclic(psi):
+        return False
     return True
