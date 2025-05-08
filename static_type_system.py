@@ -315,3 +315,7 @@ def is_valid_function(psi: Psi, function: FunctionType) -> bool:
     :return: True if the function is valid, False otherwise.
     """
     return all([is_valid_type(psi, t) for t in function.domain]) and is_valid_type(psi, function.codomain)
+
+""" Validation of the graph
+"""
+
