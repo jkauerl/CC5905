@@ -2,6 +2,9 @@ from abc import ABC
 from collections import defaultdict
 
 
+""" Static type system for a programming language.
+"""
+
 class Type(ABC):
     """Abstract base class for all types.
 
@@ -63,6 +66,15 @@ class Specification:
     """Represents the specification of a class in the type system."""
     def __init__(self, signatures: list[Signature]):
         self.signatures = signatures
+
+
+""" Functions of the type system
+"""
+
+
+
+""" Propositions to check the type system
+"""
 
 
 def is_direct_subtype(psi: Psi, class_name_1: ClassName, class_name_2: ClassName) -> bool:
