@@ -140,6 +140,9 @@ def get_all_parent_specifications(
     return parent_specifications
     
 
+""" Node validation propositions
+"""
+
 def is_minimal_specification(class_name: ClassName, s: Specification, psi: Psi) -> bool:
     """Check if the given specification is minimal for the given class name.
 
