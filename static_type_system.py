@@ -97,6 +97,30 @@ def is_subtype(psi: Psi, class_name_1: ClassName, class_name_2: ClassName) -> bo
     return False
 
 
+def is_subtype_type(t1: Type, t2: Type, psi: Psi) -> bool:
+    match (t1, t2):
+        case (ClassName(n1), ClassName(n2)):
+            return is_subtype(psi, ClassName(n1), ClassName(n2))
+        case (FunctionType(dom1, cod1), FunctionType(dom2, cod2)):
+            return (
+                len(dom1) == len(dom2) and
+                all(is_subtype_type(t2i, t1i, psi) for t1i, t2i in zip(dom1, dom2)) and
+                is_subtype_type(cod1, cod2, psi)
+            )
+        case _:
+            return False
+
+
+def is_subtype_spec(s: Specification, sp: Specification, psi: Psi) -> bool:
+    s_dict = {sig.var: sig.type for sig in s.signatures}
+    for sig_p in sp.signatures:
+        if sig_p.var not in s_dict:
+            return False
+        if not is_subtype_type(s_dict[sig_p.var], sig_p.type, psi):
+            return False
+    return True
+
+
 def get_all_parent_specifications(
     psi: Psi, class_name: ClassName
 ) -> list[Specification]:
@@ -116,29 +140,19 @@ def get_all_parent_specifications(
     return parent_specifications
     
 
-def get_minimal_specification(class_name: ClassName, psi: Psi) -> Specification:
-    """
-    Get the minimal specification for a given class name. This is the specification that is a subtype of all parent specifications.
+def is_minimal_specification(class_name: ClassName, s: Specification, psi: Psi) -> bool:
+    """Check if the given specification is minimal for the given class name.
 
-    :param class_name: The class name to get the minimal specification for.
+    :param class_name: The class name to check.
+    :param s: The specification to check.
     :param psi: The Psi object representing the type system.
-    :return: The minimal specification for the given class name.
+    :return: True if the specification is minimal, False otherwise.
     """
     parent_specs = get_all_parent_specifications(psi, class_name)
-
-    # Combine all signatures from all parent specs
-    merged_signatures = {}
-    for spec in parent_specs:
-        for sig in spec:
-            if sig.var in merged_signatures:
-                # Avoid overloading (NoOverloadingΨ): error if method name repeats with different type
-                existing_type = merged_signatures[sig.var].type
-                if existing_type != sig.type:
-                    raise ValueError(f"Overloading detected in method {sig.var}")
-            else:
-                merged_signatures[sig.var] = sig
-
-    return Specification(list(merged_signatures.values()))
+    for sp in parent_specs:
+        if not is_subtype_spec(s, Specification(sp), psi):
+            return False
+    return True
 
 
 """ Functions to check for cycles in the type system
