@@ -316,6 +316,7 @@ def is_valid_function(psi: Psi, function: FunctionType) -> bool:
     """
     return all([is_valid_type(psi, t) for t in function.domain]) and is_valid_type(psi, function.codomain)
 
+
 """ Validation of the graph
 """
 
@@ -331,3 +332,53 @@ def is_valid_node(psi: Psi, node: ClassName) -> bool:
             if exists_all_signatures(psi, node, psi.sigma[node.name]):
                 if no_overloading(psi.sigma[node.name]):
                     return True
+                
+
+def is_valid_edge(psi: Psi, class_name_1: ClassName, class_name_2: ClassName) -> bool:
+    """Check if the given edge is valid in the Psi object.
+
+    :param psi: The Psi object representing the type system.
+    :param class_name_1: The first class name to check.
+    :param class_name_2: The
+    second class name to check.
+    :return: True if the edge is valid, False otherwise.
+    """
+    return any(
+        edge.source == class_name_1 and edge.target == class_name_2
+        for edge in psi.Es
+    )
+
+def is_valid_fun(psi: Psi) -> bool:
+    """Check if the given function is valid in the Psi object.
+
+    :param psi: The Psi object representing the type system.
+    :param sigma: The function to check.
+    :return: True if the function is valid, False otherwise.
+    """
+    for class_name in psi.Ns:
+        if class_name.name in psi.sigma:
+            if not is_valid_signatures(psi, psi.sigma[class_name.name]):
+                return False
+    return True
+
+def is_valid_graph(psi: Psi) -> bool:
+    """Check if the given graph is valid in the Psi object.
+    
+    :param psi: The Psi object representing the type system.
+    :return: True if the graph is valid, False otherwise.
+    """
+    if psi.Es is None:
+        return False
+    if psi.Ns is None:
+        return False
+    if psi.sigma is None:
+        return False
+    if not acyclic(psi):
+        return False
+    for class_name in psi.Ns:
+        if not is_valid_node(psi, class_name):
+            return False
+    for edge in psi.Es:
+        if not is_valid_edge(psi, edge.source, edge.target):
+            return False
+    return True
