@@ -71,7 +71,6 @@ class Specification:
 """ Functions of the type system
 """
 
-
 def lower_set(psi: Psi, ti: ClassName) -> set[ClassName]:
     """Return the set of all ClassName T such that T <: ti.
     
