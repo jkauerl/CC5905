@@ -169,6 +169,33 @@ def join_unique(psi: Psi, ti: ClassName, tj: ClassName) -> ClassName | None:
         return None
 
 
+def proj(t: ClassName, s: Specification) -> Type | None:
+    """Project the specification s onto the class name t.
+
+    :param psi: The Psi object representing the type system.
+    :param t: The class name to project onto.
+    :param s: The specification to project.
+    :return: The projected type or None if not found.
+    """
+    for sig in s.signatures:
+        if sig.var == t.name:
+            return sig.type
+    return None
+
+
+def proj_many(
+    x: ClassName, ss: list[Specification]
+) -> list[Type]:
+    """Project the list of specifications ss onto the class name t.
+
+    :param psi: The Psi object representing the type system.
+    :param t: The class name to project onto.
+    :param ss: The list of specifications to project.
+    :return: A list of projected types.
+    """
+    return [proj(x, s) for s in ss if proj(x, s) is not None]
+
+
 """ Propositions to check the type system
 """
 
