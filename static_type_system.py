@@ -1,9 +1,9 @@
 from abc import ABC
 from collections import defaultdict
 
-
 """ Static type system for a programming language.
 """
+
 
 class Type(ABC):
     """Abstract base class for all types.
@@ -64,6 +64,7 @@ class Psi:
 
 class Specification:
     """Represents the specification of a class in the type system."""
+
     def __init__(self, signatures: list[Signature]):
         self.signatures = signatures
 
@@ -71,9 +72,10 @@ class Specification:
 """ Functions of the type system
 """
 
+
 def lower_set(psi: Psi, ti: ClassName) -> set[ClassName]:
     """Return the set of all ClassName T such that T <: ti.
-    
+
     :param psi: The Psi object representing the type system.
     :param ti: The target class name.
     :return: A set of ClassNames that are subtypes of ti.
@@ -83,7 +85,7 @@ def lower_set(psi: Psi, ti: ClassName) -> set[ClassName]:
 
 def upper_set(psi: Psi, ti: ClassName) -> set[ClassName]:
     """Return the set of all ClassName T such that ti <: T.
-    
+
     :param psi: The Psi object representing the type system.
     :param ti: The target class name.
     :return: A set of ClassNames that are supertypes of ti.
@@ -111,7 +113,7 @@ def meet(psi: Psi, ti: ClassName, tj: ClassName) -> set[ClassName]:
 
 def meet_unique(psi: Psi, ti: ClassName, tj: ClassName) -> ClassName | None:
     """Return the unique meet of two class names in the type system.
-    
+
     :param psi: The Psi object representing the type system.
     :param ti: The first class name.
     :param tj: The second class name.
@@ -183,9 +185,7 @@ def names(s: Specification) -> set[str]:
     return {sig.var for sig in s.signatures}
 
 
-def proj_many(
-    x: ClassName, ss: list[Specification]
-) -> list[Type]:
+def proj_many(x: ClassName, ss: list[Specification]) -> list[Type]:
     """Project the list of specifications ss onto the class name t.
 
     :param psi: The Psi object representing the type system.
@@ -199,7 +199,10 @@ def proj_many(
 """ Propositions to check the type system
 """
 
-def is_direct_subtype(psi: Psi, class_name_1: ClassName, class_name_2: ClassName) -> bool:
+
+def is_direct_subtype(
+    psi: Psi, class_name_1: ClassName, class_name_2: ClassName
+) -> bool:
     """Check if class_name_1 is a direct subtype of class_name_2.
 
     :param psi: The Psi object representing the type system.
@@ -237,9 +240,9 @@ def is_subtype_type(t1: Type, t2: Type, psi: Psi) -> bool:
             return is_subtype(psi, ClassName(n1), ClassName(n2))
         case (FunctionType(dom1, cod1), FunctionType(dom2, cod2)):
             return (
-                len(dom1) == len(dom2) and
-                all(is_subtype_type(t2i, t1i, psi) for t1i, t2i in zip(dom1, dom2)) and
-                is_subtype_type(cod1, cod2, psi)
+                len(dom1) == len(dom2)
+                and all(is_subtype_type(t2i, t1i, psi) for t1i, t2i in zip(dom1, dom2))
+                and is_subtype_type(cod1, cod2, psi)
             )
         case _:
             return False
@@ -272,10 +275,11 @@ def get_all_parent_specifications(
         if is_direct_subtype(psi, class_name, edge.target):
             parent_specifications.append(psi.sigma[edge.target.name])
     return parent_specifications
-    
+
 
 """ Node validation propositions
 """
+
 
 def is_minimal_specification(class_name: ClassName, s: Specification, psi: Psi) -> bool:
     """Check if the given specification is minimal for the given class name.
@@ -309,30 +313,31 @@ def exists_all_signatures(psi: Psi, class_name: ClassName, s: Specification) -> 
     """
     Check if the specification s includes exactly the signatures that are
     either declared by the class N or inherited from its parents, with no extra methods.
-    
+
     :param psi: The Psi object representing the type system.
     :param class_name: The class name to check.
     :param s: The specification to check.
     :return: True if all signatures are correct, False otherwise.
     """
-    
+
     given_signatures = names(s)
 
     # Gather the method names declared by class N
     own_signatures = {sig.var for sig in psi.sigma[class_name.name]}
-    
+
     parent_specs = get_all_parent_specifications(psi, class_name)
-    inherited_signatures = {sig.var for parent in parent_specs for sig in parent.signatures}
-    
+    inherited_signatures = {
+        sig.var for parent in parent_specs for sig in parent.signatures
+    }
+
     expected_signatures = own_signatures.union(inherited_signatures)
-    
-    
+
     return given_signatures == expected_signatures
 
 
 def no_overloading(s: Specification) -> bool:
     """Check if the given specification has no overloading.
-    
+
     :param s: The specification to check.
     :return: True if there is no overloading, False otherwise.
     """
@@ -341,6 +346,7 @@ def no_overloading(s: Specification) -> bool:
 
 """ Functions to check for cycles in the type system
 """
+
 
 def build_adjacency_list(psi: Psi) -> dict:
     """Funtion to build an adjacency list from the given Psi object.
@@ -396,6 +402,7 @@ def acyclic(psi: Psi) -> bool:
 """ Validation of types
 """
 
+
 def is_valid_type(psi: Psi, type: Type) -> bool:
     """Check if the given type is valid in the Psi object.
 
@@ -412,6 +419,7 @@ def is_valid_type(psi: Psi, type: Type) -> bool:
 
 """ Validation of functions and signatures
 """
+
 
 def is_valid_signature(psi: Psi, signature: list[Signature]) -> bool:
     """Check if the given signature is valid in the Psi object. This is a list of signatures.
@@ -430,11 +438,14 @@ def is_valid_function(psi: Psi, function: FunctionType) -> bool:
     :param function: The function to check.
     :return: True if the function is valid, False otherwise.
     """
-    return all([is_valid_type(psi, t) for t in function.domain]) and is_valid_type(psi, function.codomain)
+    return all([is_valid_type(psi, t) for t in function.domain]) and is_valid_type(
+        psi, function.codomain
+    )
 
 
 """ Validation of the graph
 """
+
 
 def is_valid_node(psi: Psi, node: ClassName) -> bool:
     """Check if the given node is valid in the Psi object.
@@ -448,7 +459,7 @@ def is_valid_node(psi: Psi, node: ClassName) -> bool:
             if exists_all_signatures(psi, node, psi.sigma[node.name]):
                 if no_overloading(psi.sigma[node.name]):
                     return True
-                
+
 
 def is_valid_edge(psi: Psi, class_name_1: ClassName, class_name_2: ClassName) -> bool:
     """Check if the given edge is valid in the Psi object.
@@ -460,9 +471,9 @@ def is_valid_edge(psi: Psi, class_name_1: ClassName, class_name_2: ClassName) ->
     :return: True if the edge is valid, False otherwise.
     """
     return any(
-        edge.source == class_name_1 and edge.target == class_name_2
-        for edge in psi.Es
+        edge.source == class_name_1 and edge.target == class_name_2 for edge in psi.Es
     )
+
 
 def is_valid_fun(psi: Psi) -> bool:
     """Check if the given function is valid in the Psi object.
@@ -477,24 +488,25 @@ def is_valid_fun(psi: Psi) -> bool:
                 return False
     return True
 
+
 def is_valid_graph(psi: Psi) -> bool:
     """Check if the given graph is valid in the Psi object.
-    
+
     :param psi: The Psi object representing the type system.
     :return: True if the graph is valid, False otherwise.
     """
     if not is_valid_fun(psi):
         return False
     for class_name in psi.Ns:
-            if class_name.name not in psi.sigma:
-                return False
-            spec = Specification(psi.sigma[class_name.name])
-            if not is_minimal_specification(class_name, spec, psi):
-                return False
-            if not exists_all_signatures(class_name, spec, psi):
-                return False
-            if not is_valid_signature(psi, spec.signatures):
-                return False
+        if class_name.name not in psi.sigma:
+            return False
+        spec = Specification(psi.sigma[class_name.name])
+        if not is_minimal_specification(class_name, spec, psi):
+            return False
+        if not exists_all_signatures(class_name, spec, psi):
+            return False
+        if not is_valid_signature(psi, spec.signatures):
+            return False
     for edge in psi.Es:
         if not is_valid_edge(psi, edge.source, edge.target):
             return False
