@@ -71,14 +71,6 @@ class Specification:
 """ Functions of the type system
 """
 
-def names(s: Specification) -> set[str]:
-    """Get the names of the signatures in the specification.
-
-    :param s: The specification to get the names from.
-    :return: A list of names.
-    """
-    return {sig.var for sig in s.signatures}
-
 
 def lower_set(psi: Psi, ti: ClassName) -> set[ClassName]:
     """Return the set of all ClassName T such that T <: ti.
@@ -181,6 +173,15 @@ def proj(t: ClassName, s: Specification) -> Type | None:
         if sig.var == t.name:
             return sig.type
     return None
+
+
+def names(s: Specification) -> set[str]:
+    """Get the names of the signatures in the specification.
+
+    :param s: The specification to get the names from.
+    :return: A list of names.
+    """
+    return {sig.var for sig in s.signatures}
 
 
 def proj_many(
