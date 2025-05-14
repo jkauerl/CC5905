@@ -79,6 +79,7 @@ def names(s: Specification) -> set[str]:
     """
     return {sig.var for sig in s.signatures}
 
+
 def lower_set(psi: Psi, ti: ClassName) -> set[ClassName]:
     """Return the set of all ClassName T such that T <: ti.
     
@@ -88,6 +89,7 @@ def lower_set(psi: Psi, ti: ClassName) -> set[ClassName]:
     """
     return {T for T in psi.Ns if is_subtype(psi, T, ti)}
 
+
 def upper_set(psi: Psi, ti: ClassName) -> set[ClassName]:
     """Return the set of all ClassName T such that ti <: T.
     
@@ -96,6 +98,7 @@ def upper_set(psi: Psi, ti: ClassName) -> set[ClassName]:
     :return: A set of ClassNames that are supertypes of ti.
     """
     return {T for T in psi.Ns if is_subtype(psi, ti, T)}
+
 
 """ Propositions to check the type system
 """
