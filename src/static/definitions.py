@@ -54,7 +54,7 @@ class Psi:
     """Represents the class (node) relationship in the type system."""
 
     def __init__(
-        self, Ns: list[ClassName], Es: list[Edge], sigma: map[str, list[Signature]]
+        self, Ns: list[ClassName], Es: list[Edge], sigma: dict[str, list[Signature]]
     ):
         self.Ns = Ns
         self.Es = Es
@@ -66,5 +66,3 @@ class Specification:
 
     def __init__(self, signatures: list[Signature]):
         self.signatures = signatures
-
-
