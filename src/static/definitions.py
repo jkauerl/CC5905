@@ -20,6 +20,7 @@ class FunctionType(Type):
 
     :param Type: The type of the function.
     """
+
     domain: list[Type]
     codomain: Type
 
@@ -30,6 +31,7 @@ class ClassName(Type):
 
     :param Type: The type of the class.
     """
+
     name: str
 
 

@@ -26,8 +26,8 @@ def is_minimal_specification(class_name: ClassName, s: Specification, psi: Psi) 
 def is_includes_node(class_name: ClassName, s: Specification, psi: Psi) -> bool:
     """Check if all signatures of class_name in psi.sigma are included in s."""
     if class_name.name not in psi.sigma:
-        return False 
-    
+        return False
+
     sigs_n = psi.sigma[class_name.name]
     sigs_s = s.signatures
 
@@ -38,7 +38,6 @@ def is_includes_node(class_name: ClassName, s: Specification, psi: Psi) -> bool:
         if sig.type != s_dict[sig.var]:
             return False
     return True
-
 
 
 def exists_all_signatures(psi: Psi, class_name: ClassName, s: Specification) -> bool:

@@ -1,6 +1,6 @@
 import pytest
 
-from src.static.definitions import ClassName, Edge, Psi, Signature, Specification, Type
+from src.static.definitions import ClassName, Edge, Psi, Signature, Specification
 from src.static.validations import (
     acyclic,
     exists_all_signatures,
