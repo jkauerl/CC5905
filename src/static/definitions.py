@@ -1,4 +1,5 @@
 from abc import ABC
+from dataclasses import dataclass
 
 """ Static type system for a programming language.
 """
@@ -13,25 +14,23 @@ class Type(ABC):
     pass
 
 
+@dataclass
 class FunctionType(Type):
     """Represents a function type.
 
     :param Type: The type of the function.
     """
-
-    def __init__(self, domain: list[Type], codomain: Type):
-        self.domain = domain
-        self.codomain = codomain
+    domain: list[Type]
+    codomain: Type
 
 
+@dataclass(frozen=True)
 class ClassName(Type):
     """Represents a class name. Which in part represents a node in the type system.
 
     :param Type: The type of the class.
     """
-
-    def __init__(self, name: str):
-        self.name = name
+    name: str
 
 
 class Edge:

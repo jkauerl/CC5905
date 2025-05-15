@@ -23,17 +23,22 @@ def is_minimal_specification(class_name: ClassName, s: Specification, psi: Psi) 
     return True
 
 
-def is_includes_node(class_name: ClassName, s: Specification) -> bool:
-    """Check if the given specification includes the given class name.
+def is_includes_node(class_name: ClassName, s: Specification, psi: Psi) -> bool:
+    """Check if all signatures of class_name in psi.sigma are included in s."""
+    if class_name.name not in psi.sigma:
+        return False 
+    
+    sigs_n = psi.sigma[class_name.name]
+    sigs_s = s.signatures
 
-    :param class_name: The class name to check.
-    :param s: The specification to check.
-    :return: True if the specification includes the class name, False otherwise.
-    """
-    for sig in s.signatures:
-        if sig.var == class_name.name:
-            return True
-    return False
+    s_dict = {sig.var: sig.type for sig in sigs_s}
+    for sig in sigs_n:
+        if sig.var not in s_dict:
+            return False
+        if sig.type != s_dict[sig.var]:
+            return False
+    return True
+
 
 
 def exists_all_signatures(psi: Psi, class_name: ClassName, s: Specification) -> bool:
