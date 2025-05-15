@@ -1,7 +1,8 @@
-from definitions import ClassName, FunctionType, Psi, Specification, Type, Signature
 from collections import defaultdict
-from functions import get_all_parent_specifications, names
-from preposition import is_subtype_spec, is_subtype_type
+
+from .definitions import ClassName, FunctionType, Psi, Signature, Specification, Type
+from .functions import get_all_parent_specifications, names
+from .preposition import is_subtype_spec
 
 """ Node validation propositions
 """

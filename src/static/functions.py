@@ -1,4 +1,4 @@
-from definitions import ClassName, Psi, Specification, Type, FunctionType
+from .definitions import ClassName, FunctionType, Psi, Specification, Type
 
 """ Functions of the type system
 """

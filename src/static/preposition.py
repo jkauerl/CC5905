@@ -1,4 +1,4 @@
-from definitions import ClassName, FunctionType, Psi, Specification, Type
+from .definitions import ClassName, FunctionType, Psi, Specification, Type
 
 """ Propositions to check the type system
 """
@@ -79,5 +79,3 @@ def get_all_parent_specifications(
         if is_direct_subtype(psi, class_name, edge.target):
             parent_specifications.append(psi.sigma[edge.target.name])
     return parent_specifications
-
-
