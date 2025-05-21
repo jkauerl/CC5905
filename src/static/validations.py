@@ -179,17 +179,16 @@ def is_valid_function(psi: Psi, function: FunctionType) -> bool:
 
 
 def is_valid_node(psi: Psi, node: ClassName) -> bool:
-    """Check if the given node is valid in the Psi object.
+    """Check if the given node is valid in the Psi object."""
+    sigs = psi.sigma.get(node.name, [])
+    spec = Specification(sigs)
+    return (
+        is_minimal_specification(node, spec, psi)
+        and is_includes_node(node, spec, psi)
+        and exists_all_signatures(psi, node, spec)
+        and no_overloading(spec)
+    )
 
-    :param psi: The Psi object representing the type system.
-    :param node: The node to check.
-    :return: True if the node is valid, False otherwise.
-    """
-    if is_minimal_specification(node, psi.sigma[node.name], psi):
-        if is_includes_node(node, psi.sigma[node.name]):
-            if exists_all_signatures(psi, node, psi.sigma[node.name]):
-                if no_overloading(psi.sigma[node.name]):
-                    return True
 
 
 def is_valid_edge(psi: Psi, class_name_1: ClassName, class_name_2: ClassName) -> bool:
@@ -234,7 +233,7 @@ def is_valid_graph(psi: Psi) -> bool:
         spec = Specification(psi.sigma[class_name.name])
         if not is_minimal_specification(class_name, spec, psi):
             return False
-        if not exists_all_signatures(class_name, spec, psi):
+        if not exists_all_signatures(psi, class_name, spec):
             return False
         if not is_valid_signature(psi, spec.signatures):
             return False

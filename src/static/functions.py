@@ -199,7 +199,7 @@ def get_all_parent_specifications(
     :return: A list of parent specifications.
     """
     if class_name.name not in [n.name for n in psi.Ns]:
-        raise ValueError(f"Class name {class_name.name} not found in Psi object.")
+        return []
 
     parent_specifications = []
     for edge in psi.Es:
