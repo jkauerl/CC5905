@@ -57,7 +57,10 @@ def exists_all_signatures(psi: Psi, class_name: ClassName, s: Specification) -> 
     own_signatures = {sig.var for sig in psi.sigma[class_name.name]}
 
     parent_specs_raw = get_all_parent_specifications(psi, class_name)
-    parent_specs = [Specification(spec) if not isinstance(spec, Specification) else spec for spec in parent_specs_raw]
+    parent_specs = [
+        Specification(spec) if not isinstance(spec, Specification) else spec
+        for spec in parent_specs_raw
+    ]
     inherited_signatures = {
         sig.var for parent in parent_specs for sig in parent.signatures
     }
@@ -189,7 +192,6 @@ def is_valid_node(psi: Psi, node: ClassName) -> bool:
         and exists_all_signatures(psi, node, spec)
         and no_overloading(spec)
     )
-
 
 
 def is_valid_edge(psi: Psi, class_name_1: ClassName, class_name_2: ClassName) -> bool:

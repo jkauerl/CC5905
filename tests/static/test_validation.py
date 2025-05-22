@@ -1,23 +1,30 @@
 import unittest
-from src.static.definitions import ClassName, Edge, Psi, Signature, Specification, FunctionType
+
+from src.static.definitions import (
+    ClassName,
+    Edge,
+    FunctionType,
+    Psi,
+    Signature,
+    Specification,
+)
 from src.static.validations import (
-    is_minimal_specification,
-    is_includes_node,
-    exists_all_signatures,
-    no_overloading,
     acyclic,
-    is_valid_type,
-    is_valid_signature,
-    is_valid_function,
-    is_valid_node,
+    exists_all_signatures,
+    is_includes_node,
+    is_minimal_specification,
     is_valid_edge,
     is_valid_fun,
+    is_valid_function,
     is_valid_graph,
+    is_valid_node,
+    is_valid_signature,
+    is_valid_type,
+    no_overloading,
 )
 
 
 class TestValidations(unittest.TestCase):
-
     def setUp(self):
         cls = ClassName("A")
         sigs = [Signature("x", ClassName("A"))]
@@ -187,7 +194,9 @@ class TestValidations(unittest.TestCase):
 
     def test_is_valid_signature_false_on_invalid_signature(self):
         clsA = ClassName("A")
-        sigInvalid = Signature("foo", ClassName("Unknown"))  # Invalid type (not in psi.Ns)
+        sigInvalid = Signature(
+            "foo", ClassName("Unknown")
+        )  # Invalid type (not in psi.Ns)
         psi = Psi(Ns=[clsA], Es=[], sigma={"A": [sigInvalid]})
         self.assertFalse(is_valid_signature(psi, psi.sigma["A"]))
 
@@ -201,7 +210,10 @@ class TestValidations(unittest.TestCase):
     def test_valid_graph_cyclic_graph(self):
         clsA = ClassName("A")
         clsB = ClassName("B")
-        edges = [Edge(source=clsA, target=clsB), Edge(source=clsB, target=clsA)]  # Cycle
+        edges = [
+            Edge(source=clsA, target=clsB),
+            Edge(source=clsB, target=clsA),
+        ]  # Cycle
         psi = Psi(Ns=[clsA, clsB], Es=edges, sigma={"A": [], "B": []})
         self.assertFalse(is_valid_graph(psi))
 
