@@ -1,5 +1,6 @@
 from abc import ABC
 from dataclasses import dataclass
+from typing import Tuple
 
 """ Static type system for a programming language.
 """
@@ -32,14 +33,14 @@ class BottomType(Type):
     pass
 
 
-@dataclass
+@dataclass(frozen=True)
 class FunctionType(Type):
     """Represents a function type.
 
     :param Type: The type of the function.
     """
 
-    domain: list[Type]
+    domain: Tuple[Type, ...]
     codomain: Type
 
 
