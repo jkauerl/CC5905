@@ -13,3 +13,11 @@ __all__ = [
     "Psi",
     "Specification",
 ]
+
+class Unknown(Type):
+    """Represents an unknown type in the type system.
+
+    :param Type: The type of the unknown type.
+    """
+
+    pass
