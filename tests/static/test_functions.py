@@ -66,7 +66,6 @@ class TestFunctions(unittest.TestCase):
 
     def test_lower_set(self):
         result = lower_set(self.psi, self.A)
-        print("result", result)
         self.assertIn(self.B, result)
         self.assertIn(self.C, result)
         self.assertIn(self.D, result)
@@ -113,7 +112,6 @@ class TestFunctions(unittest.TestCase):
     def test_proj_many(self):
         specs = [self.spec_A, self.spec_B]
         results = proj_many("x", specs)
-        print("results", results)
         self.assertEqual(results, [self.A, self.A])
 
     def test_is_direct_subtype(self):
