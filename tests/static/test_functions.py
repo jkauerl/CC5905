@@ -132,9 +132,7 @@ class TestFunctions(unittest.TestCase):
         t1 = FunctionType(domain=[ClassName("A")], codomain=ClassName("B"))
         t2 = FunctionType(domain=[ClassName("B")], codomain=ClassName("A"))
 
-        # Fix: this should be True
         self.assertTrue(is_subtype_type(t1, t2, self.psi))
-        # And this should be False
         self.assertFalse(is_subtype_type(t2, t1, self.psi))
 
     def test_is_subtype_spec(self):
