@@ -7,6 +7,8 @@ from src.static.definitions import (
     Psi,
     Signature,
     Specification,
+    TopType,
+    BottomType,
 )
 from src.static.functions import (
     join,
@@ -87,6 +89,7 @@ class TestFunctions(unittest.TestCase):
 
     def test_meet_unique(self):
         m = meet_unique(self.psi, self.B, self.C)
+        self.assertEqual(m, self.D)
 
     def test_join(self):
         j = join(self.psi, self.B, self.C)
@@ -124,6 +127,31 @@ class TestFunctions(unittest.TestCase):
         self.assertTrue(is_subtype(self.psi, self.C, self.A))
         self.assertFalse(is_subtype(self.psi, self.A, self.B))
 
+    def test_is_subtype_cycle_detection(self):
+        visited = set()
+        visited.add((self.B, self.A))
+        self.assertFalse(is_subtype(self.psi, self.B, self.A, visited))
+
+    def test_is_subtype_identity(self):
+        self.assertTrue(is_subtype(self.psi, self.B, self.B))
+
+    def test_is_subtype_toptype(self):
+        self.assertTrue(is_subtype(self.psi, self.B, TopType()))
+
+    def test_is_subtype_bottomtype(self):
+        self.assertTrue(is_subtype(self.psi, BottomType(), self.A))
+
+    def test_is_subtype_function_type_domain_length_mismatch(self):
+        ft1 = FunctionType(domain=(self.A, self.B), codomain=self.C)
+        ft2 = FunctionType(domain=(self.A,), codomain=self.C)
+        self.assertFalse(is_subtype(self.psi, ft1, ft2))
+
+    def test_is_subtype_function_type_codomain_mismatch(self):
+        ft1 = FunctionType(domain=(self.A,), codomain=self.B)
+        ft2 = FunctionType(domain=(self.A,), codomain=self.A)
+
+        self.assertFalse(is_subtype(self.psi, ft1, ft2))
+
     def test_is_subtype_type(self):
         self.assertTrue(is_subtype_type(ClassName("B"), ClassName("A"), self.psi))
         self.assertFalse(is_subtype_type(ClassName("A"), ClassName("B"), self.psi))
@@ -137,6 +165,11 @@ class TestFunctions(unittest.TestCase):
     def test_is_subtype_spec(self):
         self.assertTrue(is_subtype_spec(self.spec_B, self.spec_A, self.psi))
         self.assertFalse(is_subtype_spec(self.spec_A, self.spec_B, self.psi))
+
+    def test_is_not_subtype_spec(self):
+        spec1 = Specification(signatures=[Signature(var="x", type=self.B)])
+        spec2 = Specification(signatures=[Signature(var="x", type=self.C)])
+        self.assertFalse(is_subtype_spec(spec1, spec2, self.psi))
 
     def test_get_all_parent_specifications(self):
         parent_specs = get_all_parent_specifications(self.psi, self.D)
