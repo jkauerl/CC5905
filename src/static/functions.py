@@ -36,9 +36,9 @@ def meet(psi: Psi, ti: ClassName, tj: ClassName) -> set[ClassName]:
     common = lower_set(psi, ti).intersection(lower_set(psi, tj))
 
     meet_set = set()
-    for T in common:
-        if all(not is_subtype(psi, T, T_prime) for T_prime in common if T != T_prime):
-            meet_set.add(T)
+    for t in common:
+        if all(not is_subtype(psi, t, t_prime) for t_prime in common if t != t_prime):
+            meet_set.add(t)
 
     return meet_set
 
@@ -72,9 +72,9 @@ def join(psi: Psi, ti: ClassName, tj: ClassName) -> set[ClassName]:
     common = upper_set(psi, ti).intersection(upper_set(psi, tj))
 
     join_set = set()
-    for T in common:
-        if all(not is_subtype(psi, T_prime, T) for T_prime in common if T != T_prime):
-            join_set.add(T)
+    for t in common:
+        if all(not is_subtype(psi, t_prime, t) for t_prime in common if t != t_prime):
+            join_set.add(t)
 
     return join_set
 
@@ -135,7 +135,8 @@ def proj_many(var: str, ss: list[Specification]) -> list[Type]:
 def get_all_parent_specifications(
     psi: Psi, class_name: ClassName
 ) -> list[Specification]:
-    """Get all parent specifications of a given class name. By checking that the class name is a direct subtype of the parent class.
+    """Get all parent specifications of a given class name.
+    By checking that the class name is a direct subtype of the parent class.
 
     :param psi: The Psi object representing the type system.
     :param class_name: The class name to get the parent specifications for.

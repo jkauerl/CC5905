@@ -157,7 +157,8 @@ def is_valid_type(psi: Psi, type: Type) -> bool:
 
 
 def is_valid_signature(psi: Psi, signature: list[Signature]) -> bool:
-    """Check if the given signature is valid in the Psi object. This is a list of signatures.
+    """Check if the given signature is valid in the Psi object.
+    This is a list of signatures.
 
     :param psi: The Psi object representing the type system.
     :param signature: The signature to check.

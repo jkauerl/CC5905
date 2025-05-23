@@ -36,13 +36,13 @@ class TestValidations(unittest.TestCase):
         self.assertTrue(is_minimal_specification(ClassName("A"), spec, self.simple_psi))
 
     def test_minimal_specification_false_due_to_missing_parent_method(self):
-        clsA = ClassName("A")
-        clsB = ClassName("B")
-        edges = [Edge(source=clsA, target=clsB)]
+        class_a = ClassName("A")
+        class_b = ClassName("B")
+        edges = [Edge(source=class_a, target=class_b)]
         parent_sig = Signature("f", ClassName("B"))
-        psi = Psi(Ns=[clsA, clsB], Es=edges, sigma={"A": [], "B": [parent_sig]})
+        psi = Psi(Ns=[class_a, class_b], Es=edges, sigma={"A": [], "B": [parent_sig]})
         spec = Specification([])
-        self.assertFalse(is_minimal_specification(clsA, spec, psi))
+        self.assertFalse(is_minimal_specification(class_a, spec, psi))
 
     def test_includes_node_true(self):
         spec = Specification(self.simple_psi.sigma["A"])
@@ -83,17 +83,20 @@ class TestValidations(unittest.TestCase):
         self.assertTrue(is_valid_signature(psi, sigs))
 
     def test_graph_is_acyclic(self):
-        clsA = ClassName("A")
-        clsB = ClassName("B")
-        edges = [Edge(source=clsA, target=clsB)]
-        psi = Psi(Ns=[clsA, clsB], Es=edges, sigma={"A": [], "B": []})
+        class_a = ClassName("A")
+        class_b = ClassName("B")
+        edges = [Edge(source=class_a, target=class_b)]
+        psi = Psi(Ns=[class_a, class_b], Es=edges, sigma={"A": [], "B": []})
         self.assertTrue(acyclic(psi))
 
     def test_graph_is_not_acyclic(self):
-        clsA = ClassName("A")
-        clsB = ClassName("B")
-        edges = [Edge(source=clsA, target=clsB), Edge(source=clsB, target=clsA)]
-        psi = Psi(Ns=[clsA, clsB], Es=edges, sigma={"A": [], "B": []})
+        class_a = ClassName("A")
+        class_b = ClassName("B")
+        edges = [
+            Edge(source=class_a, target=class_b),
+            Edge(source=class_b, target=class_a),
+        ]
+        psi = Psi(Ns=[class_a, class_b], Es=edges, sigma={"A": [], "B": []})
         self.assertFalse(acyclic(psi))
 
     def test_valid_type_true(self):
@@ -105,17 +108,17 @@ class TestValidations(unittest.TestCase):
         self.assertFalse(is_valid_type(psi, ClassName("Unknown")))
 
     def test_valid_type_function_true(self):
-        clsA = ClassName("A")
-        clsB = ClassName("B")
-        func = FunctionType(domain=[clsA], codomain=clsB)
-        psi = Psi(Ns=[clsA, clsB], Es=[], sigma={"A": [], "B": []})
+        class_a = ClassName("A")
+        class_b = ClassName("B")
+        func = FunctionType(domain=[class_a], codomain=class_b)
+        psi = Psi(Ns=[class_a, class_b], Es=[], sigma={"A": [], "B": []})
         self.assertTrue(is_valid_type(psi, func))
 
     def test_valid_type_function_false(self):
-        clsA = ClassName("A")
-        clsB = ClassName("B")
-        func = FunctionType(domain=[clsA], codomain=clsB)
-        psi = Psi(Ns=[clsA], Es=[], sigma={"A": []})
+        class_a = ClassName("A")
+        class_b = ClassName("B")
+        func = FunctionType(domain=[class_a], codomain=class_b)
+        psi = Psi(Ns=[class_a], Es=[], sigma={"A": []})
         self.assertFalse(is_valid_type(psi, func))
 
     def test_valid_node_true(self):
@@ -128,18 +131,17 @@ class TestValidations(unittest.TestCase):
         self.assertFalse(is_valid_node(psi, ClassName("Missing")))
 
     def test_valid_edge_true(self):
-        clsA = ClassName("A")
-        clsB = ClassName("B")
-        edge = Edge(source=clsA, target=clsB)
-        psi = Psi(Ns=[clsA, clsB], Es=[edge], sigma={"A": [], "B": []})
-        self.assertTrue(is_valid_edge(psi, clsA, clsB))
+        class_a = ClassName("A")
+        class_b = ClassName("B")
+        edge = Edge(source=class_a, target=class_b)
+        psi = Psi(Ns=[class_a, class_b], Es=[edge], sigma={"A": [], "B": []})
+        self.assertTrue(is_valid_edge(psi, class_a, class_b))
 
     def test_valid_edge_false(self):
-        clsA = ClassName("A")
-        clsB = ClassName("B")
-        edge = Edge(source=clsA, target=clsB)
-        psi = Psi(Ns=[clsA], Es=[], sigma={"A": []})  # missing B
-        self.assertFalse(is_valid_edge(psi, clsA, clsB))
+        class_a = ClassName("A")
+        class_b = ClassName("B")
+        psi = Psi(Ns=[class_a], Es=[], sigma={"A": []})
+        self.assertFalse(is_valid_edge(psi, class_a, class_b))
 
     def test_valid_function_true(self):
         cls = ClassName("A")
@@ -148,10 +150,10 @@ class TestValidations(unittest.TestCase):
         self.assertTrue(is_valid_function(psi, func))
 
     def test_valid_function_false(self):
-        clsA = ClassName("A")
-        clsB = ClassName("B")
-        psi = Psi(Ns=[clsA], Es=[], sigma={"A": []})  # B is not in Ns
-        func = FunctionType(domain=[clsA], codomain=clsB)
+        class_a = ClassName("A")
+        class_b = ClassName("B")
+        psi = Psi(Ns=[class_a], Es=[], sigma={"A": []})
+        func = FunctionType(domain=[class_a], codomain=class_b)
         self.assertFalse(is_valid_function(psi, func))
 
     def test_valid_fun_true(self):
@@ -162,7 +164,7 @@ class TestValidations(unittest.TestCase):
     def test_valid_fun_false(self):
         sig = Signature("bar", ClassName("Missing"))
         cls = ClassName("A")
-        psi = Psi(Ns=[cls], Es=[], sigma={"A": [sig]})  # <- Include the bad sig
+        psi = Psi(Ns=[cls], Es=[], sigma={"A": [sig]})
         self.assertFalse(is_valid_fun(psi))
 
     def test_valid_graph_true(self):
@@ -178,43 +180,42 @@ class TestValidations(unittest.TestCase):
         self.assertFalse(is_valid_graph(psi))
 
     def test_valid_graph_missing_sigma_entry(self):
-        clsA = ClassName("A")
-        clsB = ClassName("B")
-        sigA = Signature("foo", ClassName("A"))
-        psi = Psi(Ns=[clsA, clsB], Es=[], sigma={"A": [sigA]})  # Missing "B" in sigma
+        class_a = ClassName("A")
+        class_b = ClassName("B")
+        sig_a = Signature("foo", ClassName("A"))
+        psi = Psi(Ns=[class_a, class_b], Es=[], sigma={"A": [sig_a]})
         self.assertFalse(is_valid_graph(psi))
 
     def test_exists_all_signatures_false_on_extra_signature(self):
-        clsA = ClassName("A")
-        declared = [Signature("foo", clsA)]
-        extra = Signature("bar", clsA)
-        psi = Psi(Ns=[clsA], Es=[], sigma={"A": declared})  # psi is valid
+        class_a = ClassName("A")
+        declared = [Signature("foo", class_a)]
+        extra = Signature("bar", class_a)
+        psi = Psi(Ns=[class_a], Es=[], sigma={"A": declared})
         spec_with_extra = Specification(declared + [extra])
-        self.assertFalse(exists_all_signatures(psi, clsA, spec_with_extra))
+        self.assertFalse(exists_all_signatures(psi, class_a, spec_with_extra))
 
     def test_is_valid_signature_false_on_invalid_signature(self):
-        clsA = ClassName("A")
-        sigInvalid = Signature(
+        class_a = ClassName("A")
+        sig_invalid = Signature(
             "foo", ClassName("Unknown")
         )  # Invalid type (not in psi.Ns)
-        psi = Psi(Ns=[clsA], Es=[], sigma={"A": [sigInvalid]})
+        psi = Psi(Ns=[class_a], Es=[], sigma={"A": [sig_invalid]})
         self.assertFalse(is_valid_signature(psi, psi.sigma["A"]))
 
     def test_is_valid_edge_false_when_edge_missing(self):
-        clsA = ClassName("A")
-        clsB = ClassName("B")
-        edge = Edge(source=clsA, target=clsB)
-        psi = Psi(Ns=[clsA, clsB], Es=[], sigma={"A": [], "B": []})  # Edge not in Es
-        self.assertFalse(is_valid_edge(psi, clsA, clsB))
+        class_a = ClassName("A")
+        class_b = ClassName("B")
+        psi = Psi(Ns=[class_a, class_b], Es=[], sigma={"A": [], "B": []})
+        self.assertFalse(is_valid_edge(psi, class_a, class_b))
 
     def test_valid_graph_cyclic_graph(self):
-        clsA = ClassName("A")
-        clsB = ClassName("B")
+        class_a = ClassName("A")
+        class_b = ClassName("B")
         edges = [
-            Edge(source=clsA, target=clsB),
-            Edge(source=clsB, target=clsA),
-        ]  # Cycle
-        psi = Psi(Ns=[clsA, clsB], Es=edges, sigma={"A": [], "B": []})
+            Edge(source=class_a, target=class_b),
+            Edge(source=class_b, target=class_a),
+        ]
+        psi = Psi(Ns=[class_a, class_b], Es=edges, sigma={"A": [], "B": []})
         self.assertFalse(is_valid_graph(psi))
 
 

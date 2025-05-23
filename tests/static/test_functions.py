@@ -1,6 +1,7 @@
 import unittest
 
 from src.static.definitions import (
+    BottomType,
     ClassName,
     Edge,
     FunctionType,
@@ -8,9 +9,9 @@ from src.static.definitions import (
     Signature,
     Specification,
     TopType,
-    BottomType,
 )
 from src.static.functions import (
+    get_all_parent_specifications,
     join,
     join_unique,
     lower_set,
@@ -20,7 +21,6 @@ from src.static.functions import (
     proj,
     proj_many,
     upper_set,
-    get_all_parent_specifications
 )
 from src.static.propositions import (
     is_direct_subtype,
