@@ -1,4 +1,5 @@
-from .definitions import ClassName, FunctionType, Psi, Specification, Type
+from .definitions import ClassName, Psi, Specification, Type
+from .propositions import is_direct_subtype, is_subtype
 
 """ Functions of the type system
 """
@@ -93,16 +94,15 @@ def join_unique(psi: Psi, ti: ClassName, tj: ClassName) -> ClassName | None:
         return None
 
 
-def proj(t: ClassName, s: Specification) -> Type | None:
-    """Project the specification s onto the class name t.
+def proj(x: str, s: Specification) -> Type | None:
+    """Returns the type of the variable x in the specification s.
 
-    :param psi: The Psi object representing the type system.
-    :param t: The class name to project onto.
+    :param x: The variable name to look up.
     :param s: The specification to project.
-    :return: The projected type or None if not found.
+    :return: The type associated with x in s, or None if not found.
     """
     for sig in s.signatures:
-        if sig.var == t.name:
+        if sig.var == x:
             return sig.type
     return None
 
@@ -116,7 +116,7 @@ def names(s: Specification) -> set[str]:
     return {sig.var for sig in s.signatures}
 
 
-def proj_many(x: ClassName, ss: list[Specification]) -> list[Type]:
+def proj_many(var: str, ss: list[Specification]) -> list[Type]:
     """Project the list of specifications ss onto the class name t.
 
     :param psi: The Psi object representing the type system.
@@ -124,69 +124,12 @@ def proj_many(x: ClassName, ss: list[Specification]) -> list[Type]:
     :param ss: The list of specifications to project.
     :return: A list of projected types.
     """
-    return [proj(x, s) for s in ss if proj(x, s) is not None]
-
-
-""" Propositions to check the type system
-"""
-
-
-def is_direct_subtype(
-    psi: Psi, class_name_1: ClassName, class_name_2: ClassName
-) -> bool:
-    """Check if class_name_1 is a direct subtype of class_name_2.
-
-    :param psi: The Psi object representing the type system.
-    :param class_name_1: The first class name to check.
-    :param class_name_2: The second class name to check.
-    :return: True if class_name_1 is a direct subtype of class_name_2, False otherwise.
-    """
-    for edge in psi.Es:
-        if edge.source == class_name_1 and edge.target == class_name_2:
-            return True
-    return False
-
-
-def is_subtype(psi: Psi, class_name_1: ClassName, class_name_2: ClassName) -> bool:
-    """Check if class_name_1 is a subtype of class_name_2.
-
-    :param psi: The Psi object representing the type system.
-    :param class_name_1: The first class name to check.
-    :param class_name_2: The second class name to check.
-    :return: True if class_name_1 is a subtype of class_name_2, False otherwise.
-    """
-    if class_name_1 == class_name_2:
-        return True
-    for edge in psi.Es:
-        if edge.source == class_name_1 and edge.target == class_name_2:
-            return True
-        elif edge.source == class_name_1:
-            return is_subtype(psi, edge.target, class_name_2)
-    return False
-
-
-def is_subtype_type(t1: Type, t2: Type, psi: Psi) -> bool:
-    match (t1, t2):
-        case (ClassName(n1), ClassName(n2)):
-            return is_subtype(psi, ClassName(n1), ClassName(n2))
-        case (FunctionType(dom1, cod1), FunctionType(dom2, cod2)):
-            return (
-                len(dom1) == len(dom2)
-                and all(is_subtype_type(t2i, t1i, psi) for t1i, t2i in zip(dom1, dom2))
-                and is_subtype_type(cod1, cod2, psi)
-            )
-        case _:
-            return False
-
-
-def is_subtype_spec(s: Specification, sp: Specification, psi: Psi) -> bool:
-    s_dict = {sig.var: sig.type for sig in s.signatures}
-    for sig_p in sp.signatures:
-        if sig_p.var not in s_dict:
-            return False
-        if not is_subtype_type(s_dict[sig_p.var], sig_p.type, psi):
-            return False
-    return True
+    result = []
+    for s in ss:
+        t = proj(var, s)
+        if t is not None:
+            result.append(t)
+    return result
 
 
 def get_all_parent_specifications(

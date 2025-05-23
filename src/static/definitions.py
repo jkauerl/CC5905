@@ -14,6 +14,24 @@ class Type(ABC):
     pass
 
 
+class TopType(Type):
+    """Represents the top type in the type system.
+
+    :param Type: The type of the top type.
+    """
+
+    pass
+
+
+class BottomType(Type):
+    """Represents the bottom type in the type system.
+
+    :param Type: The type of the bottom type.
+    """
+
+    pass
+
+
 @dataclass
 class FunctionType(Type):
     """Represents a function type.

@@ -2,7 +2,7 @@ from collections import defaultdict
 
 from .definitions import ClassName, FunctionType, Psi, Signature, Specification, Type
 from .functions import get_all_parent_specifications, names
-from .preposition import is_subtype_spec
+from .propositions import is_subtype_spec
 
 """ Node validation propositions
 """
