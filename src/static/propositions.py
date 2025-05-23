@@ -40,35 +40,29 @@ def is_subtype(psi: Psi, t1: Type, t2: Type, visited=None) -> bool:
     if visited is None:
         visited = set()
 
-    # Avoid cycles
     if (t1, t2) in visited:
         return False
     visited.add((t1, t2))
 
-    # SRefl: reflexivity
     if t1 == t2:
         return True
 
-    # STop: Everything is subtype of top
     if isinstance(t2, TopType):
         return True
 
-    # SBot: Bottom is subtype of everything
     if isinstance(t1, BottomType):
         return True
 
-    # SFun: function subtyping (contravariant in domain, covariant in codomain)
     if isinstance(t1, FunctionType) and isinstance(t2, FunctionType):
         if len(t1.domain) != len(t2.domain):
             return False
         domain_check = all(
-            is_subtype(psi, t2_arg, t1_arg, visited)  # Contravariant
+            is_subtype(psi, t2_arg, t1_arg, visited)
             for t1_arg, t2_arg in zip(t1.domain, t2.domain)
         )
-        codomain_check = is_subtype(psi, t1.codomain, t2.codomain, visited)  # Covariant
+        codomain_check = is_subtype(psi, t1.codomain, t2.codomain, visited)
         return domain_check and codomain_check
 
-    # STrans: class subtyping (graph traversal)
     if isinstance(t1, ClassName) and isinstance(t2, ClassName):
         for edge in psi.Es:
             if edge.source == t1:
