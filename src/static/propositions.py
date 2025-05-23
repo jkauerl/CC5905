@@ -99,22 +99,3 @@ def is_subtype_spec(s: Specification, sp: Specification, psi: Psi) -> bool:
         if not is_subtype_type(s_dict[sig_p.var], sig_p.type, psi):
             return False
     return True
-
-
-def get_all_parent_specifications(
-    psi: Psi, class_name: ClassName
-) -> list[Specification]:
-    """Get all parent specifications of a given class name. By checking that the class name is a direct subtype of the parent class.
-
-    :param psi: The Psi object representing the type system.
-    :param class_name: The class name to get the parent specifications for.
-    :return: A list of parent specifications.
-    """
-    if class_name.name not in [n.name for n in psi.Ns]:
-        raise ValueError(f"Class name {class_name.name} not found in Psi object.")
-
-    parent_specifications = []
-    for edge in psi.Es:
-        if is_direct_subtype(psi, class_name, edge.target):
-            parent_specifications.append(psi.sigma[edge.target.name])
-    return parent_specifications
