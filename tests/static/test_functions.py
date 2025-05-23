@@ -105,7 +105,7 @@ class TestFunctions(unittest.TestCase):
         self.assertEqual(
             proj("y", self.spec_B), FunctionType(domain=[self.A], codomain=self.B)
         )
-        self.assertIsNone(proj("z", self.spec_B))  # variable inexistente
+        self.assertIsNone(proj("z", self.spec_B))
 
     def test_names(self):
         self.assertEqual(names(self.spec_B), {"x", "y"})
