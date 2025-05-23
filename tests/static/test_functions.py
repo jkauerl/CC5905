@@ -18,6 +18,7 @@ from src.static.functions import (
     proj,
     proj_many,
     upper_set,
+    get_all_parent_specifications
 )
 from src.static.propositions import (
     is_direct_subtype,
@@ -136,6 +137,12 @@ class TestFunctions(unittest.TestCase):
     def test_is_subtype_spec(self):
         self.assertTrue(is_subtype_spec(self.spec_B, self.spec_A, self.psi))
         self.assertFalse(is_subtype_spec(self.spec_A, self.spec_B, self.psi))
+
+    def test_get_all_parent_specifications(self):
+        parent_specs = get_all_parent_specifications(self.psi, self.D)
+        self.assertIn(self.spec_B, parent_specs)
+        self.assertIn(self.spec_C, parent_specs)
+        self.assertNotIn(self.spec_A, parent_specs)
 
 
 if __name__ == "__main__":
