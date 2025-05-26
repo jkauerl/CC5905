@@ -69,5 +69,5 @@ class Psi:
 class Specification:
     """Represents the specification of a class in the type system."""
 
-    def __init__(self, signatures: list[Signature]):
+    def __init__(self, signatures: list):
         self.signatures = signatures

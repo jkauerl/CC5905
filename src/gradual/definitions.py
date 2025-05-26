@@ -1,4 +1,12 @@
-from src.static.definitions import Type, TopType, BottomType, FunctionType, ClassName, Edge, Signature, Psi, Specification
+from src.static.definitions import (
+    BottomType,
+    ClassName,
+    Edge,
+    FunctionType,
+    Psi,
+    TopType,
+    Type,
+)
 
 """ Exports the classes and functions from the static definitions module. """
 
@@ -9,15 +17,21 @@ __all__ = [
     "FunctionType",
     "ClassName",
     "Edge",
-    "Signature",
     "Psi",
     "Specification",
 ]
 
-class Unknown(Type):
-    """Represents an unknown type in the type system.
 
-    :param Type: The type of the unknown type.
-    """
+class Unknown(Type):
+    """Represents an unknown type in the type system."""
 
     pass
+
+
+class Signature:
+    """Represents a signature in a gradual type system."""
+
+    def __init__(self, var: str, lower_bound: Type, upper_bound: Type):
+        self.var = var
+        self.lower_bound = lower_bound
+        self.upper_bound = upper_bound
