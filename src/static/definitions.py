@@ -7,38 +7,26 @@ from typing import Tuple
 
 
 class Type(ABC):
-    """Abstract base class for all types.
-
-    :param ABC: Abstract Base Class
-    """
+    """Abstract base class for all types."""
 
     pass
 
 
 class TopType(Type):
-    """Represents the top type in the type system.
-
-    :param Type: The type of the top type.
-    """
+    """Represents the top type in the type system."""
 
     pass
 
 
 class BottomType(Type):
-    """Represents the bottom type in the type system.
-
-    :param Type: The type of the bottom type.
-    """
+    """Represents the bottom type in the type system."""
 
     pass
 
 
 @dataclass(frozen=True)
 class FunctionType(Type):
-    """Represents a function type.
-
-    :param Type: The type of the function.
-    """
+    """Represents a function type."""
 
     domain: Tuple[Type, ...]
     codomain: Type
@@ -46,10 +34,7 @@ class FunctionType(Type):
 
 @dataclass(frozen=True)
 class ClassName(Type):
-    """Represents a class name. Which in part represents a node in the type system.
-
-    :param Type: The type of the class.
-    """
+    """Represents a class name. Which in part represents a node in the type system."""
 
     name: str
 
