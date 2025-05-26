@@ -14,5 +14,5 @@ class Evidence:
 class CompleteEvidence:
     """A class to represent complete evidence of a type in a gradual type system."""
 
-    def __init__(self, evidences: list[Evidence]):
-        self.evidences = evidences
+    def __init__(self, evidence1: Evidence, evidence2: Evidence):
+        self.evidences = (evidence1, evidence2)
