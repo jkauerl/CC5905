@@ -1,5 +1,5 @@
 from .definitions import Psi, ClassName, Specification, Edge, FunctionType
-from .functions import (
+from .propositions import (
     is_minimal_specification,
     is_includes_node,
     exists_all_signatures,
@@ -31,3 +31,16 @@ def is_valid_edge(psi: Psi, class_name_1: ClassName, class_name_2: ClassName) ->
     return any(
         edge.source == class_name_1 and edge.target == class_name_2 for edge in psi.Es
     )
+
+
+def is_valid_function(psi: Psi) -> bool:
+    """Check if the given function is valid in the Psi object.
+
+    :param psi: The Psi object representing the type system.
+    :return: True if the function is valid, False otherwise.
+    """
+    for class_name in psi.Ns:
+        if class_name.name in psi.sigma:
+            if not is_valid_signature(psi, psi.sigma[class_name.name]):
+                return False
+    return True
