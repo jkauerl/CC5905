@@ -184,7 +184,12 @@ def is_valid_function(psi: Psi, function: FunctionType) -> bool:
 
 
 def is_valid_node(psi: Psi, node: ClassName) -> bool:
-    """Check if the given node is valid in the Psi object."""
+    """Check if the given node is valid in the Psi object.
+    
+    param psi: The Psi object representing the type system.
+    param edge: The edge to check.
+    return: True if the edge is valid, False otherwise.
+    """
     sigs = psi.sigma.get(node.name, [])
     spec = Specification(sigs)
     return (
