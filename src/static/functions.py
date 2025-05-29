@@ -1,5 +1,5 @@
 from .definitions import ClassName, Psi, Specification, Type
-from .propositions import is_direct_subtype, is_subtype
+from .subtyping import is_subtype
 
 """ Functions of the type system
 """
@@ -130,23 +130,3 @@ def proj_many(var: str, ss: list[Specification]) -> list[Type]:
         if t is not None:
             result.append(t)
     return result
-
-
-def get_all_parent_specifications(
-    psi: Psi, class_name: ClassName
-) -> list[Specification]:
-    """Get all parent specifications of a given class name.
-    By checking that the class name is a direct subtype of the parent class.
-
-    :param psi: The Psi object representing the type system.
-    :param class_name: The class name to get the parent specifications for.
-    :return: A list of parent specifications.
-    """
-    if class_name.name not in [n.name for n in psi.Ns]:
-        return []
-
-    parent_specifications = []
-    for edge in psi.Es:
-        if is_direct_subtype(psi, class_name, edge.target):
-            parent_specifications.append(psi.sigma[edge.target.name])
-    return parent_specifications

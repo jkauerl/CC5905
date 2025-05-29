@@ -11,7 +11,6 @@ from src.static.definitions import (
     TopType,
 )
 from src.static.functions import (
-    get_all_parent_specifications,
     join,
     join_unique,
     lower_set,
@@ -23,10 +22,13 @@ from src.static.functions import (
     upper_set,
 )
 from src.static.propositions import (
-    is_direct_subtype,
+    get_all_parent_specifications,
+)
+from src.static.subtyping import (
     is_subtype,
     is_subtype_spec,
     is_subtype_type,
+    is_direct_subtype,
 )
 
 

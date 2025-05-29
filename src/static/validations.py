@@ -1,8 +1,8 @@
 from .definitions import ClassName, FunctionType, Psi, Signature, Specification, Type
 from .propositions import (
     exists_all_signatures,
-    is_includes_node,
-    is_minimal_specification,
+    includes_node,
+    minimal_specification,
     no_overloading,
     acyclic,
 )
@@ -66,8 +66,8 @@ def is_valid_node(psi: Psi, node: ClassName) -> bool:
     sigs = psi.sigma.get(node.name, [])
     spec = Specification(sigs)
     return (
-        is_minimal_specification(node, spec, psi)
-        and is_includes_node(node, spec, psi)
+        minimal_specification(node, spec, psi)
+        and includes_node(node, spec, psi)
         and exists_all_signatures(psi, node, spec)
         and no_overloading(spec)
     )
@@ -113,7 +113,7 @@ def is_valid_graph(psi: Psi) -> bool:
         if class_name.name not in psi.sigma:
             return False
         spec = Specification(psi.sigma[class_name.name])
-        if not is_minimal_specification(class_name, spec, psi):
+        if not minimal_specification(class_name, spec, psi):
             return False
         if not exists_all_signatures(psi, class_name, spec):
             return False

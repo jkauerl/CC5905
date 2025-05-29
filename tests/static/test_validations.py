@@ -11,8 +11,8 @@ from src.static.definitions import (
 from src.static.validations import (
     acyclic,
     exists_all_signatures,
-    is_includes_node,
-    is_minimal_specification,
+    includes_node,
+    minimal_specification,
     is_valid_edge,
     is_valid_fun,
     is_valid_function,
@@ -33,7 +33,7 @@ class TestValidations(unittest.TestCase):
 
     def test_minimal_specification_true(self):
         spec = Specification(self.simple_psi.sigma["A"])
-        self.assertTrue(is_minimal_specification(ClassName("A"), spec, self.simple_psi))
+        self.assertTrue(minimal_specification(ClassName("A"), spec, self.simple_psi))
 
     def test_minimal_specification_false_due_to_missing_parent_method(self):
         class_a = ClassName("A")
@@ -42,26 +42,26 @@ class TestValidations(unittest.TestCase):
         parent_sig = Signature("f", ClassName("B"))
         psi = Psi(Ns=[class_a, class_b], Es=edges, sigma={"A": [], "B": [parent_sig]})
         spec = Specification([])
-        self.assertFalse(is_minimal_specification(class_a, spec, psi))
+        self.assertFalse(minimal_specification(class_a, spec, psi))
 
     def test_includes_node_true(self):
         spec = Specification(self.simple_psi.sigma["A"])
-        self.assertTrue(is_includes_node(ClassName("A"), spec, self.simple_psi))
+        self.assertTrue(includes_node(ClassName("A"), spec, self.simple_psi))
 
-    def test_is_includes_node_false_missing_signature(self):
+    def test_includes_node_false_missing_signature(self):
         cls = ClassName("A")
         sig = Signature("foo", ClassName("Int"))
         psi = Psi(Ns=[cls], Es=[], sigma={"A": [sig]})
         spec = Specification([])
-        self.assertFalse(is_includes_node(cls, spec, psi))
+        self.assertFalse(includes_node(cls, spec, psi))
 
-    def test_is_includes_node_false_wrong_type(self):
+    def test_includes_node_false_wrong_type(self):
         cls = ClassName("A")
         correct_sig = Signature("foo", ClassName("Int"))
         psi = Psi(Ns=[cls], Es=[], sigma={"A": [correct_sig]})
         wrong_sig = Signature("foo", ClassName("Bool"))
         spec = Specification([wrong_sig])
-        self.assertFalse(is_includes_node(cls, spec, psi))
+        self.assertFalse(includes_node(cls, spec, psi))
 
     def test_exists_all_signatures_true(self):
         spec = Specification(self.simple_psi.sigma["A"])
