@@ -4,6 +4,7 @@ from src.static.definitions import (
     Edge,
     FunctionType,
     Psi,
+    Specification,
     TopType,
     Type,
 )
