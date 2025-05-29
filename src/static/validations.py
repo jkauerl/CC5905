@@ -2,9 +2,9 @@ from collections import defaultdict
 
 from .definitions import ClassName, FunctionType, Psi, Signature, Specification, Type
 from .propositions import (
+    exists_all_signatures,
     is_includes_node,
     is_minimal_specification,
-    exists_all_signatures,
     no_overloading,
 )
 
@@ -114,7 +114,7 @@ def is_valid_function(psi: Psi, function: FunctionType) -> bool:
 
 def is_valid_node(psi: Psi, node: ClassName) -> bool:
     """Check if the given node is valid in the Psi object.
-    
+
     param psi: The Psi object representing the type system.
     param edge: The edge to check.
     return: True if the edge is valid, False otherwise.
