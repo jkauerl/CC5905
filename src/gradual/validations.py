@@ -33,7 +33,7 @@ def is_valid_edge(psi: Psi, class_name_1: ClassName, class_name_2: ClassName) ->
     )
 
 
-def is_valid_function(psi: Psi) -> bool:
+def is_valid_fun(psi: Psi) -> bool:
     """Check if the given function is valid in the Psi object.
 
     :param psi: The Psi object representing the type system.
@@ -43,4 +43,30 @@ def is_valid_function(psi: Psi) -> bool:
         if class_name.name in psi.sigma:
             if not is_valid_signature(psi, psi.sigma[class_name.name]):
                 return False
+    return True
+
+
+def is_valid_graph(psi: Psi) -> bool:
+    """Check if the given graph is valid in the Psi object.
+
+    :param psi: The Psi object representing the type system.
+    :return: True if the graph is valid, False otherwise.
+    """
+    if not is_valid_fun(psi):
+        return False
+    for class_name in psi.Ns:
+        if class_name.name not in psi.sigma:
+            return False
+        spec = Specification(psi.sigma[class_name.name])
+        if not is_minimal_specification(class_name, spec, psi):
+            return False
+        if not exists_all_signatures(psi, class_name, spec):
+            return False
+        if not is_valid_signature(psi, spec.signatures):
+            return False
+    for edge in psi.Es:
+        if not is_valid_edge(psi, edge.source, edge.target):
+            return False
+    if not acyclic(psi):
+        return False
     return True
