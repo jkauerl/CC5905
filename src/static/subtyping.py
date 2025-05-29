@@ -46,6 +46,7 @@ def is_subtype(psi: Psi, t1: Type, t2: Type, visited=None) -> bool:
     if isinstance(t1, BottomType):
         return True
 
+    # If t1 is a function type, check if t2 is a function type
     if isinstance(t1, FunctionType) and isinstance(t2, FunctionType):
         if len(t1.domain) != len(t2.domain):
             return False
@@ -56,6 +57,7 @@ def is_subtype(psi: Psi, t1: Type, t2: Type, visited=None) -> bool:
         codomain_check = is_subtype(psi, t1.codomain, t2.codomain, visited)
         return domain_check and codomain_check
 
+    # If t1 is a class name, check if t2 is a class name
     if isinstance(t1, ClassName) and isinstance(t2, ClassName):
         for edge in psi.Es:
             if edge.source == t1:
