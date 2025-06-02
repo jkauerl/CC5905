@@ -148,11 +148,10 @@ class TestFunctions(unittest.TestCase):
         self.assertFalse(is_subtype(self.psi, ft1, ft2))
 
     def test_is_subtype_function_type_codomain_mismatch(self):
-        ft1 = FunctionType(domain=(self.A,), codomain=self.B)
-        ft2 = FunctionType(domain=(self.A,), codomain=self.A)
+        ft1 = FunctionType(domain=(self.A,), codomain=self.A)
+        ft2 = FunctionType(domain=(self.A,), codomain=self.B)
 
         self.assertFalse(is_subtype(self.psi, ft1, ft2))
-
 
     def test_is_subtype_spec(self):
         self.assertTrue(is_subtype_spec(self.spec_B, self.spec_A, self.psi))

@@ -56,12 +56,15 @@ def is_subtype(psi: Psi, t1: Type, t2: Type, visited=None) -> bool:
         codomain_check = is_subtype(psi, t1.codomain, t2.codomain, visited)
         return domain_check and codomain_check
 
-    # If t1 is a class name, check if t2 is a class name
+    # ClassName subtype with explicit direct check + recursion (transitivity)
     if isinstance(t1, ClassName) and isinstance(t2, ClassName):
+        if is_direct_subtype(psi, t1, t2):
+            return True
         for edge in psi.Es:
             if edge.source == t1:
                 if is_subtype(psi, edge.target, t2, visited):
                     return True
+
     return False
 
 
