@@ -20,6 +20,9 @@ from src.static.functions import (
     proj,
     proj_many,
     upper_set,
+    undeclared,
+    inherited,
+    specifications,
 )
 from src.static.propositions import (
     get_all_parent_specifications,
@@ -168,6 +171,26 @@ class TestFunctions(unittest.TestCase):
         self.assertIn(self.spec_C, parent_specs)
         self.assertNotIn(self.spec_A, parent_specs)
 
+    def test_undeclared(self):
+        undeclared_vars = undeclared(self.psi, self.D)
+        self.assertIn("y", undeclared_vars)
+        self.assertNotIn("x", undeclared_vars)
+
+    def test_inherited(self):
+        inherited_vars = inherited(self.psi, self.D)
+        self.assertIn("y", inherited_vars)
+        self.assertIsInstance(inherited_vars["y"], FunctionType)
+        self.assertEqual(inherited_vars["y"].codomain, self.B)
+        self.assertNotIn("x", inherited_vars)
+
+    def test_specifications(self):
+        spec = specifications(self.psi, self.D)
+        var_names = {sig.var for sig in spec.signatures}
+        self.assertIn("x", var_names)
+        self.assertIn("y", var_names)
+        y_sig = next(sig for sig in spec.signatures if sig.var == "y")
+        self.assertIsInstance(y_sig.type, FunctionType)
+        self.assertEqual(y_sig.type.codomain, self.B)
 
 # TODO: High level functions for testing
 
