@@ -66,27 +66,6 @@ def is_subtype(psi: Psi, t1: Type, t2: Type, visited=None) -> bool:
     return False
 
 
-def is_subtype_type(t1: Type, t2: Type, psi: Psi) -> bool:
-    """Check if t1 is a subtype of t2, considering the Psi type system.
-    
-    :param t1: The first type to check.
-    :param t2: The second type to check.
-    :param psi: The Psi object representing the type system.
-    :return: True if t1 is a subtype of t2, False otherwise.
-    """
-    match (t1, t2):
-        case (ClassName(n1), ClassName(n2)):
-            return is_subtype(psi, ClassName(n1), ClassName(n2))
-        case (FunctionType(dom1, cod1), FunctionType(dom2, cod2)):
-            return (
-                len(dom1) == len(dom2)
-                and all(is_subtype_type(t2i, t1i, psi) for t1i, t2i in zip(dom1, dom2))
-                and is_subtype_type(cod1, cod2, psi)
-            )
-        case _:
-            return False
-
-
 def is_subtype_spec(s: Specification, sp: Specification, psi: Psi) -> bool:
     """Check if specification s is a subtype of specification sp.
     
@@ -99,6 +78,6 @@ def is_subtype_spec(s: Specification, sp: Specification, psi: Psi) -> bool:
     for sig_p in sp.signatures:
         if sig_p.var not in s_dict:
             return False
-        if not is_subtype_type(s_dict[sig_p.var], sig_p.type, psi):
+        if not is_subtype(psi, s_dict[sig_p.var], sig_p.type):
             return False
     return True

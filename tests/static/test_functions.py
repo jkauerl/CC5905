@@ -27,7 +27,6 @@ from src.static.propositions import (
 from src.static.subtyping import (
     is_subtype,
     is_subtype_spec,
-    is_subtype_type,
     is_direct_subtype,
 )
 
@@ -154,15 +153,6 @@ class TestFunctions(unittest.TestCase):
 
         self.assertFalse(is_subtype(self.psi, ft1, ft2))
 
-    def test_is_subtype_type(self):
-        self.assertTrue(is_subtype_type(ClassName("B"), ClassName("A"), self.psi))
-        self.assertFalse(is_subtype_type(ClassName("A"), ClassName("B"), self.psi))
-
-        t1 = FunctionType(domain=[ClassName("A")], codomain=ClassName("B"))
-        t2 = FunctionType(domain=[ClassName("B")], codomain=ClassName("A"))
-
-        self.assertTrue(is_subtype_type(t1, t2, self.psi))
-        self.assertFalse(is_subtype_type(t2, t1, self.psi))
 
     def test_is_subtype_spec(self):
         self.assertTrue(is_subtype_spec(self.spec_B, self.spec_A, self.psi))
