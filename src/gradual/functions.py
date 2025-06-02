@@ -1,15 +1,16 @@
-from .definitions import ClassName, Psi, Type, Specification, Signature
 from src.static.functions import (
+    get_all_parent_specifications,
     join_unique,
     lower_set,
     meet_unique,
     names,
     proj,
     proj_many,
-    upper_set,
-    get_all_parent_specifications,
     undeclared,
+    upper_set,
 )
+
+from .definitions import ClassName, Psi, Signature, Specification, Type
 
 __all__ = [
     "join_unique",
@@ -22,6 +23,10 @@ __all__ = [
     "get_all_parent_specifications",
     "undeclared",
 ]
+
+
+def meet_unique_consistent(psi: Psi, type1: Type, type2: Type) -> Type | None:
+    pass
 
 
 def inherited(psi: Psi, class_name: ClassName) -> dict[str, Type]:
@@ -48,7 +53,9 @@ def inherited(psi: Psi, class_name: ClassName) -> dict[str, Type]:
         current_meet = projected_types[0]
 
         for other_type in projected_types[1:]:
-            if isinstance(current_meet, ClassName) and isinstance(other_type, ClassName):
+            if isinstance(current_meet, ClassName) and isinstance(
+                other_type, ClassName
+            ):
                 m = meet_unique_consistent(psi, current_meet, other_type)
                 if m is None:
                     current_meet = None
@@ -62,7 +69,6 @@ def inherited(psi: Psi, class_name: ClassName) -> dict[str, Type]:
             inherited_vars[var] = current_meet
 
     return inherited_vars
-
 
 
 def specifications(psi: Psi, class_name: ClassName) -> Specification:
@@ -80,7 +86,9 @@ def specifications(psi: Psi, class_name: ClassName) -> Specification:
 
     inherited_vars = inherited(psi, class_name)
 
-    inherited_signatures = [Signature(var=var, type=typ) for var, typ in inherited_vars.items()]
+    inherited_signatures = [
+        Signature(var=var, type=typ) for var, typ in inherited_vars.items()
+    ]
 
     combined_signatures_dict = {sig.var: sig for sig in explicit_signatures}
     for sig in inherited_signatures:

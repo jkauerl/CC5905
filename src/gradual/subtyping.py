@@ -1,5 +1,15 @@
-from .definitions import Psi, Type, ClassName, FunctionType, BottomType, TopType, Specification, Unknown
 import src.static.subtyping as static_subtyping
+
+from .definitions import (
+    BottomType,
+    ClassName,
+    FunctionType,
+    Psi,
+    Specification,
+    TopType,
+    Type,
+    Unknown,
+)
 
 """ Propositions to check the type system
 """
@@ -7,7 +17,7 @@ import src.static.subtyping as static_subtyping
 
 def is_subtype(psi: Psi, t1: Type, t2: Type, visited=None) -> bool:
     """Check if t1 is a subtype of t2 in the Psi type system.
-    
+
     :param psi: The Psi object representing the type system.
     :param t1: The first type to check.
     :param t2: The second type to check.
@@ -23,10 +33,10 @@ def is_subtype(psi: Psi, t1: Type, t2: Type, visited=None) -> bool:
 
     if t1 == t2:
         return True
-    
+
     if isinstance(t2, TopType):
         return True
-    
+
     if isinstance(t1, BottomType):
         return True
 
@@ -55,7 +65,7 @@ def is_subtype(psi: Psi, t1: Type, t2: Type, visited=None) -> bool:
 
 def is_subtype_spec(s: Specification, sp: Specification, psi: Psi) -> bool:
     """Check if specification s is a subtype of specification sp.
-    
+
     :param s: The first specification to check.
     :param sp: The second specification to check.
     :param psi: The Psi object representing the type system.

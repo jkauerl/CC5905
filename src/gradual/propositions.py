@@ -1,12 +1,13 @@
-from .definitions import Psi, ClassName, Specification
-from .functions import get_all_parent_specifications
+from src.gradual.subtyping import is_subtype_spec
 from src.static.propositions import (
     acyclic,
-    includes_node,
     exists_all_signatures,
+    includes_node,
     no_overloading,
 )
-from src.gradual.subtyping import is_subtype_spec
+
+from .definitions import ClassName, Psi, Specification
+from .functions import get_all_parent_specifications
 
 __all__ = [
     "acyclic",
@@ -21,7 +22,7 @@ __all__ = [
 
 def minimal_specification(psi: Psi, class_name: ClassName, s: Specification) -> bool:
     """Check if the given specification is minimal for the given class name.
-    
+
     :param psi: The Psi object representing the type system.
     :param class_name: The class name to check.
     :param s: The specification to check.

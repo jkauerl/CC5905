@@ -1,10 +1,20 @@
-from .definitions import Psi, ClassName, Specification, FunctionType, Signature, Type, TopType, BottomType, Unknown
+from .definitions import (
+    BottomType,
+    ClassName,
+    FunctionType,
+    Psi,
+    Signature,
+    Specification,
+    TopType,
+    Type,
+    Unknown,
+)
 from .propositions import (
+    acyclic,
     exists_all_signatures,
     includes_node,
     minimal_specification,
     no_overloading,
-    acyclic,
 )
 
 """ Validation of types
@@ -19,7 +29,7 @@ def is_valid_type(psi: Psi, type: Type) -> bool:
     :return: True if the type is valid, False otherwise.
     """
     match type:
-        case FunctionType(T1s, T2):
+        case FunctionType(_, _):
             return is_valid_function(psi, type)
         case ClassName(name):
             return name in [n.name for n in psi.Ns]

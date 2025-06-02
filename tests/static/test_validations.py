@@ -12,7 +12,6 @@ from src.static.validations import (
     acyclic,
     exists_all_signatures,
     includes_node,
-    minimal_specification,
     is_valid_edge,
     is_valid_fun,
     is_valid_function,
@@ -20,6 +19,7 @@ from src.static.validations import (
     is_valid_node,
     is_valid_signature,
     is_valid_type,
+    minimal_specification,
     no_overloading,
 )
 

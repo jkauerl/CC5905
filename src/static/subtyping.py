@@ -1,4 +1,12 @@
-from .definitions import Psi, Type, ClassName, FunctionType, BottomType, TopType, Specification
+from .definitions import (
+    BottomType,
+    ClassName,
+    FunctionType,
+    Psi,
+    Specification,
+    TopType,
+    Type,
+)
 
 """ Propositions to check the type system
 """
@@ -70,7 +78,7 @@ def is_subtype(psi: Psi, t1: Type, t2: Type, visited=None) -> bool:
 
 def is_subtype_spec(s: Specification, sp: Specification, psi: Psi) -> bool:
     """Check if specification s is a subtype of specification sp.
-    
+
     :param s: The first specification to check.
     :param sp: The second specification to check.
     :param psi: The Psi object representing the type system.

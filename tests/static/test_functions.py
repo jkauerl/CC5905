@@ -11,6 +11,7 @@ from src.static.definitions import (
     TopType,
 )
 from src.static.functions import (
+    inherited,
     join,
     join_unique,
     lower_set,
@@ -19,18 +20,17 @@ from src.static.functions import (
     names,
     proj,
     proj_many,
-    upper_set,
-    undeclared,
-    inherited,
     specifications,
+    undeclared,
+    upper_set,
 )
 from src.static.propositions import (
     get_all_parent_specifications,
 )
 from src.static.subtyping import (
+    is_direct_subtype,
     is_subtype,
     is_subtype_spec,
-    is_direct_subtype,
 )
 
 
@@ -191,6 +191,7 @@ class TestFunctions(unittest.TestCase):
         y_sig = next(sig for sig in spec.signatures if sig.var == "y")
         self.assertIsInstance(y_sig.type, FunctionType)
         self.assertEqual(y_sig.type.codomain, self.B)
+
 
 # TODO: High level functions for testing
 

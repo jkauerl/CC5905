@@ -1,5 +1,5 @@
-from .definitions import ClassName, Psi, Specification, Type, Signature
-from .subtyping import is_subtype, is_direct_subtype
+from .definitions import ClassName, Psi, Signature, Specification, Type
+from .subtyping import is_direct_subtype, is_subtype
 
 """ Function to get parent specifications
 """
@@ -206,7 +206,9 @@ def inherited(psi: Psi, class_name: ClassName) -> dict[str, Type]:
         current_meet = projected_types[0]
 
         for other_type in projected_types[1:]:
-            if isinstance(current_meet, ClassName) and isinstance(other_type, ClassName):
+            if isinstance(current_meet, ClassName) and isinstance(
+                other_type, ClassName
+            ):
                 m = meet_unique(psi, current_meet, other_type)
                 if m is None:
                     current_meet = None
@@ -237,7 +239,9 @@ def specifications(psi: Psi, class_name: ClassName) -> Specification:
 
     inherited_vars = inherited(psi, class_name)
 
-    inherited_signatures = [Signature(var=var, type=typ) for var, typ in inherited_vars.items()]
+    inherited_signatures = [
+        Signature(var=var, type=typ) for var, typ in inherited_vars.items()
+    ]
 
     combined_signatures_dict = {sig.var: sig for sig in explicit_signatures}
     for sig in inherited_signatures:

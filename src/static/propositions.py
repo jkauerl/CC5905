@@ -5,9 +5,8 @@ from .definitions import (
     Psi,
     Specification,
 )
-from .functions import names, get_all_parent_specifications
+from .functions import get_all_parent_specifications, names
 from .subtyping import is_subtype_spec
-
 
 """ Node validation propositions
 """
