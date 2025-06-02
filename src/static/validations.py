@@ -1,4 +1,4 @@
-from .definitions import ClassName, FunctionType, Psi, Signature, Specification, Type
+from .definitions import ClassName, FunctionType, Psi, Signature, Specification, Type, TopType, BottomType
 from .propositions import (
     exists_all_signatures,
     includes_node,
@@ -23,6 +23,10 @@ def is_valid_type(psi: Psi, type: Type) -> bool:
             return is_valid_function(psi, type)
         case ClassName(name):
             return name in [n.name for n in psi.Ns]
+        case TopType():
+            return True
+        case BottomType():
+            return True
 
 
 """ Validation of functions and signatures
