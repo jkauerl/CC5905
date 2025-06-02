@@ -20,7 +20,7 @@ def is_valid_type(psi: Psi, type: Type) -> bool:
     """
     match type:
         case FunctionType(T1s, T2):
-            return all([is_valid_type(psi, t) for t in T1s]) and is_valid_type(psi, T2)
+            return is_valid_function(psi, type)
         case ClassName(name):
             return name in [n.name for n in psi.Ns]
 
