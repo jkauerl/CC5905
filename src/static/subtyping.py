@@ -1,4 +1,3 @@
-
 from .definitions import Psi, Type, ClassName, FunctionType, BottomType, TopType, Specification
 
 """ Propositions to check the type system
