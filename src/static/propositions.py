@@ -5,31 +5,8 @@ from .definitions import (
     Psi,
     Specification,
 )
-from .functions import names
-from .subtyping import is_subtype_spec, is_direct_subtype
-
-""" Function to get parent specifications
-"""
-
-
-def get_all_parent_specifications(
-    psi: Psi, class_name: ClassName
-) -> list[Specification]:
-    """Get all parent specifications of a given class name.
-    By checking that the class name is a direct subtype of the parent class.
-
-    :param psi: The Psi object representing the type system.
-    :param class_name: The class name to get the parent specifications for.
-    :return: A list of parent specifications.
-    """
-    if class_name.name not in [n.name for n in psi.Ns]:
-        return []
-
-    parent_specifications = []
-    for edge in psi.Es:
-        if is_direct_subtype(psi, class_name, edge.target):
-            parent_specifications.append(psi.sigma[edge.target.name])
-    return parent_specifications
+from .functions import names, get_all_parent_specifications
+from .subtyping import is_subtype_spec
 
 
 """ Node validation propositions
