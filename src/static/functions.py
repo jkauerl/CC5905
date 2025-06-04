@@ -49,13 +49,13 @@ def upper_set(psi: Psi, ti: ClassName) -> set[ClassName]:
     return {T for T in psi.Ns if is_subtype(psi, ti, T)}
 
 
-def meet(psi: Psi, ti: ClassName, tj: ClassName) -> set[ClassName]:
+def meet(psi: Psi, ti: Type, tj: Type) -> set[Type]:
     """Return the meet (greatest lower bound) of two class names in the type system.
 
     :param psi: The Psi object representing the type system.
     :param ti: The first class name.
     :param tj: The second class name.
-    :return: A set of ClassName representing the meet.
+    :return: A set of Type representing the meet.
     """
     common = lower_set(psi, ti).intersection(lower_set(psi, tj))
 
@@ -67,7 +67,7 @@ def meet(psi: Psi, ti: ClassName, tj: ClassName) -> set[ClassName]:
     return meet_set
 
 
-def meet_unique(psi: Psi, ti: ClassName, tj: ClassName) -> ClassName | None:
+def meet_unique(psi: Psi, ti: Type, tj: Type) -> Type | None:
     """Return the unique meet of two class names in the type system.
 
     :param psi: The Psi object representing the type system.
@@ -82,7 +82,7 @@ def meet_unique(psi: Psi, ti: ClassName, tj: ClassName) -> ClassName | None:
         return None
 
 
-def join(psi: Psi, ti: ClassName, tj: ClassName) -> set[ClassName]:
+def join(psi: Psi, ti: Type, tj: Type) -> set[Type]:
     """Return the join (least upper bound) of two class names in the type system.
 
     The join is the set of minimal elements in the intersection of the higher sets
@@ -91,7 +91,7 @@ def join(psi: Psi, ti: ClassName, tj: ClassName) -> set[ClassName]:
     :param psi: The Psi object representing the type system.
     :param ti: The first class name.
     :param tj: The second class name.
-    :return: A set of ClassName representing the join.
+    :return: A set of Type representing the join.
     """
     common = upper_set(psi, ti).intersection(upper_set(psi, tj))
 
@@ -103,7 +103,7 @@ def join(psi: Psi, ti: ClassName, tj: ClassName) -> set[ClassName]:
     return join_set
 
 
-def join_unique(psi: Psi, ti: ClassName, tj: ClassName) -> ClassName | None:
+def join_unique(psi: Psi, ti: Type, tj: Type) -> Type | None:
     """Return the unique join of two class names in the type system.
 
     :param psi: The Psi object representing the type system.
