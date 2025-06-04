@@ -1,4 +1,4 @@
-from .definitions import Type
+from ..definitions import Type
 
 
 class Evidence:
