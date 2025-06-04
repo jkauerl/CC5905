@@ -4,29 +4,123 @@ from src.static.functions import (
     lower_set,
     meet_unique,
     names,
-    proj,
-    proj_many,
     undeclared,
     upper_set,
 )
 
-from .definitions import ClassName, Psi, Signature, Specification, Type
+from .definitions import ClassName, Psi, Signature, Specification, Type, BottomType, TopType, FunctionType, Unknown
 
 __all__ = [
     "join_unique",
     "lower_set",
     "meet_unique",
     "names",
-    "proj",
-    "proj_many",
     "upper_set",
     "get_all_parent_specifications",
     "undeclared",
 ]
 
 
-def meet_unique_consistent(psi: Psi, type1: Type, type2: Type) -> Type | None:
-    pass
+def meet_unique_consistent(psi: Psi, ti: Type, tj: Type) -> Type | None:
+    """ Calculate the meet of two types, ensuring consistency in the type system.
+
+    :param psi: The Psi object representing the type system.
+    :param ti: The first type to meet.class Type:
+    :param tj: The second type to meet.
+    :return: The meet of the two types if consistent, otherwise None.
+    """
+    match ti, tj:
+        case FunctionType(fi1, fj1), FunctionType(fi2, fj2):
+            if len(fi1) != len(fi2):
+                raise ValueError("Function types must have the same number of arguments")
+            args = [join_unique_consistent(psi, a1, a2) for a1, a2 in zip(fi1, fi2)]
+            if any(a is None for a in args):
+                return None
+            ret = meet_unique_consistent(psi, fj1, fj2)
+            if ret is None:
+                return None
+            return FunctionType(args, ret)
+        case Type(), Type():
+            return meet_unique(psi, ti, tj)
+        case BottomType(), _:
+            return BottomType()
+        case _, BottomType():
+            return BottomType()
+        case TopType(), _:
+            return tj
+        case _, TopType():
+            return ti
+        case Unknown(), _:
+            return Unknown()
+        case _, Unknown():
+            return Unknown()
+
+    return None
+        
+
+def join_unique_consistent(psi: Psi, ti: Type, tj: Type) -> Type | None:
+    """ Calculate the join of two types, ensuring consistency in the type system.
+
+    :param psi: The Psi object representing the type system.
+    :param ti: The first type to join.
+    :param tj: The second type to join.
+    :return: The join of the two types if consistent, otherwise None.
+    """
+    match ti, tj:
+        case FunctionType(fi1, fj1), FunctionType(fi2, fj2):
+            if len(fi1) != len(fi2):
+                raise ValueError("Function types must have the same number of arguments")
+            args = [meet_unique_consistent(psi, a1, a2) for a1, a2 in zip(fi1, fi2)]
+            if any(a is None for a in args):
+                return None
+            ret = join_unique_consistent(psi, fj1, fj2)
+            if ret is None:
+                return None
+            return FunctionType(args, ret)
+        case Type(), Type():
+            return meet_unique(psi, ti, tj)
+        case BottomType(), _:
+            return BottomType()
+        case _, BottomType():
+            return BottomType()
+        case TopType(), _:
+            return tj
+        case _, TopType():
+            return ti
+        case Unknown(), _:
+            return Unknown()
+        case _, Unknown():
+            return Unknown()
+
+    return None
+        
+
+def proj(x: str, s: Specification) -> Type | None:
+    """Project a variable name from a specification to its type.
+
+    :param x: The variable name to project.
+    :param s: The specification containing the signatures.
+    :return: The type of the variable if found, otherwise None.
+    """
+    for sig in s.signatures:
+        if sig.var == x:
+            return sig.type
+    return None
+
+
+def proj_many(var: str, ss: list[Specification]) -> list[Type]:
+    """Project a variable name from multiple specifications to their types.
+
+    :param var: The variable name to project.
+    :param ss: A list of specifications to project onto.
+    :return: A list of types associated with the variable in the specifications.
+    """
+    result = []
+    for s in ss:
+        t = proj(var, s)
+        if t is not None:
+            result.append(t)
+    return result
 
 
 def inherited(psi: Psi, class_name: ClassName) -> dict[str, Type]:
