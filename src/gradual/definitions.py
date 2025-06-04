@@ -35,5 +35,3 @@ class Signature:
     def __init__(self, var: str, type: Type, lower_bound: Type, upper_bound: Type):
         self.var = var
         self.type = type
-        self.lower_bound = lower_bound
-        self.upper_bound = upper_bound
