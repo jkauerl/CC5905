@@ -29,22 +29,22 @@ def get_all_parent_specifications(
 """
 
 
-def lower_set(psi: Psi, ti: ClassName) -> set[ClassName]:
-    """Return the set of all ClassName T such that T <: ti.
+def lower_set(psi: Psi, ti: Type) -> set[Type]:
+    """Return the set of all Type T such that T <: ti.
 
     :param psi: The Psi object representing the type system.
     :param ti: The target class name.
-    :return: A set of ClassNames that are subtypes of ti.
+    :return: A set of Types that are subtypes of ti.
     """
     return {T for T in psi.Ns if is_subtype(psi, T, ti)}
 
 
-def upper_set(psi: Psi, ti: ClassName) -> set[ClassName]:
-    """Return the set of all ClassName T such that ti <: T.
+def upper_set(psi: Psi, ti: Type) -> set[Type]:
+    """Return the set of all Type T such that ti <: T.
 
     :param psi: The Psi object representing the type system.
     :param ti: The target class name.
-    :return: A set of ClassNames that are supertypes of ti.
+    :return: A set of Types that are supertypes of ti.
     """
     return {T for T in psi.Ns if is_subtype(psi, ti, T)}
 
