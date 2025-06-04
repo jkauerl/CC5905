@@ -1,3 +1,4 @@
+from abc import ABC
 from src.static.definitions import (
     BottomType,
     ClassName,
@@ -6,13 +7,11 @@ from src.static.definitions import (
     Psi,
     Specification,
     TopType,
-    Type,
 )
 
 """ Exports the classes and functions from the static definitions module. """
 
 __all__ = [
-    "Type",
     "TopType",
     "BottomType",
     "FunctionType",
@@ -21,6 +20,12 @@ __all__ = [
     "Psi",
     "Specification",
 ]
+
+
+class Type(ABC):
+    """Abstract base class for all types."""
+
+    pass
 
 
 class Unknown(Type):
