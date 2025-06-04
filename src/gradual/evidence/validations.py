@@ -1,0 +1,19 @@
+from ..subtyping import is_subtype
+from ..definitions import Psi
+from .definitions import Evidence
+
+
+def is_subtype_evidence(psi: Psi, evidence_1: Evidence, evidence_2: Evidence) -> bool:
+    """ Check if the first evidence is a subtype of the second evidence.
+    
+    :param psi: The Psi object representing the type system.
+    :param evidence_1: The first evidence to check.
+    :param evidence_2: The second evidence to check.
+    :return: True if evidence_1 is a subtype of evidence_2, False otherwise.
+    """
+    if is_subtype(psi, evidence_1.lower_bound, evidence_2.lower_bound):
+        if is_subtype(psi, evidence_1.upper_bound, evidence_2.upper_bound):
+            return evidence_1.value == evidence_2.value
+        return True
+    return False
+    
