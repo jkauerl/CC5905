@@ -7,6 +7,7 @@ from src.static.definitions import (
     Psi,
     Specification,
     TopType,
+    Signature,
 )
 
 """ Exports the classes and functions from the static definitions module. """
@@ -19,6 +20,7 @@ __all__ = [
     "Edge",
     "Psi",
     "Specification",
+    "Signature",
 ]
 
 
@@ -32,11 +34,3 @@ class Unknown(Type):
     """Represents an unknown type in the type system."""
 
     pass
-
-
-class Signature:
-    """Represents a signature in a gradual type system."""
-
-    def __init__(self, var: str, type: Type, lower_bound: Type, upper_bound: Type):
-        self.var = var
-        self.type = type
