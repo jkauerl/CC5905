@@ -1,9 +1,9 @@
 from ..subtyping import is_subtype
 from ..definitions import Psi
-from .definitions import Evidence
+from .definitions import Signature
 
 
-def is_subtype_evidence(psi: Psi, evidence_1: Evidence, evidence_2: Evidence) -> bool:
+def is_subtype_evidence(psi: Psi, evidence_1: Signature, evidence_2: Signature) -> bool:
     """ Check if the first evidence is a subtype of the second evidence.
     
     :param psi: The Psi object representing the type system.
