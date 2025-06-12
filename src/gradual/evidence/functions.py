@@ -161,3 +161,24 @@ def join_complete_evidences(psi: Psi, complete_evidence_1: CompleteEvidence, com
             new_evidences = join_evidence(psi, ev1, ev2)
             evidences.extend(new_evidences)
     return CompleteEvidence(evidences)
+
+""" Interior functions
+"""
+
+def lift_gradual_type(t: GradualType) -> EvidenceInterval:
+    """Lift a gradual type to a gradual type with lower and upper bounds.
+
+    :param t: The type to lift.
+    :return: A new Type that is the lifted gradual type.
+    """
+    match t:
+        case FunctionType(domain, codomain):
+            domain_interval = lift_gradual_type(domain)
+            codomain_interval = lift_gradual_type(codomain)
+            lower_bound = FunctionType(domain_interval.upper_bound, codomain_interval.lower_bound)
+            upper_bound = FunctionType(domain_interval.lower_bound, codomain_interval.upper_bound)
+            return Interval(lower_bound, upper_bound)
+        case Unknown():
+            return EvidenceInterval(BottomType(), TopType())
+        case _: # For all other concrete types
+            return EvidenceInterval(t, t)
