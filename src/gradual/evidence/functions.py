@@ -1,4 +1,4 @@
-from typing import List, Set
+from typing import Set, Tuple
 from ..definitions import Psi,  GradualType, Unknown, BottomType, TopType, GradualFunctionType
 from .definitions import EvidenceInterval, EvidenceSpecification, Evidence, CompleteEvidence
 from ..subtyping import is_subtype, is_subtype_spec
@@ -10,7 +10,7 @@ from src.static.definitions import Type
 
 # Meet
 
-def meet_evidence_intervals(psi: Psi, interval_1: EvidenceInterval, interval_2: EvidenceInterval) -> list[EvidenceInterval]:
+def meet_evidence_intervals(psi: Psi, interval_1: EvidenceInterval, interval_2: EvidenceInterval) -> Set[EvidenceInterval]:
     """Compute the meet of two intervals in the type system.
 
     :param psi: The Psi object representing the type system.
@@ -20,15 +20,15 @@ def meet_evidence_intervals(psi: Psi, interval_1: EvidenceInterval, interval_2: 
     """
     lower_bounds = meet(psi, interval_1.lower_bound, interval_2.lower_bound)
     upper_bounds = meet(psi, interval_1.upper_bound, interval_2.upper_bound)
-    intervals = []
+    intervals = set()
     for lower_bound in lower_bounds:
         for upper_bound in upper_bounds:
             if is_subtype(psi, lower_bound, upper_bound):
-                intervals.append(EvidenceInterval(lower_bound, upper_bound))
+                intervals.add(EvidenceInterval(lower_bound, upper_bound))
     return intervals
 
 
-def meet_evidence_specifications(psi: Psi, spec_1: EvidenceSpecification, spec_2: EvidenceSpecification) -> list[EvidenceSpecification]:
+def meet_evidence_specifications(psi: Psi, spec_1: EvidenceSpecification, spec_2: EvidenceSpecification) -> Set[EvidenceSpecification]:
     """Compute the meet of two specifications in the type system.
 
     :param psi: The Psi object representing the type system.
@@ -36,7 +36,7 @@ def meet_evidence_specifications(psi: Psi, spec_1: EvidenceSpecification, spec_2
     :param spec_2: The second specification to meet.
     :return: A new Specification that is the meet of the two specifications.
     """
-    specifications = []
+    specifications = set()
     for signature_1 in spec_1.signatures:
         for signature_2 in spec_2.signatures:
             if signature_1.var == signature_2.var:
@@ -47,12 +47,12 @@ def meet_evidence_specifications(psi: Psi, spec_1: EvidenceSpecification, spec_2
                         if sig.var != signature_1.var
                     ]
                     combined = [new_signature] + extra_signatures
-                    specifications.append(EvidenceSpecification(combined))
+                    specifications.add(EvidenceSpecification(combined))
 
     return specifications
 
 
-def meet_evidences(psi: Psi, evidence_1: Evidence, evidence_2: Evidence) -> list[Evidence]:
+def meet_evidences(psi: Psi, evidence_1: Evidence, evidence_2: Evidence) -> Set[Evidence]:
     """Compute the meet of two evidences in the type system.
     
     :param psi: The Psi object representing the type system.
@@ -62,11 +62,11 @@ def meet_evidences(psi: Psi, evidence_1: Evidence, evidence_2: Evidence) -> list
     """
     spec_1 = meet_evidence_specifications(psi, evidence_1.specification_1, evidence_2.specification_1)
     spec_2 = meet_evidence_specifications(psi, evidence_1.specification_2, evidence_2.specification_2)
-    evidences = []
+    evidences = set()
     for s1 in spec_1:
         for s2 in spec_2:
             if is_subtype_spec(psi, s1, s2):
-                evidences.append(Evidence(s1, s2))
+                evidences.add(Evidence(s1, s2))
     return evidences
 
 
@@ -87,7 +87,7 @@ def meet_complete_evidences(psi: Psi, complete_evidence_1: CompleteEvidence, com
 
 # Join
 
-def join_evidence_intervals(psi: Psi, interval_1: EvidenceInterval, interval_2: EvidenceInterval) -> list[EvidenceInterval]:
+def join_evidence_intervals(psi: Psi, interval_1: EvidenceInterval, interval_2: EvidenceInterval) -> Set[EvidenceInterval]:
     """Compute the join of two intervals in the type system.
 
     :param psi: The Psi object representing the type system.
@@ -97,15 +97,15 @@ def join_evidence_intervals(psi: Psi, interval_1: EvidenceInterval, interval_2: 
     """
     lower_bounds = join(psi, interval_1.lower_bound, interval_2.lower_bound)
     upper_bounds = join(psi, interval_1.upper_bound, interval_2.upper_bound)
-    intervals = []
+    intervals = set()
     for lower_bound in lower_bounds:
         for upper_bound in upper_bounds:
             if is_subtype(psi, upper_bound, lower_bound):
-                intervals.append(EvidenceInterval(lower_bound, upper_bound))
+                intervals.add(EvidenceInterval(lower_bound, upper_bound))
     return intervals
 
 
-def join_evidence_specifications(psi: Psi, spec_1: EvidenceSpecification, spec_2: EvidenceSpecification) -> list[EvidenceSpecification]:
+def join_evidence_specifications(psi: Psi, spec_1: EvidenceSpecification, spec_2: EvidenceSpecification) -> Set[EvidenceSpecification]:
     """Compute the join of two specifications in the type system.
 
     :param psi: The Psi object representing the type system.
@@ -113,7 +113,7 @@ def join_evidence_specifications(psi: Psi, spec_1: EvidenceSpecification, spec_2
     :param spec_2: The second specification to join.
     :return: A new Specification that is the join of the two specifications.
     """
-    specifications = []
+    specifications = set()
     for signature_1 in spec_1.signatures:
         for signature_2 in spec_2.signatures:
             if signature_1.var == signature_2.var:
@@ -124,12 +124,12 @@ def join_evidence_specifications(psi: Psi, spec_1: EvidenceSpecification, spec_2
                         if sig.var != signature_1.var
                     ]
                     combined = [new_signature] + extra_signatures
-                    specifications.append(EvidenceSpecification(combined))
+                    specifications.add(EvidenceSpecification(combined))
 
     return specifications
 
 
-def join_evidence(psi: Psi, evidence_1: Evidence, evidence_2: Evidence) -> list[Evidence]:
+def join_evidence(psi: Psi, evidence_1: Evidence, evidence_2: Evidence) -> Set[Evidence]:
     """Compute the join of two evidences in the type system.
     
     :param psi: The Psi object representing the type system.
@@ -139,11 +139,11 @@ def join_evidence(psi: Psi, evidence_1: Evidence, evidence_2: Evidence) -> list[
     """
     spec_1 = join_evidence_specifications(psi, evidence_1.specification_1, evidence_2.specification_1)
     spec_2 = join_evidence_specifications(psi, evidence_1.specification_2, evidence_2.specification_2)
-    evidences = []
+    evidences = set()
     for s1 in spec_1:
         for s2 in spec_2:
             if is_subtype_spec(psi, s1, s2):
-                evidences.append(Evidence(s1, s2))
+                evidences.add(Evidence(s1, s2))
     return evidences
 
 
@@ -296,4 +296,49 @@ def interior_specification(psi: Psi, spec_1: EvidenceSpecification, spec_2: Evid
         else:
             return []
 
+    return result
+
+
+def transitivity_intereval(psi: Psi, par_interval_1: Tuple[EvidenceInterval, EvidenceInterval], par_interval_2: Tuple[EvidenceInterval, EvidenceInterval]) -> Set[Tuple[EvidenceInterval, EvidenceInterval]]:
+    """Compute the transitivity of two pairs of intervals in the type system.
+
+    :param psi: The Psi object representing the type system.
+    :param par_interval_1: The first pair of intervals to compute the transitivity of.
+    :param par_interval_2: The second pair of intervals to compute the transitivity of.
+    :return: A set of pairs of intervals that are the transitivity of the two pairs of intervals.
+    """
+    meet_group = meet_evidence_intervals(psi, par_interval_2[0], par_interval_1[1])
+    
+    result = set()
+    for i in meet_group:
+        left_interiors = meet_evidence_intervals(psi, par_interval_1[0], i)
+        right_interiors = meet_evidence_intervals(psi, i, par_interval_2[1])
+        for j in left_interiors:
+            for k in right_interiors:
+                if j.upper_bound == k.lower_bound:
+                    result.add((j.lower_bound, k.upper_bound))
+    return result
+
+
+def transitivity_specifications(psi: Psi, par_spec_1: Tuple[EvidenceSpecification, EvidenceSpecification], par_spec_2: Tuple[EvidenceSpecification, EvidenceSpecification]) -> Set[Tuple[EvidenceSpecification, EvidenceSpecification]]:
+    """Compute the transitivity of two specifications in the type system.
+
+    :param psi: The Psi object representing the type system.
+    :param spec_1: The first specification to compute the transitivity of.
+    :param spec_2: The second specification to compute the transitivity of.
+    :return: A set of pairs of specifications that are the transitivity of the two specifications.
+    """
+    meet_group = meet_evidence_specifications(psi, par_spec_2[0], par_spec_1[1])
+    
+    result = set()
+    for i in meet_group:
+        left_interior = meet_evidence_specifications(psi, par_spec_1[0], i)
+        right_interior = meet_evidence_specifications(psi, i, par_spec_2[1])
+        for j in left_interior:
+            for k in right_interior:
+                if all(
+                    l.interval.upper_bound == r.interval.lower_bound
+                    for l, r in zip(j.signatures, k.signatures)
+                ):
+                    result.add((j.lower_bound, k.upper_bound))
     return result
