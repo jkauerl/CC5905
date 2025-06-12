@@ -1,5 +1,5 @@
 from typing import List, Set
-from ..definitions import Psi,  GradualType, Unknown, BottomType, TopType, FunctionType, Specification
+from ..definitions import Psi,  GradualType, Unknown, BottomType, TopType, GradualFunctionType
 from .definitions import EvidenceInterval, EvidenceSpecification, Evidence, CompleteEvidence
 from ..subtyping import is_subtype, is_subtype_spec
 from src.static.functions import join, meet
@@ -172,12 +172,12 @@ def lift_gradual_type(t: GradualType) -> EvidenceInterval:
     :return: A new Type that is the lifted gradual type.
     """
     match t:
-        case FunctionType(domain, codomain):
+        case GradualFunctionType(domain, codomain):
             domain_interval = lift_gradual_type(domain)
             codomain_interval = lift_gradual_type(codomain)
-            lower_bound = FunctionType(domain_interval.upper_bound, codomain_interval.lower_bound)
-            upper_bound = FunctionType(domain_interval.lower_bound, codomain_interval.upper_bound)
-            return Interval(lower_bound, upper_bound)
+            lower_bound = GradualFunctionType(domain_interval.upper_bound, codomain_interval.lower_bound)
+            upper_bound = GradualFunctionType(domain_interval.lower_bound, codomain_interval.upper_bound)
+            return EvidenceInterval(lower_bound, upper_bound)
         case Unknown():
             return EvidenceInterval(BottomType(), TopType())
         case _: # For all other concrete types
@@ -235,7 +235,7 @@ def interior_types(psi: Psi, ti: GradualType, tj: GradualType) -> Set[EvidenceIn
     :return: A list of pairs of intervals that are the interior of the two gradual types.
     """
     match ti, tj:
-        case FunctionType(fi1, fj1), FunctionType(fi2, fj2):
+        case GradualFunctionType(fi1, fj1), GradualFunctionType(fi2, fj2):
             pass  # TODO: Handle function types
         case GradualType(), GradualType():
             if is_subtype(psi, ti, tj):
