@@ -195,7 +195,7 @@ def interior_intervals(psi: Psi, interval_1: EvidenceInterval, interval_2: Evide
     lowers = meet(psi, interval_1.upper_bound, interval_2.upper_bound)
     uppers = join(psi, interval_1.lower_bound, interval_2.lower_bound)
 
-    pairs = {}
+    pairs = set()
     for ti in lowers:
         for tj in uppers:
             first_interval = EvidenceInterval(interval_1.lower_bound, ti)
@@ -213,7 +213,7 @@ def interior_gradual_specification(psi: Psi, spec_1: EvidenceSpecification, spec
     :param spec_2: The second specification to compute the interior of.
     :return: A list of pairs of specifications that are the interior of the two specifications.
     """
-    pairs = {}
+    pairs = set()
     for signature_1 in spec_1.signatures:
         for signature_2 in spec_2.signatures:
             if signature_1.var == signature_2.var:
@@ -267,8 +267,7 @@ def interior_specification(psi: Psi, spec_1: EvidenceSpecification, spec_2: Evid
     :param spec_2: The second specification to compute the interior of.
     :return: A list of pairs of specifications that are the interior of the two specifications.
     """
-    result = []
-
+    result = set()
     all_vars = set(spec_1.keys()).union(set(spec_2.keys()))
     for var in all_vars:
         ti = spec_1.var
