@@ -19,17 +19,16 @@ class EvidenceSignature:
 class EvidenceSpecification:
     """ Represents a specification in the type system but with lower and upper bounds"""
 
-    def __init__(self, var: str, evidence_signatures: list[EvidenceSignature]):
-        self.var = var
-        self.evidence_signatures = evidence_signatures
+    def __init__(self, signatures: list[EvidenceSignature]):
+        self.signatures = signatures
 
 
 class Evidence:
     """ Represents a collection of evidences in the type system"""
 
-    def __init__(self, evidence_specification_1: EvidenceSpecification, evidence_specification_2: EvidenceSpecification):
-        self.evidence_specification_1 = evidence_specification_1
-        self.evidence_specification_2 = evidence_specification_2
+    def __init__(self, specification_1: EvidenceSpecification, specification_2: EvidenceSpecification):
+        self.specification_1 = specification_1
+        self.specification_2 = specification_2
 
 
 class CompleteEvidence:
