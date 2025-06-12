@@ -184,7 +184,7 @@ def lift_gradual_type(t: GradualType) -> EvidenceInterval:
             return EvidenceInterval(t, t)
 
 
-def interior_intervals(psi: Psi, interval_1: EvidenceInterval, interval_2: EvidenceInterval) -> List[Set[EvidenceInterval, EvidenceInterval]]:
+def interior_intervals(psi: Psi, interval_1: EvidenceInterval, interval_2: EvidenceInterval) -> Set[EvidenceInterval, EvidenceInterval]:
     """Compute the interior intervals of two intervals in the type system.
 
     :param psi: The Psi object representing the type system.
@@ -195,17 +195,17 @@ def interior_intervals(psi: Psi, interval_1: EvidenceInterval, interval_2: Evide
     lowers = meet(psi, interval_1.upper_bound, interval_2.upper_bound)
     uppers = join(psi, interval_1.lower_bound, interval_2.lower_bound)
 
-    pairs = []
+    pairs = {}
     for ti in lowers:
         for tj in uppers:
             first_interval = EvidenceInterval(interval_1.lower_bound, ti)
             second_interval = EvidenceInterval(tj, interval_2.upper_bound)
-            pairs.append((first_interval, second_interval))
+            pairs.add((first_interval, second_interval))
 
     return pairs
 
 
-def interior_gradual_specification(psi: Psi, spec_1: EvidenceSpecification, spec_2: EvidenceSpecification) -> List[Set[EvidenceSpecification, EvidenceSpecification]]:
+def interior_gradual_specification(psi: Psi, spec_1: EvidenceSpecification, spec_2: EvidenceSpecification) -> Set[EvidenceSpecification, EvidenceSpecification]:
     """Compute the interior signatures of two specifications in the type system.
 
     :param psi: The Psi object representing the type system.
@@ -213,7 +213,7 @@ def interior_gradual_specification(psi: Psi, spec_1: EvidenceSpecification, spec
     :param spec_2: The second specification to compute the interior of.
     :return: A list of pairs of specifications that are the interior of the two specifications.
     """
-    pairs = []
+    pairs = {}
     for signature_1 in spec_1.signatures:
         for signature_2 in spec_2.signatures:
             if signature_1.var == signature_2.var:
@@ -221,12 +221,12 @@ def interior_gradual_specification(psi: Psi, spec_1: EvidenceSpecification, spec
                 for interval_pair in intervals:
                     new_signature_1 = EvidenceSpecification([signature_1.var, interval_pair[0]])
                     new_signature_2 = EvidenceSpecification([signature_2.var, interval_pair[1]])
-                    pairs.append((new_signature_1, new_signature_2))
+                    pairs.add((new_signature_1, new_signature_2))
 
     return pairs
 
 
-def interior_types(psi: Psi, ti: GradualType, tj: GradualType) -> List[Set[EvidenceInterval, EvidenceInterval]]:
+def interior_types(psi: Psi, ti: GradualType, tj: GradualType) -> Set[EvidenceInterval, EvidenceInterval]:
     """Compute the interior types of two gradual types in the type system.
 
     :param psi: The Psi object representing the type system.
@@ -253,7 +253,7 @@ def interior_types(psi: Psi, ti: GradualType, tj: GradualType) -> List[Set[Evide
             return {(spec_1, spec_2)}
         
 
-def interior_specification(psi: Psi, spec_1: EvidenceSpecification, spec_2: EvidenceSpecification) -> List[Set[EvidenceInterval, EvidenceInterval]]:
+def interior_specification(psi: Psi, spec_1: EvidenceSpecification, spec_2: EvidenceSpecification) -> Set[EvidenceInterval, EvidenceInterval]:
     """Compute the interior specifications of two specifications in the type system.
 
     :param psi: The Psi object representing the type system.
