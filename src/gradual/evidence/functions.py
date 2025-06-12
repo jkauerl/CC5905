@@ -265,8 +265,8 @@ def interior_specification(psi: Psi, spec_1: EvidenceSpecification, spec_2: Evid
 
     all_vars = set(spec_1.keys()).union(set(spec_2.keys()))
     for var in all_vars:
-        ti = spec_1.get(var)
-        tj = spec_2.get(var)
+        ti = spec_1.var
+        tj = spec_2.var
 
         ti = ti if ti is not None else Unknown()
         tj = tj if tj is not None else Unknown()
