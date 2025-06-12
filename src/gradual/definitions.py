@@ -8,6 +8,7 @@ from src.static.definitions import (
     Specification,
     TopType,
     Signature,
+    Type,
 )
 
 """ Exports the classes and functions from the static definitions module. """
@@ -21,16 +22,17 @@ __all__ = [
     "Psi",
     "Specification",
     "Signature",
+    "Type",
 ]
 
 
-class Type(ABC):
+class GradualType(ABC):
     """Abstract base class for all types."""
 
     pass
 
 
-class Unknown(Type):
+class Unknown(GradualType):
     """Represents an unknown type in the type system."""
 
     pass
