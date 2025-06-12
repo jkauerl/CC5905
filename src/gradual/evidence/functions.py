@@ -235,8 +235,22 @@ def interior_types(psi: Psi, ti: GradualType, tj: GradualType) -> Set[EvidenceIn
     :return: A list of pairs of intervals that are the interior of the two gradual types.
     """
     match ti, tj:
-        case GradualFunctionType(fi1, fj1), GradualFunctionType(fi2, fj2):
-            pass  # TODO: Handle function types
+        case GradualFunctionType(f1i, g2), GradualFunctionType(g3i, g4):
+            domain_pairs = interior_types(psi, g3i, f1i)
+            codomain_pairs = interior_types(psi, g2, g4)
+            results = set()
+            for (t1i, t2i), (t3i, t4i) in domain_pairs:
+                for (t5, t6), (t7, t8) in codomain_pairs:
+                    intv1 = EvidenceInterval(
+                        GradualFunctionType(t4i, t5),
+                        GradualFunctionType(t3i, t6)
+                    )
+                    intv2 = EvidenceInterval(
+                        GradualFunctionType(t2i, t7),
+                        GradualFunctionType(t1i, t8)
+                    )
+                    results.add((intv1, intv2))
+            return results
         case GradualType(), GradualType():
             if is_subtype(psi, ti, tj):
                 spec_1 = lift_gradual_type(ti)
