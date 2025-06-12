@@ -1,9 +1,9 @@
 from abc import ABC
+from typing import Tuple
 from src.static.definitions import (
     BottomType,
     ClassName,
     Edge,
-    FunctionType,
     Psi,
     Specification,
     TopType,
@@ -16,7 +16,6 @@ from src.static.definitions import (
 __all__ = [
     "TopType",
     "BottomType",
-    "FunctionType",
     "ClassName",
     "Edge",
     "Psi",
@@ -30,6 +29,13 @@ class GradualType(ABC):
     """Abstract base class for all types."""
 
     pass
+
+
+class GradualFunctionType(Type):
+    """Represents a function type in the gradual system."""
+
+    domain: Tuple[Type, ...]
+    codomain: Type
 
 
 class Unknown(GradualType):
