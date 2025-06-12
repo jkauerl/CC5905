@@ -1,28 +1,35 @@
 from src.static.definitions import Type
 
 
-class Signature:
-    """ Represents a signature in the type system with lower and upper bounds"""
+class EvidenceInterval:
+    """ Represents a type with lower and upper bounds in the type system"""
 
-    def __init__(self, var: str, lower_bound: Type, upper_bound: Type):
-        self.var = var
+    def __init__(self, lower_bound: Type, upper_bound: Type):
         self.lower_bound = lower_bound
         self.upper_bound = upper_bound
 
 
-class Specification:
+class EvidenceSignature:
+    """ Represents a signature in the type system with lower and upper bounds"""
+
+    def __init__(self, var: str, interval: EvidenceInterval):
+        self.var = var
+        self.interval = interval
+
+class EvidenceSpecification:
     """ Represents a specification in the type system but with lower and upper bounds"""
 
-    def __init__(self, signatures: list[Signature]):        
-        self.signatures = signatures
+    def __init__(self, var: str, evidence_signatures: list[EvidenceSignature]):
+        self.var = var
+        self.evidence_signatures = evidence_signatures
 
 
 class Evidence:
     """ Represents a collection of evidences in the type system"""
 
-    def __init__(self, specification_1: Specification, specification_2: Specification):
-        self.specification_1 = specification_1
-        self.specification_2 = specification_2
+    def __init__(self, evidence_specification_1: EvidenceSpecification, evidence_specification_2: EvidenceSpecification):
+        self.evidence_specification_1 = evidence_specification_1
+        self.evidence_specification_2 = evidence_specification_2
 
 
 class CompleteEvidence:
