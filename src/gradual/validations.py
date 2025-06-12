@@ -1,7 +1,7 @@
 from .definitions import (
     BottomType,
     ClassName,
-    FunctionType,
+    GradualFunctionType,
     Psi,
     Signature,
     Specification,
@@ -29,7 +29,7 @@ def is_valid_type(psi: Psi, type: Type) -> bool:
     :return: True if the type is valid, False otherwise.
     """
     match type:
-        case FunctionType(_, _):
+        case GradualFunctionType(_, _):
             return is_valid_function(psi, type)
         case ClassName(name):
             return name in [n.name for n in psi.Ns]
@@ -56,7 +56,7 @@ def is_valid_signature(psi: Psi, signature: list[Signature]) -> bool:
     return all([is_valid_type(psi, signature.type) for signature in signature])
 
 
-def is_valid_function(psi: Psi, function: FunctionType) -> bool:
+def is_valid_function(psi: Psi, function: GradualFunctionType) -> bool:
     """Check if the given function is valid in the Psi object.
 
     :param psi: The Psi object representing the type system.

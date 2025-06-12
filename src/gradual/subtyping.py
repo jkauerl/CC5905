@@ -3,7 +3,7 @@ import src.static.subtyping as static_subtyping
 from .definitions import (
     BottomType,
     ClassName,
-    FunctionType,
+    GradualFunctionType,
     Psi,
     Specification,
     TopType,
@@ -47,7 +47,7 @@ def is_subtype(psi: Psi, t1: Type, t2: Type, visited=None) -> bool:
         return True
 
     # If t1 is a class name, check if t2 is a class name
-    if isinstance(t1, FunctionType) and isinstance(t2, FunctionType):
+    if isinstance(t1, GradualFunctionType) and isinstance(t2, GradualFunctionType):
         if len(t1.domain) != len(t2.domain):
             return False
         domain_check = all(

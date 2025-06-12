@@ -8,7 +8,7 @@ from src.static.functions import (
     upper_set,
 )
 
-from .definitions import ClassName, Psi, Signature, Specification, Type, BottomType, TopType, FunctionType, Unknown
+from .definitions import ClassName, Psi, Signature, Specification, Type, BottomType, TopType, GradualFunctionType, Unknown
 
 __all__ = [
     "join_unique",
@@ -30,7 +30,7 @@ def meet_unique_consistent(psi: Psi, ti: Type, tj: Type) -> Type | None:
     :return: The meet of the two types if consistent, otherwise None.
     """
     match ti, tj:
-        case FunctionType(fi1, fj1), FunctionType(fi2, fj2):
+        case GradualFunctionType(fi1, fj1), GradualFunctionType(fi2, fj2):
             if len(fi1) != len(fi2):
                 raise ValueError("Function types must have the same number of arguments")
             args = [join_unique_consistent(psi, a1, a2) for a1, a2 in zip(fi1, fi2)]
@@ -39,7 +39,7 @@ def meet_unique_consistent(psi: Psi, ti: Type, tj: Type) -> Type | None:
             ret = meet_unique_consistent(psi, fj1, fj2)
             if ret is None:
                 return None
-            return FunctionType(args, ret)
+            return GradualFunctionType(args, ret)
         case Type(), Type():
             return meet_unique(psi, ti, tj)
         case BottomType(), _:
@@ -67,7 +67,7 @@ def join_unique_consistent(psi: Psi, ti: Type, tj: Type) -> Type | None:
     :return: The join of the two types if consistent, otherwise None.
     """
     match ti, tj:
-        case FunctionType(fi1, fj1), FunctionType(fi2, fj2):
+        case GradualFunctionType(fi1, fj1), GradualFunctionType(fi2, fj2):
             if len(fi1) != len(fi2):
                 raise ValueError("Function types must have the same number of arguments")
             args = [meet_unique_consistent(psi, a1, a2) for a1, a2 in zip(fi1, fi2)]
@@ -76,7 +76,7 @@ def join_unique_consistent(psi: Psi, ti: Type, tj: Type) -> Type | None:
             ret = join_unique_consistent(psi, fj1, fj2)
             if ret is None:
                 return None
-            return FunctionType(args, ret)
+            return GradualFunctionType(args, ret)
         case Type(), Type():
             return meet_unique(psi, ti, tj)
         case BottomType(), _:
