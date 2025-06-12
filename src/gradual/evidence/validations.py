@@ -11,9 +11,9 @@ def is_subtype_evidence(psi: Psi, evidence_1: EvidenceSignature, evidence_2: Evi
     :param evidence_2: The second evidence to check.
     :return: True if evidence_1 is a subtype of evidence_2, False otherwise.
     """
-    if is_subtype(psi, evidence_1.lower_bound, evidence_2.lower_bound):
-        if is_subtype(psi, evidence_1.upper_bound, evidence_2.upper_bound):
-            return evidence_1.value == evidence_2.value
+    if is_subtype(psi, evidence_1.interval.lower_bound, evidence_2.interval.lower_bound):
+        if is_subtype(psi, evidence_1.interval.upper_bound, evidence_2.interval.upper_bound):
+            return evidence_1.var == evidence_2.var
         return True
     return False
     
