@@ -251,6 +251,12 @@ def interior_types(psi: Psi, ti: GradualType, tj: GradualType) -> Set[EvidenceIn
             spec_1 = lift_gradual_type(Unknown())
             spec_2 = lift_gradual_type(Unknown())
             return {(spec_1, spec_2)}
+        case GradualFunctionType(fi, fj), Unknown():
+            unknown_fun = GradualFunctionType(Unknown(), Unknown())
+            return {(EvidenceInterval(GradualFunctionType(fi, fj), unknown_fun),)}
+        case Unknown(), GradualFunctionType(fi, fj):
+            unknown_fun = GradualFunctionType(Unknown(), Unknown())
+            return {(EvidenceInterval(unknown_fun, GradualFunctionType(fi, fj)),)}
         
 
 def interior_specification(psi: Psi, spec_1: EvidenceSpecification, spec_2: EvidenceSpecification) -> Set[EvidenceInterval, EvidenceInterval]:
