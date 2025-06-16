@@ -340,5 +340,7 @@ def transitivity_specifications(psi: Psi, par_spec_1: Tuple[EvidenceSpecificatio
                     l.interval.upper_bound == r.interval.lower_bound
                     for l, r in zip(j.signatures, k.signatures)
                 ):
-                    result.add((j.lower_bound, k.upper_bound))
+                    left_bounds = [sig.interval.lower_bound for sig in j.signatures]
+                    right_bounds = [sig.interval.upper_bound for sig in k.signatures]
+                    result.add((left_bounds, right_bounds))
     return result
