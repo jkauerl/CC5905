@@ -8,7 +8,17 @@ from src.static.functions import (
     upper_set,
 )
 
-from .definitions import ClassName, Psi, Signature, Specification, Type, BottomType, TopType, GradualFunctionType, Unknown
+from .definitions import (
+    BottomType,
+    ClassName,
+    GradualFunctionType,
+    Psi,
+    Signature,
+    Specification,
+    TopType,
+    Type,
+    Unknown,
+)
 
 __all__ = [
     "join_unique",
@@ -22,7 +32,7 @@ __all__ = [
 
 
 def meet_unique_consistent(psi: Psi, ti: Type, tj: Type) -> Type | None:
-    """ Calculate the meet of two types, ensuring consistency in the type system.
+    """Calculate the meet of two types, ensuring consistency in the type system.
 
     :param psi: The Psi object representing the type system.
     :param ti: The first type to meet.class Type:
@@ -32,7 +42,9 @@ def meet_unique_consistent(psi: Psi, ti: Type, tj: Type) -> Type | None:
     match ti, tj:
         case GradualFunctionType(fi1, fj1), GradualFunctionType(fi2, fj2):
             if len(fi1) != len(fi2):
-                raise ValueError("Function types must have the same number of arguments")
+                raise ValueError(
+                    "Function types must have the same number of arguments"
+                )
             args = [join_unique_consistent(psi, a1, a2) for a1, a2 in zip(fi1, fi2)]
             if any(a is None for a in args):
                 return None
@@ -56,10 +68,10 @@ def meet_unique_consistent(psi: Psi, ti: Type, tj: Type) -> Type | None:
             return Unknown()
 
     return None
-        
+
 
 def join_unique_consistent(psi: Psi, ti: Type, tj: Type) -> Type | None:
-    """ Calculate the join of two types, ensuring consistency in the type system.
+    """Calculate the join of two types, ensuring consistency in the type system.
 
     :param psi: The Psi object representing the type system.
     :param ti: The first type to join.
@@ -69,7 +81,9 @@ def join_unique_consistent(psi: Psi, ti: Type, tj: Type) -> Type | None:
     match ti, tj:
         case GradualFunctionType(fi1, fj1), GradualFunctionType(fi2, fj2):
             if len(fi1) != len(fi2):
-                raise ValueError("Function types must have the same number of arguments")
+                raise ValueError(
+                    "Function types must have the same number of arguments"
+                )
             args = [meet_unique_consistent(psi, a1, a2) for a1, a2 in zip(fi1, fi2)]
             if any(a is None for a in args):
                 return None
@@ -93,7 +107,7 @@ def join_unique_consistent(psi: Psi, ti: Type, tj: Type) -> Type | None:
             return Unknown()
 
     return None
-        
+
 
 def proj(x: str, s: Specification) -> Type | None:
     """Project a variable name from a specification to its type.

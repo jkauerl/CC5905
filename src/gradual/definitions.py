@@ -1,13 +1,14 @@
 from abc import ABC
 from typing import Tuple
+
 from src.static.definitions import (
     BottomType,
     ClassName,
     Edge,
     Psi,
+    Signature,
     Specification,
     TopType,
-    Signature,
     Type,
 )
 
