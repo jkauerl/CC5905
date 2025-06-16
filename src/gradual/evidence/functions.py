@@ -344,3 +344,20 @@ def transitivity_specifications(psi: Psi, par_spec_1: Tuple[EvidenceSpecificatio
                     right_bounds = [sig.interval.upper_bound for sig in k.signatures]
                     result.add((left_bounds, right_bounds))
     return result
+
+
+def transitivity_complete_evidences(psi: Psi, complete_evidence_1: CompleteEvidence, complete_evidence_2: CompleteEvidence) -> CompleteEvidence:
+    """Compute the transitivity of two complete evidences in the type system.
+
+    :param psi: The Psi object representing the type system.
+    :param complete_evidence_1: The first complete evidence to compute the transitivity of.
+    :param complete_evidence_2: The second complete evidence to compute the transitivity of.
+    :return: A set of complete evidences that are the transitivity of the two complete evidences.
+    """
+    results = set()
+    for ev1 in complete_evidence_1.evidences:
+        for ev2 in complete_evidence_2.evidences:
+            evidences = transitivity_specifications(psi, (ev1.specification_1, ev1.specification_2), (ev2.specification_1, ev2.specification_2))
+            for evidence in evidences:
+                results.add(Evidence(evidence[0], evidence[1]))
+    return CompleteEvidence(list(results))
