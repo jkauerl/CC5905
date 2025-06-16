@@ -299,7 +299,7 @@ def interior_specification(psi: Psi, spec_1: EvidenceSpecification, spec_2: Evid
     return result
 
 
-def transitivity_intereval(psi: Psi, par_interval_1: Tuple[EvidenceInterval, EvidenceInterval], par_interval_2: Tuple[EvidenceInterval, EvidenceInterval]) -> Set[Tuple[EvidenceInterval, EvidenceInterval]]:
+def transitivity_interval(psi: Psi, par_interval_1: Tuple[EvidenceInterval, EvidenceInterval], par_interval_2: Tuple[EvidenceInterval, EvidenceInterval]) -> Set[Tuple[EvidenceInterval, EvidenceInterval]]:
     """Compute the transitivity of two pairs of intervals in the type system.
 
     :param psi: The Psi object representing the type system.
