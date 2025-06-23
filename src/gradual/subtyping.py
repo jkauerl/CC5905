@@ -5,7 +5,7 @@ from .definitions import (
     BottomType,
     ClassName,
     GradualFunctionType,
-    Psi,
+    Environment,
     Specification,
     TopType,
     Type,
@@ -16,10 +16,10 @@ from .definitions import (
 """
 
 
-def is_subtype(psi: Psi, t1: Type, t2: Type, visited=None) -> bool:
-    """Check if t1 is a subtype of t2 in the Psi type system.
+def is_subtype(environment: Environment, t1: Type, t2: Type, visited=None) -> bool:
+    """Check if t1 is a subtype of t2 in the Environment type system.
 
-    :param psi: The Psi object representing the type system.
+    :param environment: The Environment object representing the type system.
     :param t1: The first type to check.
     :param t2: The second type to check.
     :param visited: A set of visited types to avoid cycles.
@@ -52,24 +52,24 @@ def is_subtype(psi: Psi, t1: Type, t2: Type, visited=None) -> bool:
         if len(t1.domain) != len(t2.domain):
             return False
         domain_check = all(
-            is_subtype(psi, t2_arg, t1_arg, visited)
+            is_subtype(environment, t2_arg, t1_arg, visited)
             for t1_arg, t2_arg in zip(t1.domain, t2.domain)
         )
-        codomain_check = is_subtype(psi, t1.codomain, t2.codomain, visited)
+        codomain_check = is_subtype(environment, t1.codomain, t2.codomain, visited)
         return domain_check and codomain_check
 
     if isinstance(t1, ClassName) and isinstance(t2, ClassName):
-        return static_subtyping.is_subtype(psi, t1, t2)
+        return static_subtyping.is_subtype(environment, t1, t2)
 
     return False
 
 
-def is_subtype_spec(s: Specification, sp: Specification, psi: Psi) -> bool:
+def is_subtype_spec(s: Specification, sp: Specification, environment: Environment) -> bool:
     """Check if specification s is a subtype of specification sp.
 
     :param s: The first specification to check.
     :param sp: The second specification to check.
-    :param psi: The Psi object representing the type system.
+    :param environment: The Environment object representing the type system.
     :return: True if s is a subtype of sp, False otherwise.
     """
-    return _is_subtype_spec_core(s, sp, psi, is_subtype)
+    return _is_subtype_spec_core(s, sp, environment, is_subtype)

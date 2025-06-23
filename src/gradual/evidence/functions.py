@@ -7,7 +7,7 @@ from ..definitions import (
     BottomType,
     GradualFunctionType,
     GradualType,
-    Psi,
+    Environment,
     TopType,
     Unknown,
 )
@@ -26,31 +26,31 @@ from .definitions import (
 
 
 def meet_evidence_intervals(
-    psi: Psi, interval_1: EvidenceInterval, interval_2: EvidenceInterval
+    environment: Environment, interval_1: EvidenceInterval, interval_2: EvidenceInterval
 ) -> Set[EvidenceInterval]:
     """Compute the meet of two intervals in the type system.
 
-    :param psi: The Psi object representing the type system.
+    :param environment: The Environment object representing the type system.
     :param interval_1: The first interval to meet.
     :param interval_2: The second interval to meet.
     :return: A new Interval that is the meet of the two intervals.
     """
-    lower_bounds = meet(psi, interval_1.lower_bound, interval_2.lower_bound)
-    upper_bounds = meet(psi, interval_1.upper_bound, interval_2.upper_bound)
+    lower_bounds = meet(environment, interval_1.lower_bound, interval_2.lower_bound)
+    upper_bounds = meet(environment, interval_1.upper_bound, interval_2.upper_bound)
     intervals = set()
     for lower_bound in lower_bounds:
         for upper_bound in upper_bounds:
-            if is_subtype(psi, lower_bound, upper_bound):
+            if is_subtype(environment, lower_bound, upper_bound):
                 intervals.add(EvidenceInterval(lower_bound, upper_bound))
     return intervals
 
 
 def meet_evidence_specifications(
-    psi: Psi, spec_1: EvidenceSpecification, spec_2: EvidenceSpecification
+    environment: Environment, spec_1: EvidenceSpecification, spec_2: EvidenceSpecification
 ) -> Set[EvidenceSpecification]:
     """Compute the meet of two specifications in the type system.
 
-    :param psi: The Psi object representing the type system.
+    :param environment: The Environment object representing the type system.
     :param spec_1: The first specification to meet.
     :param spec_2: The second specification to meet.
     :return: A new Specification that is the meet of the two specifications.
@@ -60,7 +60,7 @@ def meet_evidence_specifications(
         for signature_2 in spec_2.signatures:
             if signature_1.var == signature_2.var:
                 new_signatures = meet_evidence_intervals(
-                    psi, signature_1.interval, signature_2.interval
+                    environment, signature_1.interval, signature_2.interval
                 )
                 for new_signature in new_signatures:
                     extra_signatures = [
@@ -75,37 +75,37 @@ def meet_evidence_specifications(
 
 
 def meet_evidences(
-    psi: Psi, evidence_1: Evidence, evidence_2: Evidence
+    environment: Environment, evidence_1: Evidence, evidence_2: Evidence
 ) -> Set[Evidence]:
     """Compute the meet of two evidences in the type system.
 
-    :param psi: The Psi object representing the type system.
+    :param environment: The Environment object representing the type system.
     :param evidence_1: The first evidence to meet.
     :param evidence_2: The second evidence to meet.
     :return: A new Evidence that is the meet of the two evidences.
     """
     spec_1 = meet_evidence_specifications(
-        psi, evidence_1.specification_1, evidence_2.specification_1
+        environment, evidence_1.specification_1, evidence_2.specification_1
     )
     spec_2 = meet_evidence_specifications(
-        psi, evidence_1.specification_2, evidence_2.specification_2
+        environment, evidence_1.specification_2, evidence_2.specification_2
     )
     evidences = set()
     for s1 in spec_1:
         for s2 in spec_2:
-            if is_subtype_spec(psi, s1, s2):
+            if is_subtype_spec(environment, s1, s2):
                 evidences.add(Evidence(s1, s2))
     return evidences
 
 
 def meet_complete_evidences(
-    psi: Psi,
+    environment: Environment,
     complete_evidence_1: CompleteEvidence,
     complete_evidence_2: CompleteEvidence,
 ) -> CompleteEvidence:
     """Compute the meet of two complete evidences in the type system.
 
-    :param psi: The Psi object representing the type system.
+    :param environment: The Environment object representing the type system.
     :param complete_evidence_1: The first complete evidence to meet.
     :param complete_evidence_2: The second complete evidence to meet.
     :return: A new CompleteEvidence that is the meet of the two complete evidences.
@@ -113,7 +113,7 @@ def meet_complete_evidences(
     evidences = []
     for ev1 in complete_evidence_1.evidences:
         for ev2 in complete_evidence_2.evidences:
-            new_evidences = meet_evidences(psi, ev1, ev2)
+            new_evidences = meet_evidences(environment, ev1, ev2)
             evidences.extend(new_evidences)
     return CompleteEvidence(evidences)
 
@@ -122,31 +122,31 @@ def meet_complete_evidences(
 
 
 def join_evidence_intervals(
-    psi: Psi, interval_1: EvidenceInterval, interval_2: EvidenceInterval
+    environment: Environment, interval_1: EvidenceInterval, interval_2: EvidenceInterval
 ) -> Set[EvidenceInterval]:
     """Compute the join of two intervals in the type system.
 
-    :param psi: The Psi object representing the type system.
+    :param environment: The Environment object representing the type system.
     :param interval_1: The first interval to join.
     :param interval_2: The second interval to join.
     :return: A new Interval that is the join of the two intervals.
     """
-    lower_bounds = join(psi, interval_1.lower_bound, interval_2.lower_bound)
-    upper_bounds = join(psi, interval_1.upper_bound, interval_2.upper_bound)
+    lower_bounds = join(environment, interval_1.lower_bound, interval_2.lower_bound)
+    upper_bounds = join(environment, interval_1.upper_bound, interval_2.upper_bound)
     intervals = set()
     for lower_bound in lower_bounds:
         for upper_bound in upper_bounds:
-            if is_subtype(psi, upper_bound, lower_bound):
+            if is_subtype(environment, upper_bound, lower_bound):
                 intervals.add(EvidenceInterval(lower_bound, upper_bound))
     return intervals
 
 
 def join_evidence_specifications(
-    psi: Psi, spec_1: EvidenceSpecification, spec_2: EvidenceSpecification
+    environment: Environment, spec_1: EvidenceSpecification, spec_2: EvidenceSpecification
 ) -> Set[EvidenceSpecification]:
     """Compute the join of two specifications in the type system.
 
-    :param psi: The Psi object representing the type system.
+    :param environment: The Environment object representing the type system.
     :param spec_1: The first specification to join.
     :param spec_2: The second specification to join.
     :return: A new Specification that is the join of the two specifications.
@@ -155,7 +155,7 @@ def join_evidence_specifications(
     for signature_1 in spec_1.signatures:
         for signature_2 in spec_2.signatures:
             if signature_1.var == signature_2.var:
-                new_signatures = join_evidence_intervals(psi, signature_1, signature_2)
+                new_signatures = join_evidence_intervals(environment, signature_1, signature_2)
                 for new_signature in new_signatures:
                     extra_signatures = [
                         sig
@@ -169,37 +169,37 @@ def join_evidence_specifications(
 
 
 def join_evidence(
-    psi: Psi, evidence_1: Evidence, evidence_2: Evidence
+    environment: Environment, evidence_1: Evidence, evidence_2: Evidence
 ) -> Set[Evidence]:
     """Compute the join of two evidences in the type system.
 
-    :param psi: The Psi object representing the type system.
+    :param environment: The Environment object representing the type system.
     :param evidence_1: The first evidence to join.
     :param evidence_2: The second evidence to join.
     :return: A new Evidence that is the join of the two evidences.
     """
     spec_1 = join_evidence_specifications(
-        psi, evidence_1.specification_1, evidence_2.specification_1
+        environment, evidence_1.specification_1, evidence_2.specification_1
     )
     spec_2 = join_evidence_specifications(
-        psi, evidence_1.specification_2, evidence_2.specification_2
+        environment, evidence_1.specification_2, evidence_2.specification_2
     )
     evidences = set()
     for s1 in spec_1:
         for s2 in spec_2:
-            if is_subtype_spec(psi, s1, s2):
+            if is_subtype_spec(environment, s1, s2):
                 evidences.add(Evidence(s1, s2))
     return evidences
 
 
 def join_complete_evidences(
-    psi: Psi,
+    environment: Environment,
     complete_evidence_1: CompleteEvidence,
     complete_evidence_2: CompleteEvidence,
 ) -> CompleteEvidence:
     """Compute the join of two complete evidences in the type system.
 
-    :param psi: The Psi object representing the type system.
+    :param environment: The Environment object representing the type system.
     :param complete_evidence_1: The first complete evidence to join.
     :param complete_evidence_2: The second complete evidence to join.
     :return: A new CompleteEvidence that is the join of the two complete evidences.
@@ -207,7 +207,7 @@ def join_complete_evidences(
     evidences = []
     for ev1 in complete_evidence_1.evidences:
         for ev2 in complete_evidence_2.evidences:
-            new_evidences = join_evidence(psi, ev1, ev2)
+            new_evidences = join_evidence(environment, ev1, ev2)
             evidences.extend(new_evidences)
     return CompleteEvidence(evidences)
 
@@ -240,17 +240,17 @@ def lift_gradual_type(t: GradualType) -> EvidenceInterval:
 
 
 def interior_intervals(
-    psi: Psi, interval_1: EvidenceInterval, interval_2: EvidenceInterval
-) -> Set[EvidenceInterval, EvidenceInterval]:
+    environment: Environment, interval_1: EvidenceInterval, interval_2: EvidenceInterval
+) -> Set[Tuple[EvidenceInterval, EvidenceInterval]]:
     """Compute the interior intervals of two intervals in the type system.
 
-    :param psi: The Psi object representing the type system.
+    :param environment: The Environment object representing the type system.
     :param interval_1: The first interval to compute the interior of.
     :param interval_2: The second interval to compute the interior of.
     :return: A list of intervals that are the interior of the two intervals.
     """
-    lowers = meet(psi, interval_1.upper_bound, interval_2.upper_bound)
-    uppers = join(psi, interval_1.lower_bound, interval_2.lower_bound)
+    lowers = meet(environment, interval_1.upper_bound, interval_2.upper_bound)
+    uppers = join(environment, interval_1.lower_bound, interval_2.lower_bound)
 
     pairs = set()
     for ti in lowers:
@@ -263,11 +263,11 @@ def interior_intervals(
 
 
 def interior_gradual_specification(
-    psi: Psi, spec_1: EvidenceSpecification, spec_2: EvidenceSpecification
-) -> Set[EvidenceSpecification, EvidenceSpecification]:
+    environment: Environment, spec_1: EvidenceSpecification, spec_2: EvidenceSpecification
+) -> Set[Tuple[EvidenceSpecification, EvidenceSpecification]]:
     """Compute the interior signatures of two specifications in the type system.
 
-    :param psi: The Psi object representing the type system.
+    :param environment: The Environment object representing the type system.
     :param spec_1: The first specification to compute the interior of.
     :param spec_2: The second specification to compute the interior of.
     :return: A list of pairs of specifications that are the interior of the two
@@ -278,7 +278,7 @@ def interior_gradual_specification(
         for signature_2 in spec_2.signatures:
             if signature_1.var == signature_2.var:
                 intervals = interior_intervals(
-                    psi, signature_1.interval, signature_2.interval
+                    environment, signature_1.interval, signature_2.interval
                 )
                 for interval_pair in intervals:
                     new_signature_1 = EvidenceSpecification(
@@ -293,11 +293,11 @@ def interior_gradual_specification(
 
 
 def interior_types(
-    psi: Psi, ti: GradualType, tj: GradualType
-) -> Set[EvidenceInterval, EvidenceInterval]:
+    environment: Environment, ti: GradualType, tj: GradualType
+) -> Set[Tuple[EvidenceInterval, EvidenceInterval]]:
     """Compute the interior types of two gradual types in the type system.
 
-    :param psi: The Psi object representing the type system.
+    :param environment: The Environment object representing the type system.
     :param ti: The first gradual type to compute the interior of.
     :param tj: The second gradual type to compute the interior of.
     :return: A list of pairs of intervals that are the interior of the
@@ -305,8 +305,8 @@ def interior_types(
     """
     match ti, tj:
         case GradualFunctionType(f1i, g2), GradualFunctionType(g3i, g4):
-            domain_pairs = interior_types(psi, g3i, f1i)
-            codomain_pairs = interior_types(psi, g2, g4)
+            domain_pairs = interior_types(environment, g3i, f1i)
+            codomain_pairs = interior_types(environment, g2, g4)
             results = set()
             for (t1i, t2i), (t3i, t4i) in domain_pairs:
                 for (t5, t6), (t7, t8) in codomain_pairs:
@@ -319,7 +319,7 @@ def interior_types(
                     results.add((intv1, intv2))
             return results
         case GradualType(), GradualType():
-            if is_subtype(psi, ti, tj):
+            if is_subtype(environment, ti, tj):
                 spec_1 = lift_gradual_type(ti)
                 return {(spec_1, EvidenceInterval(ti, tj))}
         case Type(), Unknown():
@@ -341,11 +341,11 @@ def interior_types(
 
 
 def interior_specification(
-    psi: Psi, spec_1: EvidenceSpecification, spec_2: EvidenceSpecification
-) -> Set[EvidenceInterval, EvidenceInterval]:
+    environment: Environment, spec_1: EvidenceSpecification, spec_2: EvidenceSpecification
+) -> Set[Tuple[EvidenceInterval, EvidenceInterval]]:
     """Compute the interior specifications of two specifications in the type system.
 
-    :param psi: The Psi object representing the type system.
+    :param environment: The Environment object representing the type system.
     :param spec_1: The first specification to compute the interior of.
     :param spec_2: The second specification to compute the interior of.
     :return: A list of pairs of specifications that are the interior of
@@ -360,7 +360,7 @@ def interior_specification(
         ti = ti if ti is not None else Unknown()
         tj = tj if tj is not None else Unknown()
 
-        interior = interior_types(psi, ti, tj)
+        interior = interior_types(environment, ti, tj)
         if interior:
             result.append(interior)
         else:
@@ -370,24 +370,24 @@ def interior_specification(
 
 
 def transitivity_interval(
-    psi: Psi,
+    environment: Environment,
     par_interval_1: Tuple[EvidenceInterval, EvidenceInterval],
     par_interval_2: Tuple[EvidenceInterval, EvidenceInterval],
 ) -> Set[Tuple[EvidenceInterval, EvidenceInterval]]:
     """Compute the transitivity of two pairs of intervals in the type system.
 
-    :param psi: The Psi object representing the type system.
+    :param environment: The Environment object representing the type system.
     :param par_interval_1: The first pair of intervals to compute the transitivity of.
     :param par_interval_2: The second pair of intervals to compute the transitivity of.
     :return: A set of pairs of intervals that are the transitivity of the two pairs of
              intervals.
     """
-    meet_group = meet_evidence_intervals(psi, par_interval_2[0], par_interval_1[1])
+    meet_group = meet_evidence_intervals(environment, par_interval_2[0], par_interval_1[1])
 
     result = set()
     for i in meet_group:
-        left_interiors = meet_evidence_intervals(psi, par_interval_1[0], i)
-        right_interiors = meet_evidence_intervals(psi, i, par_interval_2[1])
+        left_interiors = meet_evidence_intervals(environment, par_interval_1[0], i)
+        right_interiors = meet_evidence_intervals(environment, i, par_interval_2[1])
         for j in left_interiors:
             for k in right_interiors:
                 if j.upper_bound == k.lower_bound:
@@ -396,24 +396,24 @@ def transitivity_interval(
 
 
 def transitivity_specifications(
-    psi: Psi,
+    environment: Environment,
     par_spec_1: Tuple[EvidenceSpecification, EvidenceSpecification],
     par_spec_2: Tuple[EvidenceSpecification, EvidenceSpecification],
 ) -> Set[Tuple[EvidenceSpecification, EvidenceSpecification]]:
     """Compute the transitivity of two specifications in the type system.
 
-    :param psi: The Psi object representing the type system.
+    :param environment: The Environment object representing the type system.
     :param spec_1: The first specification to compute the transitivity of.
     :param spec_2: The second specification to compute the transitivity of.
     :return: A set of pairs of specifications that are the transitivity of
              the two specifications.
     """
-    meet_group = meet_evidence_specifications(psi, par_spec_2[0], par_spec_1[1])
+    meet_group = meet_evidence_specifications(environment, par_spec_2[0], par_spec_1[1])
 
     result = set()
     for i in meet_group:
-        left_interior = meet_evidence_specifications(psi, par_spec_1[0], i)
-        right_interior = meet_evidence_specifications(psi, i, par_spec_2[1])
+        left_interior = meet_evidence_specifications(environment, par_spec_1[0], i)
+        right_interior = meet_evidence_specifications(environment, i, par_spec_2[1])
         for j in left_interior:
             for k in right_interior:
                 if all(
@@ -427,13 +427,13 @@ def transitivity_specifications(
 
 
 def transitivity_complete_evidences(
-    psi: Psi,
+    environment: Environment,
     complete_evidence_1: CompleteEvidence,
     complete_evidence_2: CompleteEvidence,
 ) -> CompleteEvidence:
     """Compute the transitivity of two complete evidences in the type system.
 
-    :param psi: The Psi object representing the type system.
+    :param environment: The Environment object representing the type system.
     :param complete_evidence_1: The first complete evidence to compute the
            transitivity.
     :param complete_evidence_2: The second complete evidence to compute the
@@ -445,7 +445,7 @@ def transitivity_complete_evidences(
     for ev1 in complete_evidence_1.evidences:
         for ev2 in complete_evidence_2.evidences:
             evidences = transitivity_specifications(
-                psi,
+                environment,
                 (ev1.specification_1, ev1.specification_2),
                 (ev2.specification_1, ev2.specification_2),
             )

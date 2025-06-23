@@ -55,7 +55,7 @@ class Signature:
         self.type = type
 
 
-class Psi:
+class Environment:
     """Represents the class (node) relationship in the type system."""
 
     def __init__(

@@ -7,7 +7,7 @@ from src.static.propositions import (
     no_overloading,
 )
 
-from .definitions import ClassName, Psi, Specification
+from .definitions import ClassName, Environment, Specification
 
 __all__ = [
     "acyclic",
@@ -20,12 +20,12 @@ __all__ = [
 """
 
 
-def minimal_specification(class_name: ClassName, s: Specification, psi: Psi) -> bool:
+def minimal_specification(class_name: ClassName, s: Specification, environment: Environment) -> bool:
     """Check if the given specification is minimal for the given class name.
 
-    :param psi: The Psi object representing the type system.
+    :param environment: The Environment object representing the type system.
     :param class_name: The class name to check.
     :param s: The specification to check.
     :return: True if the specification is minimal, False otherwise.
     """
-    return _minimal_specification_core(class_name, s, psi, is_subtype_spec)
+    return _minimal_specification_core(class_name, s, environment, is_subtype_spec)

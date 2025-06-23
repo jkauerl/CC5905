@@ -5,7 +5,7 @@ from src.static.definitions import (
     ClassName,
     Edge,
     FunctionType,
-    Psi,
+    Environment,
     Signature,
     Specification,
     TopType,
@@ -60,7 +60,7 @@ class TestFunctions(unittest.TestCase):
 
         self.spec_D = Specification(signatures=[Signature(var="x", type=self.A)])
 
-        self.psi = Psi(
+        self.environment = Environment(
             Ns=[self.A, self.B, self.C, self.D],
             Es=self.edges,
             sigma={
@@ -72,40 +72,40 @@ class TestFunctions(unittest.TestCase):
         )
 
     def test_lower_set(self):
-        result = lower_set(self.psi, self.A)
+        result = lower_set(self.environment, self.A)
         self.assertIn(self.B, result)
         self.assertIn(self.C, result)
         self.assertIn(self.D, result)
         self.assertIn(self.A, result)
 
     def test_upper_set(self):
-        self.assertIn(self.A, upper_set(self.psi, self.B))
-        self.assertNotIn(self.C, upper_set(self.psi, self.B))
+        self.assertIn(self.A, upper_set(self.environment, self.B))
+        self.assertNotIn(self.C, upper_set(self.environment, self.B))
 
     def test_meet(self):
-        m = meet(self.psi, self.B, self.C)
+        m = meet(self.environment, self.B, self.C)
         self.assertIn(self.D, m)
 
     def test_meet_inheritance(self):
-        m = meet(self.psi, self.A, self.B)
+        m = meet(self.environment, self.A, self.B)
         self.assertIn(self.B, m)
         self.assertNotIn(self.A, m)
 
     def test_meet_unique(self):
-        m = meet_unique(self.psi, self.B, self.C)
+        m = meet_unique(self.environment, self.B, self.C)
         self.assertEqual(m, self.D)
 
     def test_join(self):
-        j = join(self.psi, self.B, self.C)
+        j = join(self.environment, self.B, self.C)
         self.assertIn(self.A, j)
 
     def test_join_inheritance(self):
-        j = join(self.psi, self.A, self.B)
+        j = join(self.environment, self.A, self.B)
         self.assertIn(self.A, j)
         self.assertNotIn(self.B, j)
 
     def test_join_unique(self):
-        self.assertEqual(join_unique(self.psi, self.B, self.C), self.A)
+        self.assertEqual(join_unique(self.environment, self.B, self.C), self.A)
 
     def test_proj(self):
         self.assertEqual(proj("x", self.spec_B), self.A)
@@ -123,68 +123,68 @@ class TestFunctions(unittest.TestCase):
         self.assertEqual(results, [self.A, self.A])
 
     def test_is_direct_subtype(self):
-        self.assertTrue(is_direct_subtype(self.psi, self.B, self.A))
-        self.assertFalse(is_direct_subtype(self.psi, self.B, self.C))
+        self.assertTrue(is_direct_subtype(self.environment, self.B, self.A))
+        self.assertFalse(is_direct_subtype(self.environment, self.B, self.C))
 
     def test_is_subtype(self):
-        self.assertTrue(is_subtype(self.psi, self.B, self.A))
-        self.assertTrue(is_subtype(self.psi, self.C, self.A))
-        self.assertFalse(is_subtype(self.psi, self.A, self.B))
+        self.assertTrue(is_subtype(self.environment, self.B, self.A))
+        self.assertTrue(is_subtype(self.environment, self.C, self.A))
+        self.assertFalse(is_subtype(self.environment, self.A, self.B))
 
     def test_is_subtype_cycle_detection(self):
         visited = set()
         visited.add((self.B, self.A))
-        self.assertFalse(is_subtype(self.psi, self.B, self.A, visited))
+        self.assertFalse(is_subtype(self.environment, self.B, self.A, visited))
 
     def test_is_subtype_identity(self):
-        self.assertTrue(is_subtype(self.psi, self.B, self.B))
+        self.assertTrue(is_subtype(self.environment, self.B, self.B))
 
     def test_is_subtype_toptype(self):
-        self.assertTrue(is_subtype(self.psi, self.B, TopType()))
+        self.assertTrue(is_subtype(self.environment, self.B, TopType()))
 
     def test_is_subtype_bottomtype(self):
-        self.assertTrue(is_subtype(self.psi, BottomType(), self.A))
+        self.assertTrue(is_subtype(self.environment, BottomType(), self.A))
 
     def test_is_subtype_function_type_domain_length_mismatch(self):
         ft1 = FunctionType(domain=(self.A, self.B), codomain=self.C)
         ft2 = FunctionType(domain=(self.A,), codomain=self.C)
-        self.assertFalse(is_subtype(self.psi, ft1, ft2))
+        self.assertFalse(is_subtype(self.environment, ft1, ft2))
 
     def test_is_subtype_function_type_codomain_mismatch(self):
         ft1 = FunctionType(domain=(self.A,), codomain=self.A)
         ft2 = FunctionType(domain=(self.A,), codomain=self.B)
 
-        self.assertFalse(is_subtype(self.psi, ft1, ft2))
+        self.assertFalse(is_subtype(self.environment, ft1, ft2))
 
     def test_is_subtype_spec(self):
-        self.assertTrue(is_subtype_spec(self.spec_B, self.spec_A, self.psi))
-        self.assertFalse(is_subtype_spec(self.spec_A, self.spec_B, self.psi))
+        self.assertTrue(is_subtype_spec(self.spec_B, self.spec_A, self.environment))
+        self.assertFalse(is_subtype_spec(self.spec_A, self.spec_B, self.environment))
 
     def test_is_not_subtype_spec(self):
         spec1 = Specification(signatures=[Signature(var="x", type=self.B)])
         spec2 = Specification(signatures=[Signature(var="x", type=self.C)])
-        self.assertFalse(is_subtype_spec(spec1, spec2, self.psi))
+        self.assertFalse(is_subtype_spec(spec1, spec2, self.environment))
 
     def test_get_all_parent_specifications(self):
-        parent_specs = get_all_parent_specifications(self.psi, self.D)
+        parent_specs = get_all_parent_specifications(self.environment, self.D)
         self.assertIn(self.spec_B, parent_specs)
         self.assertIn(self.spec_C, parent_specs)
         self.assertNotIn(self.spec_A, parent_specs)
 
     def test_undeclared(self):
-        undeclared_vars = undeclared(self.psi, self.D)
+        undeclared_vars = undeclared(self.environment, self.D)
         self.assertIn("y", undeclared_vars)
         self.assertNotIn("x", undeclared_vars)
 
     def test_inherited(self):
-        inherited_vars = inherited(self.psi, self.D)
+        inherited_vars = inherited(self.environment, self.D)
         self.assertIn("y", inherited_vars)
         self.assertIsInstance(inherited_vars["y"], FunctionType)
         self.assertEqual(inherited_vars["y"].codomain, self.B)
         self.assertNotIn("x", inherited_vars)
 
     def test_specifications(self):
-        spec = specifications(self.psi, self.D)
+        spec = specifications(self.environment, self.D)
         var_names = {sig.var for sig in spec.signatures}
         self.assertIn("x", var_names)
         self.assertIn("y", var_names)

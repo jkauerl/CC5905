@@ -12,7 +12,7 @@ from .definitions import (
     BottomType,
     ClassName,
     GradualFunctionType,
-    Psi,
+    Environment,
     Signature,
     Specification,
     TopType,
@@ -31,10 +31,10 @@ __all__ = [
 ]
 
 
-def meet_unique_consistent(psi: Psi, ti: Type, tj: Type) -> Type | None:
+def meet_unique_consistent(environment: Environment, ti: Type, tj: Type) -> Type | None:
     """Calculate the meet of two types, ensuring consistency in the type system.
 
-    :param psi: The Psi object representing the type system.
+    :param environment: The Environment object representing the type system.
     :param ti: The first type to meet.class Type:
     :param tj: The second type to meet.
     :return: The meet of the two types if consistent, otherwise None.
@@ -45,15 +45,15 @@ def meet_unique_consistent(psi: Psi, ti: Type, tj: Type) -> Type | None:
                 raise ValueError(
                     "Function types must have the same number of arguments"
                 )
-            args = [join_unique_consistent(psi, a1, a2) for a1, a2 in zip(fi1, fi2)]
+            args = [join_unique_consistent(environment, a1, a2) for a1, a2 in zip(fi1, fi2)]
             if any(a is None for a in args):
                 return None
-            ret = meet_unique_consistent(psi, fj1, fj2)
+            ret = meet_unique_consistent(environment, fj1, fj2)
             if ret is None:
                 return None
             return GradualFunctionType(args, ret)
         case Type(), Type():
-            return meet_unique(psi, ti, tj)
+            return meet_unique(environment, ti, tj)
         case BottomType(), _:
             return BottomType()
         case _, BottomType():
@@ -70,10 +70,10 @@ def meet_unique_consistent(psi: Psi, ti: Type, tj: Type) -> Type | None:
     return None
 
 
-def join_unique_consistent(psi: Psi, ti: Type, tj: Type) -> Type | None:
+def join_unique_consistent(environment: Environment, ti: Type, tj: Type) -> Type | None:
     """Calculate the join of two types, ensuring consistency in the type system.
 
-    :param psi: The Psi object representing the type system.
+    :param environment: The Environment object representing the type system.
     :param ti: The first type to join.
     :param tj: The second type to join.
     :return: The join of the two types if consistent, otherwise None.
@@ -84,15 +84,15 @@ def join_unique_consistent(psi: Psi, ti: Type, tj: Type) -> Type | None:
                 raise ValueError(
                     "Function types must have the same number of arguments"
                 )
-            args = [meet_unique_consistent(psi, a1, a2) for a1, a2 in zip(fi1, fi2)]
+            args = [meet_unique_consistent(environment, a1, a2) for a1, a2 in zip(fi1, fi2)]
             if any(a is None for a in args):
                 return None
-            ret = join_unique_consistent(psi, fj1, fj2)
+            ret = join_unique_consistent(environment, fj1, fj2)
             if ret is None:
                 return None
             return GradualFunctionType(args, ret)
         case Type(), Type():
-            return meet_unique(psi, ti, tj)
+            return meet_unique(environment, ti, tj)
         case BottomType(), _:
             return BottomType()
         case _, BottomType():
@@ -137,18 +137,18 @@ def proj_many(var: str, ss: list[Specification]) -> list[Type]:
     return result
 
 
-def inherited(psi: Psi, class_name: ClassName) -> dict[str, Type]:
+def inherited(environment: Environment, class_name: ClassName) -> dict[str, Type]:
     """Return the mapping of inherited variable names to their inferred types
     in the specification of a class name.
 
     Only includes variables inherited but not declared in the class.
 
-    :param psi: The Psi object representing the type system.
+    :param environment: The Environment object representing the type system.
     :param class_name: The class name to check.
     :return: A dictionary mapping variable names to their inferred types.
     """
-    undeclared_names = undeclared(psi, class_name)
-    parent_specs = get_all_parent_specifications(psi, class_name)
+    undeclared_names = undeclared(environment, class_name)
+    parent_specs = get_all_parent_specifications(environment, class_name)
 
     inherited_vars = {}
 
@@ -164,7 +164,7 @@ def inherited(psi: Psi, class_name: ClassName) -> dict[str, Type]:
             if isinstance(current_meet, ClassName) and isinstance(
                 other_type, ClassName
             ):
-                m = meet_unique_consistent(psi, current_meet, other_type)
+                m = meet_unique_consistent(environment, current_meet, other_type)
                 if m is None:
                     current_meet = None
                     break
@@ -179,20 +179,20 @@ def inherited(psi: Psi, class_name: ClassName) -> dict[str, Type]:
     return inherited_vars
 
 
-def specifications(psi: Psi, class_name: ClassName) -> Specification:
+def specifications(environment: Environment, class_name: ClassName) -> Specification:
     """Return the full specification of a class name, including inherited variables.
 
-    :param psi: The Psi object representing the type system.
+    :param environment: The Environment object representing the type system.
     :param class_name: The class name to get the specification for.
     :return: The combined Specification of the class name.
     """
-    explicit_spec = psi.sigma.get(class_name.name)
+    explicit_spec = environment.sigma.get(class_name.name)
     if explicit_spec is None:
         explicit_signatures = []
     else:
         explicit_signatures = explicit_spec.signatures
 
-    inherited_vars = inherited(psi, class_name)
+    inherited_vars = inherited(environment, class_name)
 
     inherited_signatures = [
         Signature(var=var, type=typ) for var, typ in inherited_vars.items()

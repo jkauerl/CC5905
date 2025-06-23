@@ -4,7 +4,7 @@ from src.gradual.definitions import (
     ClassName,
     Edge,
     GradualFunctionType,
-    Psi,
+    Environment,
     Signature,
     Specification,
 )
@@ -29,7 +29,7 @@ class TestValidations(unittest.TestCase):
         cls = ClassName("A")
         sigs = [Signature("x", ClassName("A"))]
         sigma = {"A": sigs}
-        self.simple_psi = Psi(Ns=[cls], Es=[], sigma=sigma)
+        self.simple_psi = Environment(Ns=[cls], Es=[], sigma=sigma)
 
     def test_minimal_specification_true(self):
         spec = Specification(self.simple_psi.sigma["A"])
@@ -40,9 +40,9 @@ class TestValidations(unittest.TestCase):
         class_b = ClassName("B")
         edges = [Edge(source=class_a, target=class_b)]
         parent_sig = Signature("f", ClassName("B"))
-        psi = Psi(Ns=[class_a, class_b], Es=edges, sigma={"A": [], "B": [parent_sig]})
+        environment = Environment(Ns=[class_a, class_b], Es=edges, sigma={"A": [], "B": [parent_sig]})
         spec = Specification([])
-        self.assertFalse(minimal_specification(class_a, spec, psi))
+        self.assertFalse(minimal_specification(class_a, spec, environment))
 
     def test_includes_node_true(self):
         spec = Specification(self.simple_psi.sigma["A"])
@@ -51,17 +51,17 @@ class TestValidations(unittest.TestCase):
     def test_includes_node_false_missing_signature(self):
         cls = ClassName("A")
         sig = Signature("foo", ClassName("Int"))
-        psi = Psi(Ns=[cls], Es=[], sigma={"A": [sig]})
+        environment = Environment(Ns=[cls], Es=[], sigma={"A": [sig]})
         spec = Specification([])
-        self.assertFalse(includes_node(cls, spec, psi))
+        self.assertFalse(includes_node(cls, spec, environment))
 
     def test_includes_node_false_wrong_type(self):
         cls = ClassName("A")
         correct_sig = Signature("foo", ClassName("Int"))
-        psi = Psi(Ns=[cls], Es=[], sigma={"A": [correct_sig]})
+        environment = Environment(Ns=[cls], Es=[], sigma={"A": [correct_sig]})
         wrong_sig = Signature("foo", ClassName("Bool"))
         spec = Specification([wrong_sig])
-        self.assertFalse(includes_node(cls, spec, psi))
+        self.assertFalse(includes_node(cls, spec, environment))
 
     def test_exists_all_signatures_true(self):
         spec = Specification(self.simple_psi.sigma["A"])
@@ -79,15 +79,15 @@ class TestValidations(unittest.TestCase):
 
     def test_valid_signature_true(self):
         sigs = [Signature("x", ClassName("Int"))]
-        psi = Psi(Ns=[ClassName("A"), ClassName("Int")], Es=[], sigma={"A": sigs})
-        self.assertTrue(is_valid_signature(psi, sigs))
+        environment = Environment(Ns=[ClassName("A"), ClassName("Int")], Es=[], sigma={"A": sigs})
+        self.assertTrue(is_valid_signature(environment, sigs))
 
     def test_graph_is_acyclic(self):
         class_a = ClassName("A")
         class_b = ClassName("B")
         edges = [Edge(source=class_a, target=class_b)]
-        psi = Psi(Ns=[class_a, class_b], Es=edges, sigma={"A": [], "B": []})
-        self.assertTrue(acyclic(psi))
+        environment = Environment(Ns=[class_a, class_b], Es=edges, sigma={"A": [], "B": []})
+        self.assertTrue(acyclic(environment))
 
     def test_graph_is_not_acyclic(self):
         class_a = ClassName("A")
@@ -96,117 +96,117 @@ class TestValidations(unittest.TestCase):
             Edge(source=class_a, target=class_b),
             Edge(source=class_b, target=class_a),
         ]
-        psi = Psi(Ns=[class_a, class_b], Es=edges, sigma={"A": [], "B": []})
-        self.assertFalse(acyclic(psi))
+        environment = Environment(Ns=[class_a, class_b], Es=edges, sigma={"A": [], "B": []})
+        self.assertFalse(acyclic(environment))
 
     def test_valid_type_true(self):
-        psi = Psi(Ns=[ClassName("Int")], Es=[], sigma={})
-        self.assertTrue(is_valid_type(psi, ClassName("Int")))
+        environment = Environment(Ns=[ClassName("Int")], Es=[], sigma={})
+        self.assertTrue(is_valid_type(environment, ClassName("Int")))
 
     def test_valid_type_false(self):
-        psi = Psi(Ns=[ClassName("A")], Es=[], sigma={})
-        self.assertFalse(is_valid_type(psi, ClassName("Unknown")))
+        environment = Environment(Ns=[ClassName("A")], Es=[], sigma={})
+        self.assertFalse(is_valid_type(environment, ClassName("Unknown")))
 
     def test_valid_type_function_true(self):
         class_a = ClassName("A")
         class_b = ClassName("B")
         func = GradualFunctionType(domain=[class_a], codomain=class_b)
-        psi = Psi(Ns=[class_a, class_b], Es=[], sigma={"A": [], "B": []})
-        self.assertTrue(is_valid_type(psi, func))
+        environment = Environment(Ns=[class_a, class_b], Es=[], sigma={"A": [], "B": []})
+        self.assertTrue(is_valid_type(environment, func))
 
     def test_valid_type_function_false(self):
         class_a = ClassName("A")
         class_b = ClassName("B")
         func = GradualFunctionType(domain=[class_a], codomain=class_b)
-        psi = Psi(Ns=[class_a], Es=[], sigma={"A": []})
-        self.assertFalse(is_valid_type(psi, func))
+        environment = Environment(Ns=[class_a], Es=[], sigma={"A": []})
+        self.assertFalse(is_valid_type(environment, func))
 
     def test_valid_node_true(self):
         cls = ClassName("A")
-        psi = Psi(Ns=[cls], Es=[], sigma={"A": []})
-        self.assertTrue(is_valid_node(psi, cls))
+        environment = Environment(Ns=[cls], Es=[], sigma={"A": []})
+        self.assertTrue(is_valid_node(environment, cls))
 
     def test_valid_node_false(self):
-        psi = Psi(Ns=[], Es=[], sigma={})
-        self.assertFalse(is_valid_node(psi, ClassName("Missing")))
+        environment = Environment(Ns=[], Es=[], sigma={})
+        self.assertFalse(is_valid_node(environment, ClassName("Missing")))
 
     def test_valid_edge_true(self):
         class_a = ClassName("A")
         class_b = ClassName("B")
         edge = Edge(source=class_a, target=class_b)
-        psi = Psi(Ns=[class_a, class_b], Es=[edge], sigma={"A": [], "B": []})
-        self.assertTrue(is_valid_edge(psi, class_a, class_b))
+        environment = Environment(Ns=[class_a, class_b], Es=[edge], sigma={"A": [], "B": []})
+        self.assertTrue(is_valid_edge(environment, class_a, class_b))
 
     def test_valid_edge_false(self):
         class_a = ClassName("A")
         class_b = ClassName("B")
-        psi = Psi(Ns=[class_a], Es=[], sigma={"A": []})
-        self.assertFalse(is_valid_edge(psi, class_a, class_b))
+        environment = Environment(Ns=[class_a], Es=[], sigma={"A": []})
+        self.assertFalse(is_valid_edge(environment, class_a, class_b))
 
     def test_valid_function_true(self):
         cls = ClassName("A")
-        psi = Psi(Ns=[cls], Es=[], sigma={"A": []})
+        environment = Environment(Ns=[cls], Es=[], sigma={"A": []})
         func = GradualFunctionType(domain=[cls], codomain=cls)
-        self.assertTrue(is_valid_function(psi, func))
+        self.assertTrue(is_valid_function(environment, func))
 
     def test_valid_function_false(self):
         class_a = ClassName("A")
         class_b = ClassName("B")
-        psi = Psi(Ns=[class_a], Es=[], sigma={"A": []})
+        environment = Environment(Ns=[class_a], Es=[], sigma={"A": []})
         func = GradualFunctionType(domain=[class_a], codomain=class_b)
-        self.assertFalse(is_valid_function(psi, func))
+        self.assertFalse(is_valid_function(environment, func))
 
     def test_valid_fun_true(self):
         sig = Signature("foo", ClassName("A"))
-        psi = Psi(Ns=[ClassName("A")], Es=[], sigma={"A": [sig]})
-        self.assertTrue(is_valid_fun(psi))
+        environment = Environment(Ns=[ClassName("A")], Es=[], sigma={"A": [sig]})
+        self.assertTrue(is_valid_fun(environment))
 
     def test_valid_fun_false(self):
         sig = Signature("bar", ClassName("Missing"))
         cls = ClassName("A")
-        psi = Psi(Ns=[cls], Es=[], sigma={"A": [sig]})
-        self.assertFalse(is_valid_fun(psi))
+        environment = Environment(Ns=[cls], Es=[], sigma={"A": [sig]})
+        self.assertFalse(is_valid_fun(environment))
 
     def test_valid_graph_true(self):
         cls = ClassName("A")
         sig = Signature("foo", ClassName("A"))
-        psi = Psi(Ns=[cls], Es=[], sigma={"A": [sig]})
-        self.assertTrue(is_valid_graph(psi))
+        environment = Environment(Ns=[cls], Es=[], sigma={"A": [sig]})
+        self.assertTrue(is_valid_graph(environment))
 
     def test_valid_graph_false(self):
         cls = ClassName("A")
         sig = Signature("foo", ClassName("Unknown"))
-        psi = Psi(Ns=[cls], Es=[], sigma={"A": [sig]})
-        self.assertFalse(is_valid_graph(psi))
+        environment = Environment(Ns=[cls], Es=[], sigma={"A": [sig]})
+        self.assertFalse(is_valid_graph(environment))
 
     def test_valid_graph_missing_sigma_entry(self):
         class_a = ClassName("A")
         class_b = ClassName("B")
         sig_a = Signature("foo", ClassName("A"))
-        psi = Psi(Ns=[class_a, class_b], Es=[], sigma={"A": [sig_a]})
-        self.assertFalse(is_valid_graph(psi))
+        environment = Environment(Ns=[class_a, class_b], Es=[], sigma={"A": [sig_a]})
+        self.assertFalse(is_valid_graph(environment))
 
     def test_exists_all_signatures_false_on_extra_signature(self):
         class_a = ClassName("A")
         declared = [Signature("foo", class_a)]
         extra = Signature("bar", class_a)
-        psi = Psi(Ns=[class_a], Es=[], sigma={"A": declared})
+        environment = Environment(Ns=[class_a], Es=[], sigma={"A": declared})
         spec_with_extra = Specification(declared + [extra])
-        self.assertFalse(exists_all_signatures(psi, class_a, spec_with_extra))
+        self.assertFalse(exists_all_signatures(environment, class_a, spec_with_extra))
 
     def test_is_valid_signature_false_on_invalid_signature(self):
         class_a = ClassName("A")
         sig_invalid = Signature(
             "foo", ClassName("Unknown")
-        )  # Invalid type (not in psi.Ns)
-        psi = Psi(Ns=[class_a], Es=[], sigma={"A": [sig_invalid]})
-        self.assertFalse(is_valid_signature(psi, psi.sigma["A"]))
+        )  # Invalid type (not in environment.Ns)
+        environment = Environment(Ns=[class_a], Es=[], sigma={"A": [sig_invalid]})
+        self.assertFalse(is_valid_signature(environment, environment.sigma["A"]))
 
     def test_is_valid_edge_false_when_edge_missing(self):
         class_a = ClassName("A")
         class_b = ClassName("B")
-        psi = Psi(Ns=[class_a, class_b], Es=[], sigma={"A": [], "B": []})
-        self.assertFalse(is_valid_edge(psi, class_a, class_b))
+        environment = Environment(Ns=[class_a, class_b], Es=[], sigma={"A": [], "B": []})
+        self.assertFalse(is_valid_edge(environment, class_a, class_b))
 
     def test_valid_graph_cyclic_graph(self):
         class_a = ClassName("A")
@@ -215,8 +215,8 @@ class TestValidations(unittest.TestCase):
             Edge(source=class_a, target=class_b),
             Edge(source=class_b, target=class_a),
         ]
-        psi = Psi(Ns=[class_a, class_b], Es=edges, sigma={"A": [], "B": []})
-        self.assertFalse(is_valid_graph(psi))
+        environment = Environment(Ns=[class_a, class_b], Es=edges, sigma={"A": [], "B": []})
+        self.assertFalse(is_valid_graph(environment))
 
 
 if __name__ == "__main__":
