@@ -125,12 +125,7 @@ def is_valid_graph(psi: Psi) -> bool:
     for class_name in psi.Ns:
         if class_name.name not in psi.sigma:
             return False
-        spec = Specification(psi.sigma[class_name.name])
-        if not minimal_specification(class_name, spec, psi):
-            return False
-        if not exists_all_signatures(psi, class_name, spec):
-            return False
-        if not is_valid_signature(psi, spec.signatures):
+        if not is_valid_node(psi, class_name):
             return False
     for edge in psi.Es:
         if not is_valid_edge(psi, edge.source, edge.target):
