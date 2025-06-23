@@ -12,8 +12,8 @@ from src.gradual.definitions import ClassName, Edge, Specification, Signature, U
 
 class TestSimpleEvidence(unittest.TestCase):
     def setUp(self):
-        self.lower_bound = ClassName("Int")
-        self.upper_bound = ClassName("Float")
+        self.lower_bound = ClassName("A")
+        self.upper_bound = ClassName("B")
         self.evidence_interval = EvidenceInterval(self.lower_bound, self.upper_bound)
 
         self.evidence_signature = EvidenceSignature("x", self.evidence_interval)
