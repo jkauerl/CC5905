@@ -1,9 +1,11 @@
 from collections import defaultdict
+from typing import Callable
 
 from .definitions import (
     ClassName,
     Psi,
     Specification,
+    Type,
 )
 from .functions import get_all_parent_specifications, names
 from .subtyping import is_subtype_spec
@@ -12,7 +14,7 @@ from .subtyping import is_subtype_spec
 """
 
 
-def _minimal_specification(class_name: ClassName, s: Specification, psi: Psi, is_subtype: callable) -> bool:
+def _minimal_specification_core(class_name: ClassName, s: Specification, psi: Psi, is_subtype: Callable[[Psi, Type, Type], bool]) -> bool:
     """Check if the given specification is minimal for the given class name.
 
     :param class_name: The class name to check.
@@ -34,7 +36,7 @@ def minimal_specification(class_name: ClassName, s: Specification, psi: Psi) -> 
     :param s: The specification to check.
     :return: True if the specification is minimal, False otherwise.
     """
-    return _minimal_specification(class_name, s, psi, is_subtype_spec)
+    return _minimal_specification_core(class_name, s, psi, is_subtype_spec)
 
 
 def includes_node(class_name: ClassName, s: Specification, psi: Psi) -> bool:

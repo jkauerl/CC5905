@@ -4,7 +4,7 @@ from src.static.propositions import (
     exists_all_signatures,
     includes_node,
     no_overloading,
-    _minimal_specification
+    _minimal_specification_core,
 )
 
 from .definitions import ClassName, Psi, Specification
@@ -28,4 +28,4 @@ def minimal_specification(class_name: ClassName, s: Specification, psi: Psi) -> 
     :param s: The specification to check.
     :return: True if the specification is minimal, False otherwise.
     """
-    return _minimal_specification(class_name, s, psi, is_subtype_spec)
+    return _minimal_specification_core(class_name, s, psi, is_subtype_spec)

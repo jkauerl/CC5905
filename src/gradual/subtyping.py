@@ -10,6 +10,7 @@ from .definitions import (
     Type,
     Unknown,
 )
+from src.static.subtyping import _is_subtype_spec_core
 
 """ Propositions to check the type system
 """
@@ -71,10 +72,4 @@ def is_subtype_spec(s: Specification, sp: Specification, psi: Psi) -> bool:
     :param psi: The Psi object representing the type system.
     :return: True if s is a subtype of sp, False otherwise.
     """
-    s_dict = {sig.var: sig.type for sig in s.signatures}
-    for sig_p in sp.signatures:
-        if sig_p.var not in s_dict:
-            return False
-        if not is_subtype(psi, s_dict[sig_p.var], sig_p.type):
-            return False
-    return True
+    return _is_subtype_spec_core(s, sp, psi, is_subtype)
