@@ -1,5 +1,6 @@
 from abc import ABC
 from typing import Tuple
+from dataclasses import dataclass
 
 from src.static.definitions import (
     BottomType,
@@ -26,12 +27,14 @@ __all__ = [
 ]
 
 
+@dataclass(frozen=True)
 class GradualType(ABC):
     """Abstract base class for all types."""
 
     pass
 
 
+@dataclass(frozen=True)
 class GradualFunctionType(Type):
     """Represents a function type in the gradual system."""
 
