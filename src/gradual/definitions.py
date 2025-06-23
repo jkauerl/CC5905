@@ -1,6 +1,6 @@
 from abc import ABC
-from typing import Tuple
 from dataclasses import dataclass
+from typing import Tuple
 
 from src.static.definitions import (
     BottomType,

@@ -1,4 +1,5 @@
 import src.static.subtyping as static_subtyping
+from src.static.subtyping import _is_subtype_spec_core
 
 from .definitions import (
     BottomType,
@@ -10,7 +11,6 @@ from .definitions import (
     Type,
     Unknown,
 )
-from src.static.subtyping import _is_subtype_spec_core
 
 """ Propositions to check the type system
 """

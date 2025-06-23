@@ -1,10 +1,10 @@
 from src.gradual.subtyping import is_subtype_spec
 from src.static.propositions import (
+    _minimal_specification_core,
     acyclic,
     exists_all_signatures,
     includes_node,
     no_overloading,
-    _minimal_specification_core,
 )
 
 from .definitions import ClassName, Psi, Specification

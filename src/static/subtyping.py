@@ -1,4 +1,5 @@
 from typing import Callable
+
 from .definitions import (
     BottomType,
     ClassName,
@@ -77,7 +78,12 @@ def is_subtype(psi: Psi, t1: Type, t2: Type, visited=None) -> bool:
     return False
 
 
-def _is_subtype_spec_core(s: Specification, sp: Specification, psi: Psi, is_subtype: Callable[[Psi, Type, Type], bool]) -> bool:
+def _is_subtype_spec_core(
+    s: Specification,
+    sp: Specification,
+    psi: Psi,
+    is_subtype: Callable[[Psi, Type, Type], bool],
+) -> bool:
     """Check if specification s is a subtype of specification sp.
 
     :param s: The first specification to check.

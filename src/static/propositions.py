@@ -14,7 +14,12 @@ from .subtyping import is_subtype_spec
 """
 
 
-def _minimal_specification_core(class_name: ClassName, s: Specification, psi: Psi, is_subtype: Callable[[Psi, Type, Type], bool]) -> bool:
+def _minimal_specification_core(
+    class_name: ClassName,
+    s: Specification,
+    psi: Psi,
+    is_subtype: Callable[[Psi, Type, Type], bool],
+) -> bool:
     """Check if the given specification is minimal for the given class name.
 
     :param class_name: The class name to check.
@@ -27,6 +32,7 @@ def _minimal_specification_core(class_name: ClassName, s: Specification, psi: Ps
         if not is_subtype(s, Specification(sp), psi):
             return False
     return True
+
 
 def minimal_specification(class_name: ClassName, s: Specification, psi: Psi) -> bool:
     """Check if the given specification is minimal for the given class name.
