@@ -12,7 +12,7 @@ from .subtyping import is_subtype_spec
 """
 
 
-def minimal_specification(class_name: ClassName, s: Specification, psi: Psi) -> bool:
+def _minimal_specification(class_name: ClassName, s: Specification, psi: Psi, is_subtype: callable) -> bool:
     """Check if the given specification is minimal for the given class name.
 
     :param class_name: The class name to check.
@@ -22,9 +22,19 @@ def minimal_specification(class_name: ClassName, s: Specification, psi: Psi) -> 
     """
     parent_specs = get_all_parent_specifications(psi, class_name)
     for sp in parent_specs:
-        if not is_subtype_spec(s, Specification(sp), psi):
+        if not is_subtype(s, Specification(sp), psi):
             return False
     return True
+
+def minimal_specification(class_name: ClassName, s: Specification, psi: Psi) -> bool:
+    """Check if the given specification is minimal for the given class name.
+
+    :param psi: The Psi object representing the type system.
+    :param class_name: The class name to check.
+    :param s: The specification to check.
+    :return: True if the specification is minimal, False otherwise.
+    """
+    return _minimal_specification(class_name, s, psi, is_subtype_spec)
 
 
 def includes_node(class_name: ClassName, s: Specification, psi: Psi) -> bool:

@@ -4,10 +4,10 @@ from src.static.propositions import (
     exists_all_signatures,
     includes_node,
     no_overloading,
+    _minimal_specification
 )
 
 from .definitions import ClassName, Psi, Specification
-from .functions import get_all_parent_specifications
 
 __all__ = [
     "acyclic",
@@ -20,7 +20,7 @@ __all__ = [
 """
 
 
-def minimal_specification(psi: Psi, class_name: ClassName, s: Specification) -> bool:
+def minimal_specification(class_name: ClassName, s: Specification, psi: Psi) -> bool:
     """Check if the given specification is minimal for the given class name.
 
     :param psi: The Psi object representing the type system.
@@ -28,8 +28,4 @@ def minimal_specification(psi: Psi, class_name: ClassName, s: Specification) -> 
     :param s: The specification to check.
     :return: True if the specification is minimal, False otherwise.
     """
-    parent_specs = get_all_parent_specifications(psi, class_name)
-    for sp in parent_specs:
-        if not is_subtype_spec(s, Specification(sp), psi):
-            return False
-    return True
+    return _minimal_specification(class_name, s, psi, is_subtype_spec)
