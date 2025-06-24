@@ -65,7 +65,7 @@ def is_subtype(environment: Environment, t1: GradualType, t2: GradualType, visit
 
 
 def is_subtype_spec(s: Specification, sp: Specification, environment: Environment) -> bool:
-    """Check if specification s is a subtype of specification sp.
+    """Wrapper function to check if a specification s is a subtype of another specification sp.
 
     :param s: The first specification to check.
     :param sp: The second specification to check.

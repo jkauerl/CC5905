@@ -84,7 +84,7 @@ def _is_subtype_spec_core(
     environment: Environment,
     is_subtype: Callable[[Environment, Type, Type], bool],
 ) -> bool:
-    """Check if specification s is a subtype of specification sp.
+    """Core function to check if specification s is a subtype of specification sp.
 
     :param s: The first specification to check.
     :param sp: The second specification to check.
@@ -101,7 +101,7 @@ def _is_subtype_spec_core(
 
 
 def is_subtype_spec(s: Specification, sp: Specification, environment: Environment) -> bool:
-    """Check if specification s is a subtype of specification sp.
+    """Wrapper function to check if specification s is a subtype of specification sp.
 
     :param s: The first specification to check.
     :param sp: The second specification to check.
