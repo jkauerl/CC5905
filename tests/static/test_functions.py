@@ -20,7 +20,7 @@ from src.static.functions import (
     names,
     proj,
     proj_many,
-    specifications,
+    get_specifications,
     undeclared,
     upper_set,
 )
@@ -184,7 +184,7 @@ class TestFunctions(unittest.TestCase):
         self.assertNotIn("x", inherited_vars)
 
     def test_specifications(self):
-        spec = specifications(self.environment, self.D)
+        spec = get_specifications(self.environment, self.D)
         var_names = {sig.var for sig in spec.signatures}
         self.assertIn("x", var_names)
         self.assertIn("y", var_names)

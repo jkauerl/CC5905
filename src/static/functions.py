@@ -1,3 +1,4 @@
+from typing import Set
 from .definitions import ClassName, Environment, Signature, Specification, Type
 from .subtyping import is_direct_subtype, is_subtype
 
@@ -7,7 +8,7 @@ from .subtyping import is_direct_subtype, is_subtype
 
 def get_all_parent_specifications(
     environment: Environment, class_name: ClassName
-) -> list[Specification]:
+) -> Set[Specification]:
     """Get all parent specifications of a given class name.
     By checking that the class name is a direct subtype of the parent class.
 
@@ -224,7 +225,7 @@ def inherited(environment: Environment, class_name: ClassName) -> dict[str, Type
     return inherited_vars
 
 
-def specifications(environment: Environment, class_name: ClassName) -> Specification:
+def get_specifications(environment: Environment, class_name: ClassName) -> Specification:
     """Return the full specification of a class name, including inherited variables.
 
     :param environment: The Environment object representing the type system.
