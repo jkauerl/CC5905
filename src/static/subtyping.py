@@ -3,8 +3,8 @@ from typing import Callable
 from .definitions import (
     BottomType,
     ClassName,
-    FunctionType,
     Environment,
+    FunctionType,
     Specification,
     TopType,
     Type,
@@ -100,7 +100,9 @@ def _is_subtype_spec_core(
     return True
 
 
-def is_subtype_spec(s: Specification, sp: Specification, environment: Environment) -> bool:
+def is_subtype_spec(
+    s: Specification, sp: Specification, environment: Environment
+) -> bool:
     """Wrapper function to check if specification s is a subtype of specification sp.
 
     :param s: The first specification to check.

@@ -20,8 +20,11 @@ __all__ = [
 """
 
 
-def minimal_specification(class_name: ClassName, s: Specification, environment: Environment) -> bool:
-    """Wrapper function to check if the given specification is minimal for the given class name.
+def minimal_specification(
+    class_name: ClassName, s: Specification, environment: Environment
+) -> bool:
+    """Wrapper function to check if the given specification is minimal for the given
+    class name.
 
     :param environment: The Environment object representing the type system.
     :param class_name: The class name to check.

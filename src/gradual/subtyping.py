@@ -4,11 +4,11 @@ from src.static.subtyping import _is_subtype_spec_core
 from .definitions import (
     BottomType,
     ClassName,
-    GradualFunctionType,
     Environment,
+    GradualFunctionType,
+    GradualType,
     Specification,
     TopType,
-    GradualType,
     Unknown,
 )
 
@@ -16,7 +16,9 @@ from .definitions import (
 """
 
 
-def is_subtype(environment: Environment, t1: GradualType, t2: GradualType, visited=None) -> bool:
+def is_subtype(
+    environment: Environment, t1: GradualType, t2: GradualType, visited=None
+) -> bool:
     """Check if t1 is a subtype of t2 in the Environment type system.
 
     :param environment: The Environment object representing the type system.
@@ -64,8 +66,11 @@ def is_subtype(environment: Environment, t1: GradualType, t2: GradualType, visit
     return False
 
 
-def is_subtype_spec(s: Specification, sp: Specification, environment: Environment) -> bool:
-    """Wrapper function to check if a specification s is a subtype of another specification sp.
+def is_subtype_spec(
+    s: Specification, sp: Specification, environment: Environment
+) -> bool:
+    """Wrapper function to check if a specification s is a subtype of another
+    specification sp.
 
     :param s: The first specification to check.
     :param sp: The second specification to check.

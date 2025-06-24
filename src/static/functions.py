@@ -1,4 +1,5 @@
 from typing import Callable, Set
+
 from .definitions import ClassName, Environment, Signature, Specification, Type
 from .subtyping import is_direct_subtype, is_subtype
 
@@ -62,7 +63,11 @@ def meet(environment: Environment, ti: Type, tj: Type) -> set[Type]:
 
     meet_set = set()
     for t in common:
-        if all(not is_subtype(environment, t, t_prime) for t_prime in common if t != t_prime):
+        if all(
+            not is_subtype(environment, t, t_prime)
+            for t_prime in common
+            if t != t_prime
+        ):
             meet_set.add(t)
 
     return meet_set
@@ -98,7 +103,11 @@ def join(environment: Environment, ti: Type, tj: Type) -> set[Type]:
 
     join_set = set()
     for t in common:
-        if all(not is_subtype(environment, t_prime, t) for t_prime in common if t != t_prime):
+        if all(
+            not is_subtype(environment, t_prime, t)
+            for t_prime in common
+            if t != t_prime
+        ):
             join_set.add(t)
 
     return join_set
@@ -183,7 +192,12 @@ def undeclared(environment: Environment, class_name: ClassName) -> set[str]:
     return undeclared_names
 
 
-def _inherited_core(environment: Environment, class_name: ClassName, proj_many_function: Callable[[str, Specification], Type | None], meet_unique_function: Callable[[Environment, Type, Type], Type | None]) -> dict[str, Type]:
+def _inherited_core(
+    environment: Environment,
+    class_name: ClassName,
+    proj_many_function: Callable[[str, Specification], Type | None],
+    meet_unique_function: Callable[[Environment, Type, Type], Type | None],
+) -> dict[str, Type]:
     """Core function to get the inherited variable names and their types.
 
     Only includes variables inherited but not declared in the class.
@@ -226,7 +240,7 @@ def _inherited_core(environment: Environment, class_name: ClassName, proj_many_f
 
 def inherited(environment: Environment, class_name: ClassName) -> dict[str, Type]:
     """Wrapper function to get the inherited variable names and their types.
-    
+
     :param environment: The Environment object representing the type system.
     :param class_name: The class name to check.
     :return: A dictionary mapping variable names to their inferred types.
@@ -239,8 +253,13 @@ def inherited(environment: Environment, class_name: ClassName) -> dict[str, Type
     )
 
 
-def _get_specifications_core(environment: Environment, class_name: ClassName, inherited_function: Callable[[Environment, ClassName], dict[str, Type]]) -> Specification:
-    """Core function to get the full specification of a class name, including inherited variables.
+def _get_specifications_core(
+    environment: Environment,
+    class_name: ClassName,
+    inherited_function: Callable[[Environment, ClassName], dict[str, Type]],
+) -> Specification:
+    """Core function to get the full specification of a class name, including inherited
+    variables.
 
     :param environment: The Environment object representing the type system.
     :param class_name: The class name to get the specification for.
@@ -267,8 +286,12 @@ def _get_specifications_core(environment: Environment, class_name: ClassName, in
 
     return Specification(signatures=combined_signatures)
 
-def get_specifications(environment: Environment, class_name: ClassName) -> Specification:
-    """Wrapper function to return the full specification of a class name, including inherited variables.
+
+def get_specifications(
+    environment: Environment, class_name: ClassName
+) -> Specification:
+    """Wrapper function to return the full specification of a class name, including
+    inherited variables.
 
     :param environment: The Environment object representing the type system.
     :param class_name: The class name to get the specification for.

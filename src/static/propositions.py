@@ -20,7 +20,8 @@ def _minimal_specification_core(
     environment: Environment,
     is_subtype: Callable[[Environment, Type, Type], bool],
 ) -> bool:
-    """Core function to check if the given specification is minimal for the given class name.
+    """Core function to check if the given specification is minimal for the given
+    class name.
 
     :param class_name: The class name to check.
     :param s: The specification to check.
@@ -34,8 +35,11 @@ def _minimal_specification_core(
     return True
 
 
-def minimal_specification(class_name: ClassName, s: Specification, environment: Environment) -> bool:
-    """Wrapper function to check if the given specification is minimal for the given class name.
+def minimal_specification(
+    class_name: ClassName, s: Specification, environment: Environment
+) -> bool:
+    """Wrapper function to check if the given specification is minimal for the given
+    class name.
 
     :param environment: The Environment object representing the type system.
     :param class_name: The class name to check.
@@ -45,7 +49,9 @@ def minimal_specification(class_name: ClassName, s: Specification, environment: 
     return _minimal_specification_core(class_name, s, environment, is_subtype_spec)
 
 
-def includes_node(class_name: ClassName, s: Specification, environment: Environment) -> bool:
+def includes_node(
+    class_name: ClassName, s: Specification, environment: Environment
+) -> bool:
     """Check if all signatures of class_name in environment.sigma are included in s."""
     if class_name.name not in environment.sigma:
         return False
@@ -62,7 +68,9 @@ def includes_node(class_name: ClassName, s: Specification, environment: Environm
     return True
 
 
-def exists_all_signatures(environment: Environment, class_name: ClassName, s: Specification) -> bool:
+def exists_all_signatures(
+    environment: Environment, class_name: ClassName, s: Specification
+) -> bool:
     """
     Check if the specification s includes exactly the signatures that are
     either declared by the class N or inherited from its parents, with no extra methods.

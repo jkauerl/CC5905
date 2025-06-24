@@ -5,9 +5,9 @@ from src.static.functions import join, meet
 
 from ..definitions import (
     BottomType,
+    Environment,
     GradualFunctionType,
     GradualType,
-    Environment,
     TopType,
     Unknown,
 )
@@ -46,7 +46,9 @@ def meet_evidence_intervals(
 
 
 def meet_evidence_specifications(
-    environment: Environment, spec_1: EvidenceSpecification, spec_2: EvidenceSpecification
+    environment: Environment,
+    spec_1: EvidenceSpecification,
+    spec_2: EvidenceSpecification,
 ) -> Set[EvidenceSpecification]:
     """Compute the meet of two specifications in the type system.
 
@@ -142,7 +144,9 @@ def join_evidence_intervals(
 
 
 def join_evidence_specifications(
-    environment: Environment, spec_1: EvidenceSpecification, spec_2: EvidenceSpecification
+    environment: Environment,
+    spec_1: EvidenceSpecification,
+    spec_2: EvidenceSpecification,
 ) -> Set[EvidenceSpecification]:
     """Compute the join of two specifications in the type system.
 
@@ -155,7 +159,9 @@ def join_evidence_specifications(
     for signature_1 in spec_1.signatures:
         for signature_2 in spec_2.signatures:
             if signature_1.var == signature_2.var:
-                new_signatures = join_evidence_intervals(environment, signature_1, signature_2)
+                new_signatures = join_evidence_intervals(
+                    environment, signature_1, signature_2
+                )
                 for new_signature in new_signatures:
                     extra_signatures = [
                         sig
@@ -263,7 +269,9 @@ def interior_intervals(
 
 
 def interior_gradual_specification(
-    environment: Environment, spec_1: EvidenceSpecification, spec_2: EvidenceSpecification
+    environment: Environment,
+    spec_1: EvidenceSpecification,
+    spec_2: EvidenceSpecification,
 ) -> Set[Tuple[EvidenceSpecification, EvidenceSpecification]]:
     """Compute the interior signatures of two specifications in the type system.
 
@@ -341,7 +349,9 @@ def interior_types(
 
 
 def interior_specification(
-    environment: Environment, spec_1: EvidenceSpecification, spec_2: EvidenceSpecification
+    environment: Environment,
+    spec_1: EvidenceSpecification,
+    spec_2: EvidenceSpecification,
 ) -> Set[Tuple[EvidenceInterval, EvidenceInterval]]:
     """Compute the interior specifications of two specifications in the type system.
 
@@ -382,7 +392,9 @@ def transitivity_interval(
     :return: A set of pairs of intervals that are the transitivity of the two pairs of
              intervals.
     """
-    meet_group = meet_evidence_intervals(environment, par_interval_2[0], par_interval_1[1])
+    meet_group = meet_evidence_intervals(
+        environment, par_interval_2[0], par_interval_1[1]
+    )
 
     result = set()
     for i in meet_group:

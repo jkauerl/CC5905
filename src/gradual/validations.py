@@ -1,12 +1,12 @@
 from .definitions import (
     BottomType,
     ClassName,
-    GradualFunctionType,
     Environment,
+    GradualFunctionType,
+    GradualType,
     Signature,
     Specification,
     TopType,
-    GradualType,
     Unknown,
 )
 from .propositions import (
@@ -63,9 +63,9 @@ def is_valid_function(environment: Environment, function: GradualFunctionType) -
     :param function: The function to check.
     :return: True if the function is valid, False otherwise.
     """
-    return all([is_valid_type(environment, t) for t in function.domain]) and is_valid_type(
-        environment, function.codomain
-    )
+    return all(
+        [is_valid_type(environment, t) for t in function.domain]
+    ) and is_valid_type(environment, function.codomain)
 
 
 """ Validation of the graph
@@ -89,7 +89,9 @@ def is_valid_node(environment: Environment, node: ClassName) -> bool:
     )
 
 
-def is_valid_edge(environment: Environment, class_name_1: ClassName, class_name_2: ClassName) -> bool:
+def is_valid_edge(
+    environment: Environment, class_name_1: ClassName, class_name_2: ClassName
+) -> bool:
     """Check if the given edge is valid in the Environment object.
 
     :param environment: The Environment object representing the type system.
@@ -99,7 +101,8 @@ def is_valid_edge(environment: Environment, class_name_1: ClassName, class_name_
     :return: True if the edge is valid, False otherwise.
     """
     return any(
-        edge.source == class_name_1 and edge.target == class_name_2 for edge in environment.Es
+        edge.source == class_name_1 and edge.target == class_name_2
+        for edge in environment.Es
     )
 
 

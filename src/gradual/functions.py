@@ -1,4 +1,9 @@
+from src.static.definitions import (
+    Type,
+)
 from src.static.functions import (
+    _get_specifications_core,
+    _inherited_core,
     get_all_parent_specifications,
     join_unique,
     lower_set,
@@ -6,22 +11,16 @@ from src.static.functions import (
     names,
     undeclared,
     upper_set,
-    _inherited_core,
-    _get_specifications_core,
-)
-from src.static.definitions import (
-    Type,
 )
 
 from .definitions import (
     BottomType,
     ClassName,
-    GradualFunctionType,
     Environment,
-    Signature,
+    GradualFunctionType,
+    GradualType,
     Specification,
     TopType,
-    GradualType,
     Unknown,
 )
 
@@ -36,7 +35,9 @@ __all__ = [
 ]
 
 
-def meet_unique_consistent(environment: Environment, ti: GradualType, tj: GradualType) -> GradualType | None:
+def meet_unique_consistent(
+    environment: Environment, ti: GradualType, tj: GradualType
+) -> GradualType | None:
     """Calculate the meet of two types, ensuring consistency in the type system.
 
     :param environment: The Environment object representing the type system.
@@ -50,7 +51,9 @@ def meet_unique_consistent(environment: Environment, ti: GradualType, tj: Gradua
                 raise ValueError(
                     "Function types must have the same number of arguments"
                 )
-            args = [join_unique_consistent(environment, a1, a2) for a1, a2 in zip(fi1, fi2)]
+            args = [
+                join_unique_consistent(environment, a1, a2) for a1, a2 in zip(fi1, fi2)
+            ]
             if any(a is None for a in args):
                 return None
             ret = meet_unique_consistent(environment, fj1, fj2)
@@ -75,7 +78,9 @@ def meet_unique_consistent(environment: Environment, ti: GradualType, tj: Gradua
     return None
 
 
-def join_unique_consistent(environment: Environment, ti: GradualType, tj: GradualType) -> GradualType | None:
+def join_unique_consistent(
+    environment: Environment, ti: GradualType, tj: GradualType
+) -> GradualType | None:
     """Calculate the join of two types, ensuring consistency in the type system.
 
     :param environment: The Environment object representing the type system.
@@ -89,7 +94,9 @@ def join_unique_consistent(environment: Environment, ti: GradualType, tj: Gradua
                 raise ValueError(
                     "Function types must have the same number of arguments"
                 )
-            args = [meet_unique_consistent(environment, a1, a2) for a1, a2 in zip(fi1, fi2)]
+            args = [
+                meet_unique_consistent(environment, a1, a2) for a1, a2 in zip(fi1, fi2)
+            ]
             if any(a is None for a in args):
                 return None
             ret = join_unique_consistent(environment, fj1, fj2)
@@ -152,7 +159,9 @@ def inherited(environment: Environment, class_name: ClassName) -> list[Specifica
     return _inherited_core(environment, class_name, proj_many, meet_unique_consistent)
 
 
-def get_specifications(environment: Environment, class_name: ClassName) -> list[Specification]:
+def get_specifications(
+    environment: Environment, class_name: ClassName
+) -> list[Specification]:
     """Wrapper function to get specifications for a class name.
 
     :param environment: The Environment object representing the type system.
