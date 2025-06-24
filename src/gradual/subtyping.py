@@ -8,7 +8,7 @@ from .definitions import (
     Environment,
     Specification,
     TopType,
-    Type,
+    GradualType,
     Unknown,
 )
 
@@ -16,7 +16,7 @@ from .definitions import (
 """
 
 
-def is_subtype(environment: Environment, t1: Type, t2: Type, visited=None) -> bool:
+def is_subtype(environment: Environment, t1: GradualType, t2: GradualType, visited=None) -> bool:
     """Check if t1 is a subtype of t2 in the Environment type system.
 
     :param environment: The Environment object representing the type system.

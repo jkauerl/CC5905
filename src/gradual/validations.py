@@ -6,7 +6,7 @@ from .definitions import (
     Signature,
     Specification,
     TopType,
-    Type,
+    GradualType,
     Unknown,
 )
 from .propositions import (
@@ -21,7 +21,7 @@ from .propositions import (
 """
 
 
-def is_valid_type(environment: Environment, type: Type) -> bool:
+def is_valid_type(environment: Environment, type: GradualType) -> bool:
     """Check if the given type is valid in the Environment object.
 
     :param environment: The Environment object representing the type system.
