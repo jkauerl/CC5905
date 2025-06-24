@@ -1,4 +1,4 @@
-from typing import Set
+from typing import Callable, Set
 from .definitions import ClassName, Environment, Signature, Specification, Type
 from .subtyping import is_direct_subtype, is_subtype
 
@@ -183,9 +183,8 @@ def undeclared(environment: Environment, class_name: ClassName) -> set[str]:
     return undeclared_names
 
 
-def inherited(environment: Environment, class_name: ClassName) -> dict[str, Type]:
-    """Return the mapping of inherited variable names to their inferred types
-    in the specification of a class name.
+def _inherited_core(environment: Environment, class_name: ClassName, proj_many_function: Callable[[str, Specification], Type | None], meet_unique_function: Callable[[Environment, Type, Type], Type | None]) -> dict[str, Type]:
+    """Core function to get the inherited variable names and their types.
 
     Only includes variables inherited but not declared in the class.
 
@@ -199,7 +198,7 @@ def inherited(environment: Environment, class_name: ClassName) -> dict[str, Type
     inherited_vars = {}
 
     for var in undeclared_names:
-        projected_types = proj_many(var, parent_specs)
+        projected_types = proj_many_function(var, parent_specs)
 
         if not projected_types:
             continue
@@ -210,7 +209,7 @@ def inherited(environment: Environment, class_name: ClassName) -> dict[str, Type
             if isinstance(current_meet, ClassName) and isinstance(
                 other_type, ClassName
             ):
-                m = meet_unique(environment, current_meet, other_type)
+                m = meet_unique_function(environment, current_meet, other_type)
                 if m is None:
                     current_meet = None
                     break
@@ -225,8 +224,23 @@ def inherited(environment: Environment, class_name: ClassName) -> dict[str, Type
     return inherited_vars
 
 
-def get_specifications(environment: Environment, class_name: ClassName) -> Specification:
-    """Return the full specification of a class name, including inherited variables.
+def inherited(environment: Environment, class_name: ClassName) -> dict[str, Type]:
+    """Wrapper function to get the inherited variable names and their types.
+    
+    :param environment: The Environment object representing the type system.
+    :param class_name: The class name to check.
+    :return: A dictionary mapping variable names to their inferred types.
+    """
+    return _inherited_core(
+        environment,
+        class_name,
+        proj_many,
+        meet_unique,
+    )
+
+
+def _get_specifications_core(environment: Environment, class_name: ClassName, inherited_function: Callable[[Environment, ClassName], dict[str, Type]]) -> Specification:
+    """Core function to get the full specification of a class name, including inherited variables.
 
     :param environment: The Environment object representing the type system.
     :param class_name: The class name to get the specification for.
@@ -238,7 +252,7 @@ def get_specifications(environment: Environment, class_name: ClassName) -> Speci
     else:
         explicit_signatures = explicit_spec.signatures
 
-    inherited_vars = inherited(environment, class_name)
+    inherited_vars = inherited_function(environment, class_name)
 
     inherited_signatures = [
         Signature(var=var, type=typ) for var, typ in inherited_vars.items()
@@ -252,3 +266,16 @@ def get_specifications(environment: Environment, class_name: ClassName) -> Speci
     combined_signatures = list(combined_signatures_dict.values())
 
     return Specification(signatures=combined_signatures)
+
+def get_specifications(environment: Environment, class_name: ClassName) -> Specification:
+    """Wrapper function to return the full specification of a class name, including inherited variables.
+
+    :param environment: The Environment object representing the type system.
+    :param class_name: The class name to get the specification for.
+    :return: The combined Specification of the class name.
+    """
+    return _get_specifications_core(
+        environment,
+        class_name,
+        inherited,
+    )

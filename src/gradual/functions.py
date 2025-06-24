@@ -6,6 +6,8 @@ from src.static.functions import (
     names,
     undeclared,
     upper_set,
+    _inherited_core,
+    _get_specifications_core,
 )
 from src.static.definitions import (
     Type,
@@ -140,72 +142,21 @@ def proj_many(var: str, ss: list[Specification]) -> list[GradualType]:
     return result
 
 
-def inherited(environment: Environment, class_name: ClassName) -> dict[str, Type]:
-    """Return the mapping of inherited variable names to their inferred types
-    in the specification of a class name.
-
-    Only includes variables inherited but not declared in the class.
+def inherited(environment: Environment, class_name: ClassName) -> list[Specification]:
+    """Wrapper function to get inherited specifications for a class name.
 
     :param environment: The Environment object representing the type system.
-    :param class_name: The class name to check.
-    :return: A dictionary mapping variable names to their inferred types.
+    :param class_name: The class name to get inherited specifications for.
+    :return: A list of inherited specifications.
     """
-    undeclared_names = undeclared(environment, class_name)
-    parent_specs = get_all_parent_specifications(environment, class_name)
-
-    inherited_vars = {}
-
-    for var in undeclared_names:
-        projected_types = proj_many(var, parent_specs)
-
-        if not projected_types:
-            continue
-
-        current_meet = projected_types[0]
-
-        for other_type in projected_types[1:]:
-            if isinstance(current_meet, ClassName) and isinstance(
-                other_type, ClassName
-            ):
-                m = meet_unique_consistent(environment, current_meet, other_type)
-                if m is None:
-                    current_meet = None
-                    break
-                current_meet = m
-            else:
-                current_meet = None
-                break
-
-        if current_meet is not None:
-            inherited_vars[var] = current_meet
-
-    return inherited_vars
+    return _inherited_core(environment, class_name, proj_many, meet_unique_consistent)
 
 
-def get_specifications(environment: Environment, class_name: ClassName) -> Specification:
-    """Return the full specification of a class name, including inherited variables.
+def get_specifications(environment: Environment, class_name: ClassName) -> list[Specification]:
+    """Wrapper function to get specifications for a class name.
 
     :param environment: The Environment object representing the type system.
-    :param class_name: The class name to get the specification for.
-    :return: The combined Specification of the class name.
+    :param class_name: The class name to get specifications for.
+    :return: A list of specifications.
     """
-    explicit_spec = environment.sigma.get(class_name.name)
-    if explicit_spec is None:
-        explicit_signatures = []
-    else:
-        explicit_signatures = explicit_spec.signatures
-
-    inherited_vars = inherited(environment, class_name)
-
-    inherited_signatures = [
-        Signature(var=var, type=typ) for var, typ in inherited_vars.items()
-    ]
-
-    combined_signatures_dict = {sig.var: sig for sig in explicit_signatures}
-    for sig in inherited_signatures:
-        if sig.var not in combined_signatures_dict:
-            combined_signatures_dict[sig.var] = sig
-
-    combined_signatures = list(combined_signatures_dict.values())
-
-    return Specification(signatures=combined_signatures)
+    return _get_specifications_core(environment, class_name, inherited)
