@@ -38,6 +38,9 @@ class ClassName(Type):
 
     name: str
 
+    def __repr__(self):
+        return self.name
+
 
 class Edge:
     """Represents a directed edge in the type system."""
@@ -53,6 +56,9 @@ class Signature:
     def __init__(self, var: str, type: Type):
         self.var = var
         self.type = type
+
+    def __repr__(self):
+        return f"Signature(var={self.var}, type={self.type})"
 
 
 class Environment:
@@ -71,3 +77,6 @@ class Specification:
 
     def __init__(self, signatures: list):
         self.signatures = signatures
+
+    def __repr__(self):
+        return f"Specification(signatures={self.signatures})"
