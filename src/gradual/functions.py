@@ -7,6 +7,9 @@ from src.static.functions import (
     undeclared,
     upper_set,
 )
+from src.static.definitions import (
+    Type,
+)
 
 from .definitions import (
     BottomType,
@@ -16,7 +19,7 @@ from .definitions import (
     Signature,
     Specification,
     TopType,
-    Type,
+    GradualType,
     Unknown,
 )
 
@@ -31,11 +34,11 @@ __all__ = [
 ]
 
 
-def meet_unique_consistent(environment: Environment, ti: Type, tj: Type) -> Type | None:
+def meet_unique_consistent(environment: Environment, ti: GradualType, tj: GradualType) -> GradualType | None:
     """Calculate the meet of two types, ensuring consistency in the type system.
 
     :param environment: The Environment object representing the type system.
-    :param ti: The first type to meet.class Type:
+    :param ti: The first type to meet.
     :param tj: The second type to meet.
     :return: The meet of the two types if consistent, otherwise None.
     """
@@ -70,7 +73,7 @@ def meet_unique_consistent(environment: Environment, ti: Type, tj: Type) -> Type
     return None
 
 
-def join_unique_consistent(environment: Environment, ti: Type, tj: Type) -> Type | None:
+def join_unique_consistent(environment: Environment, ti: GradualType, tj: GradualType) -> GradualType | None:
     """Calculate the join of two types, ensuring consistency in the type system.
 
     :param environment: The Environment object representing the type system.
@@ -109,7 +112,7 @@ def join_unique_consistent(environment: Environment, ti: Type, tj: Type) -> Type
     return None
 
 
-def proj(x: str, s: Specification) -> Type | None:
+def proj(x: str, s: Specification) -> GradualType | None:
     """Project a variable name from a specification to its type.
 
     :param x: The variable name to project.
@@ -122,7 +125,7 @@ def proj(x: str, s: Specification) -> Type | None:
     return None
 
 
-def proj_many(var: str, ss: list[Specification]) -> list[Type]:
+def proj_many(var: str, ss: list[Specification]) -> list[GradualType]:
     """Project a variable name from multiple specifications to their types.
 
     :param var: The variable name to project.
@@ -179,7 +182,7 @@ def inherited(environment: Environment, class_name: ClassName) -> dict[str, Type
     return inherited_vars
 
 
-def specifications(environment: Environment, class_name: ClassName) -> Specification:
+def get_specifications(environment: Environment, class_name: ClassName) -> Specification:
     """Return the full specification of a class name, including inherited variables.
 
     :param environment: The Environment object representing the type system.
