@@ -42,7 +42,7 @@ def is_valid_type(environment: Environment, type: Type) -> bool:
 """
 
 
-def is_valid_signature(environment: Environment, signature: list[Signature]) -> bool:
+def is_valid_signature(environment: Environment, specification: Specification) -> bool:
     """Check if the given signature is valid in the Environment object.
     This is a list of signatures.
 
@@ -50,7 +50,7 @@ def is_valid_signature(environment: Environment, signature: list[Signature]) -> 
     :param signature: The signature to check.
     :return: True if the signature is valid, False otherwise.
     """
-    return all([is_valid_type(environment, signature.type) for signature in signature])
+    return all(is_valid_type(environment, sig.type) for sig in specification.signatures)
 
 
 def is_valid_function(environment: Environment, function: FunctionType) -> bool:
@@ -76,8 +76,7 @@ def is_valid_node(environment: Environment, node: ClassName) -> bool:
     param edge: The edge to check.
     return: True if the edge is valid, False otherwise.
     """
-    sigs = environment.sigma.get(node.name, [])
-    spec = Specification(sigs)
+    spec = environment.sigma.get(node.name, [])
     return (
         minimal_specification(node, spec, environment)
         and includes_node(node, spec, environment)

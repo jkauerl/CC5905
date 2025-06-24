@@ -61,22 +61,22 @@ class Signature:
         return f"Signature(var={self.var}, type={self.type})"
 
 
-class Environment:
-    """Represents the class (node) relationship in the type system."""
-
-    def __init__(
-        self, Ns: list[ClassName], Es: list[Edge], sigma: dict[str, list[Signature]]
-    ):
-        self.Ns = Ns
-        self.Es = Es
-        self.sigma = sigma  # This represents a function
-
-
 class Specification:
     """Represents the specification of a class in the type system."""
 
-    def __init__(self, signatures: list):
+    def __init__(self, signatures: set):
         self.signatures = signatures
 
     def __repr__(self):
         return f"Specification(signatures={self.signatures})"
+
+
+class Environment:
+    """Represents the class (node) relationship in the type system."""
+
+    def __init__(
+        self, Ns: list[ClassName], Es: list[Edge], sigma: dict[str,  Specification]
+    ):
+        self.Ns = Ns
+        self.Es = Es
+        self.sigma = sigma  # This represents a function

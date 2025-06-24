@@ -149,7 +149,7 @@ def proj_many(var: str, ss: list[Specification]) -> list[GradualType]:
     return result
 
 
-def inherited(environment: Environment, class_name: ClassName) -> list[Specification]:
+def inherited(environment: Environment, class_name: ClassName) -> dict[str, GradualType]:
     """Wrapper function to get inherited specifications for a class name.
 
     :param environment: The Environment object representing the type system.
@@ -161,7 +161,7 @@ def inherited(environment: Environment, class_name: ClassName) -> list[Specifica
 
 def get_specifications(
     environment: Environment, class_name: ClassName
-) -> list[Specification]:
+) -> Specification:
     """Wrapper function to get specifications for a class name.
 
     :param environment: The Environment object representing the type system.

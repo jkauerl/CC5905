@@ -58,7 +58,7 @@ class TestEvidenceProgressive(unittest.TestCase):
             Edge(source=self.F, target=self.E),
         ]
 
-        self.A = Specification(signatures=[])
+        self.spec_A = Specification(signatures=[])
         self.spec_B = Specification(signatures=[Signature(var="x", type=self.B)])
         self.spec_C = Specification(
             signatures=[
@@ -69,17 +69,21 @@ class TestEvidenceProgressive(unittest.TestCase):
         self.spec_D = Specification(
             signatures=[
                 Signature(var="x", type=Unknown()),
-                Signature(var="z", type=Unknown()),
+                Signature(var="y", type=self.A),
+                # Signature(var="z", type=Unknown()), # Inherited
             ]
         )
         self.spec_E = Specification(
             signatures=[
                 Signature(var="x", type=self.E),
+                # Signature(var="z", type=Unknown()), # inherited
             ]
         )
         self.spec_F = Specification(
             signatures=[
-                Signature(var="z", type=self.F),
+                # Signature(var="x", type=Unknown()), # inherited
+                # Signature(var="y", type=self.A), # inherited
+                Signature(var="z", type=self.D),
             ]
         )
 
@@ -97,7 +101,6 @@ class TestEvidenceProgressive(unittest.TestCase):
         )
 
     def test_declared_specification(self):
-        # Check that the specifications are correctly declared and inherited
         self.assertIn(self.spec_B, self.environment.sigma.values())
         self.assertIn(self.spec_C, self.environment.sigma.values())
         self.assertIn(self.spec_D, self.environment.sigma.values())

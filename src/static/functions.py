@@ -18,12 +18,12 @@ def get_all_parent_specifications(
     :return: A list of parent specifications.
     """
     if class_name.name not in [n.name for n in environment.Ns]:
-        return []
+        return set()
 
-    parent_specifications = []
+    parent_specifications = set()
     for edge in environment.Es:
         if is_direct_subtype(environment, class_name, edge.target):
-            parent_specifications.append(environment.sigma[edge.target.name])
+            parent_specifications.add(environment.sigma[edge.target.name])
     return parent_specifications
 
 
@@ -208,6 +208,7 @@ def _inherited_core(
     """
     undeclared_names = undeclared(environment, class_name)
     parent_specs = get_all_parent_specifications(environment, class_name)
+    print(f"\nParent specs for {class_name.name}: {parent_specs}")
 
     inherited_vars = {}
 

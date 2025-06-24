@@ -30,7 +30,7 @@ def _minimal_specification_core(
     """
     parent_specs = get_all_parent_specifications(environment, class_name)
     for sp in parent_specs:
-        if not is_subtype(s, Specification(sp), environment):
+        if not is_subtype(s, sp, environment):
             return False
     return True
 
@@ -56,7 +56,7 @@ def includes_node(
     if class_name.name not in environment.sigma:
         return False
 
-    sigs_n = environment.sigma[class_name.name]
+    sigs_n = environment.sigma[class_name.name].signatures
     sigs_s = s.signatures
 
     s_dict = {sig.var: sig.type for sig in sigs_s}
@@ -84,7 +84,7 @@ def exists_all_signatures(
     given_signatures = names(s)
 
     # Gather the method names declared by class N
-    own_signatures = {sig.var for sig in environment.sigma[class_name.name]}
+    own_signatures = {sig.var for sig in environment.sigma[class_name.name].signatures}
 
     parent_specs_raw = get_all_parent_specifications(environment, class_name)
     parent_specs = [
