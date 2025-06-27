@@ -110,5 +110,35 @@ class TestEvidenceProgressive(unittest.TestCase):
         self.assertIn(self.spec_E, self.environment.sigma.values())
         self.assertIn(self.spec_F, self.environment.sigma.values())
 
+    def test_get_all_parent_specifications(self):
+        correct_specs_D = Specification(
+            signatures={
+                Signature(var="x", type=Unknown()),
+                Signature(var="y", type=self.A),
+                Signature(var="z", type=Unknown()),
+            }
+        )
+        correct_specs_E = Specification(
+            signatures={
+                Signature(var="x", type=self.E),
+                Signature(var="z", type=Unknown()),
+            }
+        )
+        correct_specs_F = Specification(
+            signatures={
+                Signature(var="x", type=Unknown()),
+                Signature(var="y", type=self.A),
+                Signature(var="z", type=self.D),
+            }
+        )
+
+        specs_D = get_specifications(self.environment, self.D)
+        specs_E = get_specifications(self.environment, self.E)
+        specs_F = get_specifications(self.environment, self.F)
+
+        self.assertEqual(specs_D, correct_specs_D)
+        self.assertEqual(specs_E, correct_specs_E)
+        self.assertEqual(specs_F, correct_specs_F)
+
 if __name__ == "__main__":
     unittest.main()

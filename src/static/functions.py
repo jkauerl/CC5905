@@ -267,19 +267,13 @@ def _get_specifications_core(
 
     inherited_signatures = inherited_function(environment, class_name)
 
-    print(f"\nInherited vars for {class_name.name}: {inherited_signatures}")
-
     combined_signatures_dict = {sig.var: sig for sig in explicit_signatures}
-
-    print(f"Explicit signatures for {class_name.name}: {explicit_signatures}")
 
     for sig in inherited_signatures:
         if sig.var not in combined_signatures_dict:
             combined_signatures_dict[sig.var] = sig
 
     combined_signatures = list(combined_signatures_dict.values())
-
-    print("Combined signatures:", combined_signatures)
 
     return Specification(signatures=combined_signatures)
 
