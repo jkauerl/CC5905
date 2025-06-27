@@ -7,6 +7,9 @@ from src.gradual.evidence.definitions import (
     Evidence,
     CompleteEvidence,
 )
+from src.gradual.functions import (
+    get_specifications,
+)
 from src.gradual.definitions import ClassName, Edge, Specification, Signature, Unknown, Environment
 
 
@@ -61,30 +64,30 @@ class TestEvidenceProgressive(unittest.TestCase):
         self.spec_A = Specification(signatures=[])
         self.spec_B = Specification(signatures=[Signature(var="x", type=self.B)])
         self.spec_C = Specification(
-            signatures=[
+            signatures={
                 Signature(var="x", type=self.C),
                 Signature(var="z", type=Unknown()),
-            ]
+            }
         )
         self.spec_D = Specification(
-            signatures=[
+            signatures={
                 Signature(var="x", type=Unknown()),
                 Signature(var="y", type=self.A),
                 # Signature(var="z", type=Unknown()), # Inherited
-            ]
+            }
         )
         self.spec_E = Specification(
-            signatures=[
+            signatures={
                 Signature(var="x", type=self.E),
                 # Signature(var="z", type=Unknown()), # inherited
-            ]
+            }
         )
         self.spec_F = Specification(
-            signatures=[
+            signatures={
                 # Signature(var="x", type=Unknown()), # inherited
                 # Signature(var="y", type=self.A), # inherited
                 Signature(var="z", type=self.D),
-            ]
+            }
         )
 
         self.environment = Environment(

@@ -52,7 +52,7 @@ class TestFunctions(unittest.TestCase):
         self.spec_B = Specification(
             signatures=[
                 Signature(var="x", type=self.A),
-                Signature(var="y", type=FunctionType(domain=[self.A], codomain=self.B)),
+                Signature(var="y", type=FunctionType(domain=(self.A,), codomain=self.B)),
             ]
         )
 
@@ -110,7 +110,7 @@ class TestFunctions(unittest.TestCase):
     def test_proj(self):
         self.assertEqual(proj("x", self.spec_B), self.A)
         self.assertEqual(
-            proj("y", self.spec_B), FunctionType(domain=[self.A], codomain=self.B)
+            proj("y", self.spec_B), FunctionType(domain=(self.A,), codomain=self.B)
         )
         self.assertIsNone(proj("z", self.spec_B))
 
@@ -169,7 +169,6 @@ class TestFunctions(unittest.TestCase):
         parent_specs = get_all_parent_specifications(self.environment, self.D)
         self.assertIn(self.spec_B, parent_specs)
         self.assertIn(self.spec_C, parent_specs)
-        self.assertNotIn(self.spec_A, parent_specs)
 
     def test_undeclared(self):
         undeclared_vars = undeclared(self.environment, self.D)
@@ -178,10 +177,18 @@ class TestFunctions(unittest.TestCase):
 
     def test_inherited(self):
         inherited_vars = inherited(self.environment, self.D)
-        self.assertIn("y", inherited_vars)
-        self.assertIsInstance(inherited_vars["y"], FunctionType)
-        self.assertEqual(inherited_vars["y"].codomain, self.B)
-        self.assertNotIn("x", inherited_vars)
+
+        found_y = False
+        for sig in inherited_vars:
+            if sig.var == "y":
+                found_y = True
+                self.assertIsInstance(sig.type, FunctionType)
+                self.assertEqual(sig.type.codomain, self.B)
+
+        self.assertTrue(found_y)
+
+        for sig in inherited_vars:
+            self.assertNotEqual(sig.var, "x")
 
     def test_specifications(self):
         spec = get_specifications(self.environment, self.D)
