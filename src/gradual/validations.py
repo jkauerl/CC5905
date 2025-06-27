@@ -4,7 +4,6 @@ from .definitions import (
     Environment,
     GradualFunctionType,
     GradualType,
-    Signature,
     Specification,
     TopType,
     Unknown,
@@ -53,7 +52,12 @@ def is_valid_signature(environment: Environment, specification: Specification) -
     :param signature: The signature to check.
     :return: True if the signature is valid, False otherwise.
     """
-    return all([is_valid_type(environment, signature.type) for signature in specification.signatures])
+    return all(
+        [
+            is_valid_type(environment, signature.type)
+            for signature in specification.signatures
+        ]
+    )
 
 
 def is_valid_function(environment: Environment, function: GradualFunctionType) -> bool:

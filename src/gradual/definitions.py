@@ -42,6 +42,7 @@ class GradualFunctionType(Type):
     codomain: Type
 
 
+@dataclass(frozen=True)
 class Unknown(GradualType):
     """Represents an unknown type in the type system."""
 

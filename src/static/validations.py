@@ -3,7 +3,6 @@ from .definitions import (
     ClassName,
     Environment,
     FunctionType,
-    Signature,
     Specification,
     TopType,
     Type,

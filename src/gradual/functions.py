@@ -19,6 +19,7 @@ from .definitions import (
     Environment,
     GradualFunctionType,
     GradualType,
+    Signature,
     Specification,
     TopType,
     Unknown,
@@ -149,7 +150,7 @@ def proj_many(var: str, ss: list[Specification]) -> list[GradualType]:
     return result
 
 
-def inherited(environment: Environment, class_name: ClassName) -> dict[str, GradualType]:
+def inherited(environment: Environment, class_name: ClassName) -> Signature:
     """Wrapper function to get inherited specifications for a class name.
 
     :param environment: The Environment object representing the type system.

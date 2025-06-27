@@ -22,7 +22,7 @@ def get_all_parent_specifications(
 
     parent_specifications = set()
     for edge in environment.Es:
-        if is_direct_subtype(environment, class_name, edge.target):
+        if edge.source == class_name and is_direct_subtype(environment, edge.source, edge.target):
             parent_specifications.add(environment.sigma[edge.target.name])
     return parent_specifications
 
@@ -197,7 +197,7 @@ def _inherited_core(
     class_name: ClassName,
     proj_many_function: Callable[[str, Specification], Type | None],
     meet_unique_function: Callable[[Environment, Type, Type], Type | None],
-) -> dict[str, Type]:
+) -> Set[Signature]:
     """Core function to get the inherited variable names and their types.
 
     Only includes variables inherited but not declared in the class.
@@ -208,9 +208,8 @@ def _inherited_core(
     """
     undeclared_names = undeclared(environment, class_name)
     parent_specs = get_all_parent_specifications(environment, class_name)
-    print(f"\nParent specs for {class_name.name}: {parent_specs}")
 
-    inherited_vars = {}
+    inherited_vars = set()
 
     for var in undeclared_names:
         projected_types = proj_many_function(var, parent_specs)
@@ -221,25 +220,19 @@ def _inherited_core(
         current_meet = projected_types[0]
 
         for other_type in projected_types[1:]:
-            if isinstance(current_meet, ClassName) and isinstance(
-                other_type, ClassName
-            ):
-                m = meet_unique_function(environment, current_meet, other_type)
-                if m is None:
-                    current_meet = None
-                    break
-                current_meet = m
-            else:
+            m = meet_unique_function(environment, current_meet, other_type)
+            if m is None:
                 current_meet = None
                 break
+            current_meet = m
 
         if current_meet is not None:
-            inherited_vars[var] = current_meet
+            inherited_vars.add(Signature(var=var, type=current_meet))
 
     return inherited_vars
 
 
-def inherited(environment: Environment, class_name: ClassName) -> dict[str, Type]:
+def inherited(environment: Environment, class_name: ClassName) -> Set[Signature]:
     """Wrapper function to get the inherited variable names and their types.
 
     :param environment: The Environment object representing the type system.
@@ -257,7 +250,7 @@ def inherited(environment: Environment, class_name: ClassName) -> dict[str, Type
 def _get_specifications_core(
     environment: Environment,
     class_name: ClassName,
-    inherited_function: Callable[[Environment, ClassName], dict[str, Type]],
+    inherited_function: Callable[[Environment, ClassName], Signature],
 ) -> Specification:
     """Core function to get the full specification of a class name, including inherited
     variables.
@@ -272,18 +265,21 @@ def _get_specifications_core(
     else:
         explicit_signatures = explicit_spec.signatures
 
-    inherited_vars = inherited_function(environment, class_name)
+    inherited_signatures = inherited_function(environment, class_name)
 
-    inherited_signatures = [
-        Signature(var=var, type=typ) for var, typ in inherited_vars.items()
-    ]
+    print(f"\nInherited vars for {class_name.name}: {inherited_signatures}")
 
     combined_signatures_dict = {sig.var: sig for sig in explicit_signatures}
+
+    print(f"Explicit signatures for {class_name.name}: {explicit_signatures}")
+
     for sig in inherited_signatures:
         if sig.var not in combined_signatures_dict:
             combined_signatures_dict[sig.var] = sig
 
     combined_signatures = list(combined_signatures_dict.values())
+
+    print("Combined signatures:", combined_signatures)
 
     return Specification(signatures=combined_signatures)
 

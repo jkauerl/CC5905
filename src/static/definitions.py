@@ -31,6 +31,9 @@ class FunctionType(Type):
     domain: Tuple[Type, ...]
     codomain: Type
 
+    def __hash__(self):
+        return hash((self.domain, self.codomain))
+
 
 @dataclass(frozen=True)
 class ClassName(Type):
@@ -60,22 +63,38 @@ class Signature:
     def __repr__(self):
         return f"Signature(var={self.var}, type={self.type})"
 
+    def __eq__(self, other):
+        if not isinstance(other, Signature):
+            return NotImplemented
+        return self.var == other.var and self.type == other.type
+
+    def __hash__(self):
+        return hash((self.var, self.type))
+
 
 class Specification:
     """Represents the specification of a class in the type system."""
 
-    def __init__(self, signatures: set):
-        self.signatures = signatures
+    def __init__(self, signatures):
+        self.signatures = set(signatures)
 
     def __repr__(self):
         return f"Specification(signatures={self.signatures})"
+
+    def __eq__(self, other):
+        if not isinstance(other, Specification):
+            return NotImplemented
+        return self.signatures == other.signatures
+
+    def __hash__(self):
+        return hash(frozenset(self.signatures))
 
 
 class Environment:
     """Represents the class (node) relationship in the type system."""
 
     def __init__(
-        self, Ns: list[ClassName], Es: list[Edge], sigma: dict[str,  Specification]
+        self, Ns: list[ClassName], Es: list[Edge], sigma: dict[str, Specification]
     ):
         self.Ns = Ns
         self.Es = Es
