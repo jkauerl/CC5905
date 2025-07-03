@@ -23,12 +23,13 @@ def is_subtype_evidence_spec(environment: Environment, evidence_1: EvidenceSpeci
     :param evidence_2: The second evidence specification to check.
     :return: True if evidence_1 is a subtype of evidence_2, False otherwise.
     """
-    spec1_dict = {sig.var: sig.interval for sig in evidence_1.signatures}
-    spec2_dict = {sig.var: sig.interval for sig in evidence_2.signatures}
-
-    for var, interval2 in spec2_dict.items():
-        if var not in spec1_dict:
+    for sig2 in evidence_2.signatures:
+        matching_sig1 = next(
+            (sig1 for sig1 in evidence_1.signatures if sig1.var == sig2.var), 
+            None
+        )
+        if matching_sig1 is None:
             return False
-        if not is_subtype_interval(environment, spec1_dict[var], interval2):
+        if not is_subtype_interval(environment, matching_sig1.interval, sig2.interval):
             return False
     return True
