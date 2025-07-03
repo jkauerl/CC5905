@@ -1,6 +1,7 @@
 from ..definitions import Environment
 from ..subtyping import is_subtype
 from .definitions import EvidenceInterval, EvidenceSpecification
+from ..definitions import Specification
 
 
 def is_subtype_interval(environment: Environment, interval_1: EvidenceInterval, interval_2: EvidenceInterval) -> bool:
@@ -38,5 +39,28 @@ def is_subtype_evidence_spec(environment: Environment, evidence_1: EvidenceSpeci
         if var not in spec1_dict:
             return False
         if not is_subtype_interval(environment, spec1_dict[var], interval2):
+            return False
+    return True
+
+
+def is_subtype_spec(environment: Environment, spec_1: Specification, spec_2: Specification) -> bool:
+    """Check if the first specification is a subtype of the second specification.
+    
+    This is a wrapper function that uses is_subtype_evidence_spec to check each signature in the specifications.
+    
+    :param environment: The Environment object representing the type system.
+    :param spec_1: The first specification to check.
+    :param spec_2: The second specification to check.
+    :return: True if spec_1 is a subtype of spec_2, False otherwise.
+    """
+    sigs_1 = {sig.var: sig for sig in spec_1.signatures}
+    sigs_2 = {sig.var: sig for sig in spec_2.signatures}
+
+    for var, sig2 in sigs_2.items():
+        sig1 = sigs_1.get(var)
+        if sig1 is None:
+            # Required variable missing in spec_1
+            return False
+        if not is_subtype_evidence_spec(environment, sig1, sig2):
             return False
     return True
