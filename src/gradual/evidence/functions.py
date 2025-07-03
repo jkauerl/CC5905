@@ -1,4 +1,5 @@
-from typing import Set, Tuple, FrozenSet, Optional
+from typing import Set, Tuple, Optional
+from itertools import product
 
 from src.static.definitions import Type
 from src.static.functions import join, meet
@@ -29,8 +30,8 @@ from .definitions import (
 
 
 def meet_evidence_intervals(
-    environment: Environment, interval_1: EvidenceInterval, interval_2: EvidenceInterval
-) -> Set[EvidenceInterval]:
+    environment: Environment, sig_1: EvidenceSignature, sig_2: EvidenceSignature
+) -> Set[EvidenceSignature]:
     """Compute the meet of two intervals in the type system.
 
     :param environment: The Environment object representing the type system.
@@ -38,15 +39,15 @@ def meet_evidence_intervals(
     :param interval_2: The second interval to meet.
     :return: A new Interval that is the meet of the two intervals.
     """
-    lower_bounds = meet(environment, interval_1.lower_bound, interval_2.lower_bound)
-    upper_bounds = meet(environment, interval_1.upper_bound, interval_2.upper_bound)
-    intervals = set()
-    for lower_bound in lower_bounds:
-        for upper_bound in upper_bounds:
-            if is_subtype(environment, lower_bound, upper_bound):
-                intervals.add(EvidenceInterval(lower_bound, upper_bound))
-    return intervals
-
+    lower_bounds = meet(environment, sig_1.interval.lower_bound, sig_2.interval.lower_bound)
+    upper_bounds = meet(environment, sig_1.interval.upper_bound, sig_2.interval.upper_bound)
+    signatures = set()
+    for lower in lower_bounds:
+        for upper in upper_bounds:
+            if is_subtype(environment, lower, upper):
+                interval = EvidenceInterval(lower, upper)
+                signatures.add(EvidenceSignature(sig_1.var, interval))
+    return signatures
 
 def meet_evidence_specifications(
     environment: Environment,
@@ -60,23 +61,46 @@ def meet_evidence_specifications(
     :param spec_2: The second specification to meet.
     :return: A new Specification that is the meet of the two specifications.
     """
-    specifications = set()
-    for signature_1 in spec_1.signatures:
-        for signature_2 in spec_2.signatures:
-            if signature_1.var == signature_2.var:
-                new_signatures = meet_evidence_intervals(
-                    environment, signature_1.interval, signature_2.interval
-                )
-                for new_signature in new_signatures:
-                    extra_signatures = [
-                        sig
-                        for sig in spec_1.signatures.union(spec_2.signatures)
-                        if sig.var != signature_1.var
-                    ]
-                    combined = [new_signature] + extra_signatures
-                    specifications.add(EvidenceSpecification(combined))
+    vars_1 = {sig.var for sig in spec_1.signatures}
+    vars_2 = {sig.var for sig in spec_2.signatures}
+    all_vars = vars_1.union(vars_2)
 
-    return specifications
+    intervals_by_var = {}
+
+    for var in all_vars:
+        sigs_1 = [sig for sig in spec_1.signatures if sig.var == var]
+        sigs_2 = [sig for sig in spec_2.signatures if sig.var == var]
+
+        meets_for_var = set()
+
+        if sigs_1 and sigs_2:
+            for s1 in sigs_1:
+                for s2 in sigs_2:
+                    new_intervals = meet_evidence_intervals(environment, s1, s2)
+                    meets_for_var.update(new_intervals)
+        if sigs_1 and sigs_2:
+            for s1 in sigs_1:
+                for s2 in sigs_2:
+                    new_intervals = meet_evidence_intervals(environment, s1, s2)
+                    meets_for_var.update(new_intervals)
+        else:
+            continue
+
+        if not meets_for_var:
+            return set()
+
+        intervals_by_var[var] = meets_for_var
+
+    # Sort vars to make deterministic combinations
+    all_vars_sorted = sorted(intervals_by_var.keys())
+    combos = product(*(intervals_by_var[var] for var in all_vars_sorted))
+
+    results = set()
+    for combo in combos:
+        spec = EvidenceSpecification(set(combo))
+        results.add(spec)
+
+    return results
 
 
 def meet_evidences(
@@ -99,7 +123,8 @@ def meet_evidences(
     for s_prime_1 in s1_meet_s3:
         for s_prime_2 in s2_meet_s4:
             if is_subtype_evidence_spec(environment, s_prime_1, s_prime_2):
-                evidences.add(Evidence(s_prime_1, s_prime_2))
+                ev = Evidence(s_prime_1, s_prime_2)
+                evidences.add(ev)
     return evidences
 
 
@@ -115,11 +140,12 @@ def meet_complete_evidences(
     :param complete_evidence_2: The second complete evidence to meet.
     :return: A new CompleteEvidence that is the meet of the two complete evidences.
     """
-    evidences = []
+    evidences = set()
     for ev1 in complete_evidence_1.evidences:
         for ev2 in complete_evidence_2.evidences:
             new_evidences = meet_evidences(environment, ev1, ev2)
-            evidences.extend(new_evidences)
+            evidences.update(new_evidences)
+
     return CompleteEvidence(evidences)
 
 
