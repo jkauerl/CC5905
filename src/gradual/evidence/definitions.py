@@ -48,6 +48,20 @@ class EvidenceSpecification:
     def __init__(self, signatures: Set[EvidenceSignature]):
         self.signatures = signatures
 
+    def __repr__(self):
+        return f"EvidenceSpecification(signatures={self.signatures})"
+    
+    def __eq__(self, other):
+        if not isinstance(other, EvidenceSpecification):
+            return False
+        return frozenset(self.signatures) == frozenset(other.signatures)
+
+    def __hash__(self):
+        return hash(frozenset(self.signatures))
+
+    def __repr__(self):
+        return f"EvidenceSpecification({self.signatures})"
+
 
 class Evidence:
     """Represents a collection of evidences in the type system"""

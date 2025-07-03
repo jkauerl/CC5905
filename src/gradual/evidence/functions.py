@@ -361,14 +361,13 @@ def interior_class_specification(
     environment: Environment,
     spec_1: Specification,
     spec_2: Specification,
-) -> Optional[Tuple[FrozenSet[EvidenceSignature], FrozenSet[EvidenceSignature]]]:
+) -> Optional[Tuple[EvidenceSpecification, EvidenceSpecification]]:
     """Compute the interior specifications of two specifications in the type system.
 
     :param environment: The Environment object representing the type system.
     :param spec_1: The first specification to compute the interior of.
     :param spec_2: The second specification to compute the interior of.
-    :return: A list of pairs of specifications that are the interior of
-             the two specifications.
+    :return: A pair of EvidenceSpecifications that represent the interior of the two specifications.
     """
     left_spec = set()
     right_spec = set()
@@ -390,7 +389,6 @@ def interior_class_specification(
 
             i1, i2 = interiors
 
-            # Fix: assign according to subtyping
             if is_subtype(environment, t1, t2):
                 left_spec.add(EvidenceSignature(var, i1))
                 right_spec.add(EvidenceSignature(var, i2))
@@ -408,8 +406,10 @@ def interior_class_specification(
         elif t2 is not None:
             right_spec.add(EvidenceSignature(var, lift_gradual_type(t2)))
 
-    return {(frozenset(left_spec), frozenset(right_spec))}
-
+    return (
+        EvidenceSpecification(left_spec),
+        EvidenceSpecification(right_spec),
+    )
 
 
 def transitivity_interval(
