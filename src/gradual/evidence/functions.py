@@ -1,4 +1,4 @@
-from typing import Set, Tuple
+from typing import Set, Tuple, FrozenSet, Optional
 
 from src.static.definitions import Type
 from src.static.functions import join, meet
@@ -10,13 +10,16 @@ from ..definitions import (
     GradualType,
     TopType,
     Unknown,
+    Specification,
 )
-from ..subtyping import is_subtype, is_subtype_spec
+from ..subtyping import is_subtype
+from .subtyping import is_subtype_evidence_spec
 from .definitions import (
     CompleteEvidence,
     Evidence,
     EvidenceInterval,
     EvidenceSpecification,
+    EvidenceSignature,
 )
 
 """ Defintions of meet and join over the evidence in the type system
@@ -86,17 +89,17 @@ def meet_evidences(
     :param evidence_2: The second evidence to meet.
     :return: A new Evidence that is the meet of the two evidences.
     """
-    spec_1 = meet_evidence_specifications(
+    s1_meet_s3 = meet_evidence_specifications(
         environment, evidence_1.specification_1, evidence_2.specification_1
     )
-    spec_2 = meet_evidence_specifications(
+    s2_meet_s4 = meet_evidence_specifications(
         environment, evidence_1.specification_2, evidence_2.specification_2
     )
     evidences = set()
-    for s1 in spec_1:
-        for s2 in spec_2:
-            if is_subtype_spec(environment, s1, s2):
-                evidences.add(Evidence(s1, s2))
+    for s_prime_1 in s1_meet_s3:
+        for s_prime_2 in s2_meet_s4:
+            if is_subtype_evidence_spec(environment, s_prime_1, s_prime_2):
+                evidences.add(Evidence(s_prime_1, s_prime_2))
     return evidences
 
 
@@ -193,7 +196,7 @@ def join_evidence(
     evidences = set()
     for s1 in spec_1:
         for s2 in spec_2:
-            if is_subtype_spec(environment, s1, s2):
+            if is_subtype_evidence_spec(environment, s1, s2):
                 evidences.add(Evidence(s1, s2))
     return evidences
 
@@ -289,70 +292,76 @@ def interior_gradual_specification(
                     environment, signature_1.interval, signature_2.interval
                 )
                 for interval_pair in intervals:
-                    new_signature_1 = EvidenceSpecification(
-                        [signature_1.var, interval_pair[0]]
-                    )
-                    new_signature_2 = EvidenceSpecification(
-                        [signature_2.var, interval_pair[1]]
-                    )
-                    pairs.add((new_signature_1, new_signature_2))
-
+                    sig1 = EvidenceSignature(signature_1.var, interval_pair[0])
+                    sig2 = EvidenceSignature(signature_2.var, interval_pair[1])
+                    pairs.add((
+                        EvidenceSpecification([sig1]),
+                        EvidenceSpecification([sig2])
+                    ))
     return pairs
 
 
 def interior_types(
     environment: Environment, ti: GradualType, tj: GradualType
-) -> Set[Tuple[EvidenceInterval, EvidenceInterval]]:
+) -> Optional[Tuple[EvidenceInterval, EvidenceInterval]]:
     """Compute the interior types of two gradual types in the type system.
 
     :param environment: The Environment object representing the type system.
-    :param ti: The first gradual type to compute the interior of.
-    :param tj: The second gradual type to compute the interior of.
-    :return: A list of pairs of intervals that are the interior of the
-             two gradual types.
+    :param ti: The first gradual type.
+    :param tj: The second gradual type.
+    :return: A pair of evidence intervals representing the interior, or None if undefined.
     """
     match ti, tj:
         case GradualFunctionType(f1i, g2), GradualFunctionType(g3i, g4):
-            domain_pairs = interior_types(environment, g3i, f1i)
-            codomain_pairs = interior_types(environment, g2, g4)
-            results = set()
-            for (t1i, t2i), (t3i, t4i) in domain_pairs:
-                for (t5, t6), (t7, t8) in codomain_pairs:
-                    intv1 = EvidenceInterval(
-                        GradualFunctionType(t4i, t5), GradualFunctionType(t3i, t6)
-                    )
-                    intv2 = EvidenceInterval(
-                        GradualFunctionType(t2i, t7), GradualFunctionType(t1i, t8)
-                    )
-                    results.add((intv1, intv2))
-            return results
-        case GradualType(), GradualType():
+            domain_result = interior_types(environment, g3i, f1i)
+            codomain_result = interior_types(environment, g2, g4)
+            if domain_result is None or codomain_result is None:
+                return None
+            (d_left, d_right) = domain_result
+            (c_left, c_right) = codomain_result
+            left = EvidenceInterval(
+                GradualFunctionType(d_right.upper, c_left.lower),
+                GradualFunctionType(d_left.lower, c_left.upper),
+            )
+            right = EvidenceInterval(
+                GradualFunctionType(d_right.lower, c_right.lower),
+                GradualFunctionType(d_left.upper, c_right.upper),
+            )
+            return (left, right)
+        case Type(), Type():
             if is_subtype(environment, ti, tj):
-                spec_1 = lift_gradual_type(ti)
-                return {(spec_1, EvidenceInterval(ti, tj))}
+                left = lift_gradual_type(ti)
+                right = EvidenceInterval(tj, tj) # important to check this
+                return (left, right)
+            return None
         case Type(), Unknown():
-            spec_1 = lift_gradual_type(ti)
-            return {(spec_1, EvidenceInterval(ti, TopType()))}
+            right = lift_gradual_type(ti)
+            return (right, EvidenceInterval(ti, TopType()))
         case Unknown(), Type():
-            spec_1 = lift_gradual_type(tj)
-            return {(EvidenceInterval(BottomType(), tj), spec_1)}
+            left = lift_gradual_type(tj)
+            return (EvidenceInterval(BottomType(), tj), left)
         case Unknown(), Unknown():
-            spec_1 = lift_gradual_type(Unknown())
-            spec_2 = lift_gradual_type(Unknown())
-            return {(spec_1, spec_2)}
+            spec = lift_gradual_type(Unknown())
+            return (spec, spec)
         case GradualFunctionType(fi, fj), Unknown():
             unknown_fun = GradualFunctionType(Unknown(), Unknown())
-            return {(EvidenceInterval(GradualFunctionType(fi, fj), unknown_fun),)}
+            left = EvidenceInterval(GradualFunctionType(fi, fj), unknown_fun)
+            right = lift_gradual_type(Unknown())
+            return (left, right)
         case Unknown(), GradualFunctionType(fi, fj):
             unknown_fun = GradualFunctionType(Unknown(), Unknown())
-            return {(EvidenceInterval(unknown_fun, GradualFunctionType(fi, fj)),)}
+            left = lift_gradual_type(Unknown())
+            right = EvidenceInterval(unknown_fun, GradualFunctionType(fi, fj))
+            return (left, right)
+        case _:
+            return None
 
 
-def interior_specification(
+def interior_class_specification(
     environment: Environment,
-    spec_1: EvidenceSpecification,
-    spec_2: EvidenceSpecification,
-) -> Set[Tuple[EvidenceInterval, EvidenceInterval]]:
+    spec_1: Specification,
+    spec_2: Specification,
+) -> Optional[Tuple[FrozenSet[EvidenceSignature], FrozenSet[EvidenceSignature]]]:
     """Compute the interior specifications of two specifications in the type system.
 
     :param environment: The Environment object representing the type system.
@@ -361,22 +370,46 @@ def interior_specification(
     :return: A list of pairs of specifications that are the interior of
              the two specifications.
     """
-    result = set()
-    all_vars = set(spec_1.keys()).union(set(spec_2.keys()))
+    left_spec = set()
+    right_spec = set()
+
+    all_vars = set(spec_1.keys()) | set(spec_2.keys())
+
     for var in all_vars:
-        ti = spec_1.var
-        tj = spec_2.var
+        sig1 = spec_1.get_signature(var)
+        sig2 = spec_2.get_signature(var)
 
-        ti = ti if ti is not None else Unknown()
-        tj = tj if tj is not None else Unknown()
+        t1 = sig1.type if sig1 else None
+        t2 = sig2.type if sig2 else None
 
-        interior = interior_types(environment, ti, tj)
-        if interior:
-            result.append(interior)
-        else:
-            return []
+        # Case: both specs define the variable then we compute the interior
+        if t1 is not None and t2 is not None:
+            interiors = interior_types(environment, t1, t2)
+            if interiors is None:
+                return None
 
-    return result
+            i1, i2 = interiors
+
+            # Fix: assign according to subtyping
+            if is_subtype(environment, t1, t2):
+                left_spec.add(EvidenceSignature(var, i1))
+                right_spec.add(EvidenceSignature(var, i2))
+            elif is_subtype(environment, t2, t1):
+                left_spec.add(EvidenceSignature(var, i2))
+                right_spec.add(EvidenceSignature(var, i1))
+            else:
+                return None
+
+        # Case: only on the left
+        elif t1 is not None:
+            left_spec.add(EvidenceSignature(var, lift_gradual_type(t1)))
+
+        # Case: only on the right
+        elif t2 is not None:
+            right_spec.add(EvidenceSignature(var, lift_gradual_type(t2)))
+
+    return {(frozenset(left_spec), frozenset(right_spec))}
+
 
 
 def transitivity_interval(
