@@ -91,3 +91,14 @@ class CompleteEvidence:
 
     def __init__(self, evidences: Set[Evidence]):
         self.evidences = evidences
+
+    def __repr__(self):
+        return f"CompleteEvidence(evidences={self.evidences})"
+    
+    def __eq__(self, other):
+        if not isinstance(other, CompleteEvidence):
+            return False
+        return self.evidences == other.evidences
+    
+    def __hash__(self):
+        return hash(frozenset(self.evidences))
