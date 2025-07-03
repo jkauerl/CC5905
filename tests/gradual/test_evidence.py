@@ -7,10 +7,25 @@ from src.gradual.evidence.definitions import (
     Evidence,
     CompleteEvidence,
 )
+from src.gradual.evidence.functions import (
+    interior_class_specification,
+    meet_complete_evidences,
+    transitivity_complete_evidences,
+    meet_evidence_intervals,
+)
 from src.gradual.functions import (
     get_specifications,
 )
-from src.gradual.definitions import ClassName, Edge, Specification, Signature, Unknown, Environment
+from src.gradual.definitions import (
+    ClassName,
+    Edge,
+    Environment,
+    Signature,
+    Specification,
+    Unknown,
+    BottomType,
+    TopType,
+)
 
 
 class TestSimpleEvidence(unittest.TestCase):
@@ -111,6 +126,7 @@ class TestEvidenceProgressive(unittest.TestCase):
         self.assertIn(self.spec_F, self.environment.sigma.values())
 
     def test_get_all_parent_specifications(self):
+        # No need to test A, B and C, as they don't inherit anything.
         correct_specs_D = Specification(
             signatures={
                 Signature(var="x", type=Unknown()),
@@ -139,6 +155,133 @@ class TestEvidenceProgressive(unittest.TestCase):
         self.assertEqual(specs_D, correct_specs_D)
         self.assertEqual(specs_E, correct_specs_E)
         self.assertEqual(specs_F, correct_specs_F)
+
+    def test_interior_class_specifications(self):
+        interior_b_a = set([
+            (
+                frozenset({EvidenceSignature("x", EvidenceInterval(self.B, self.B))}),
+                frozenset()
+            )
+        ])
+        interior_c_a = set([
+            (
+                frozenset({
+                    EvidenceSignature("x", EvidenceInterval(self.C, self.C)),
+                    EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
+                }),
+                frozenset()
+            )
+        ])
+        interior_d_b = set([
+            (
+                frozenset({
+                    EvidenceSignature("x", EvidenceInterval(BottomType(), self.B)),
+                    EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
+                    EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
+                }),
+                frozenset({
+                    EvidenceSignature("x", EvidenceInterval(self.B, self.B)),
+                })
+            )
+        ])
+        interior_d_c = set([
+            (
+                frozenset({
+                    EvidenceSignature("x", EvidenceInterval(BottomType(), self.C)),
+                    EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
+                    EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
+                }),
+                frozenset({
+                    EvidenceSignature("x", EvidenceInterval(self.C, self.C)),
+                    EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
+                })
+            )
+        ])
+        interior_e_b = set([
+            (
+                frozenset({
+                    EvidenceSignature("x", EvidenceInterval(self.E, self.E)),
+                    EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
+                }),
+                frozenset({
+                    EvidenceSignature("x", EvidenceInterval(self.B, self.B)),
+                })
+            )
+        ])
+        interior_e_c = set([
+            (
+                frozenset({
+                    EvidenceSignature("x", EvidenceInterval(self.E, self.E)),
+                    EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
+                }),
+                frozenset({
+                    EvidenceSignature("x", EvidenceInterval(self.C, self.C)),
+                    EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
+                })
+            )
+        ])
+        interior_f_d = set([
+            (
+                frozenset({
+                    EvidenceSignature("x", EvidenceInterval(BottomType(), TopType())),
+                    EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
+                    EvidenceSignature("z", EvidenceInterval(self.D, self.D)),
+                }),
+                frozenset({
+                    EvidenceSignature("x", EvidenceInterval(BottomType(), TopType())),
+                    EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
+                    EvidenceSignature("z", EvidenceInterval(self.D, TopType())),
+                })
+            )
+        ])
+        interior_f_e = set([
+            (
+                frozenset({
+                    EvidenceSignature("x", EvidenceInterval(BottomType(), self.E)),
+                    EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
+                    EvidenceSignature("z", EvidenceInterval(self.D, self.D)),
+                }),
+                frozenset({
+                    EvidenceSignature("x", EvidenceInterval(self.E, self.E)),
+                    EvidenceSignature("z", EvidenceInterval(self.D, TopType())),
+                })
+            )
+        ])
+
+        calculated_interior_b_a = interior_class_specification(
+            self.environment, get_specifications(self.environment, self.B), get_specifications(self.environment, self.A)
+        )
+        calculated_interior_c_a = interior_class_specification(
+            self.environment, get_specifications(self.environment, self.C), get_specifications(self.environment, self.A)
+        )
+        calculated_interior_d_b = interior_class_specification(
+            self.environment, get_specifications(self.environment, self.D), get_specifications(self.environment, self.B)
+        )
+        calculated_interior_d_c = interior_class_specification(
+            self.environment, get_specifications(self.environment, self.D), get_specifications(self.environment, self.C)
+        )
+        calculated_interior_e_b = interior_class_specification(
+            self.environment, get_specifications(self.environment, self.E), get_specifications(self.environment, self.B)
+        )
+        calculated_interior_e_c = interior_class_specification(
+            self.environment, get_specifications(self.environment, self.E), get_specifications(self.environment, self.C)
+        )
+        calculated_interior_f_d = interior_class_specification(
+            self.environment, get_specifications(self.environment, self.F), get_specifications(self.environment, self.D)
+        )
+        calculated_interior_f_e = interior_class_specification(
+            self.environment, get_specifications(self.environment, self.F), get_specifications(self.environment, self.E)
+        )
+
+        self.assertEqual(calculated_interior_b_a, interior_b_a)
+        self.assertEqual(calculated_interior_c_a, interior_c_a)
+        self.assertEqual(calculated_interior_d_b, interior_d_b)
+        self.assertEqual(calculated_interior_d_c, interior_d_c)
+        self.assertEqual(calculated_interior_e_b, interior_e_b)
+        self.assertEqual(calculated_interior_e_c, interior_e_c)
+        self.assertEqual(calculated_interior_f_d, interior_f_d)
+        self.assertEqual(calculated_interior_f_e, interior_f_e)
+
 
 if __name__ == "__main__":
     unittest.main()
