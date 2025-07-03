@@ -70,7 +70,7 @@ def meet_evidence_specifications(
                 for new_signature in new_signatures:
                     extra_signatures = [
                         sig
-                        for sig in spec_1.signatures + spec_2.signatures
+                        for sig in spec_1.signatures.union(spec_2.signatures)
                         if sig.var != signature_1.var
                     ]
                     combined = [new_signature] + extra_signatures
@@ -372,7 +372,7 @@ def interior_class_specification(
     left_spec = set()
     right_spec = set()
 
-    all_vars = set(spec_1.keys()) | set(spec_2.keys())
+    all_vars = set(spec_1.keys()).union(set(spec_2.keys()))
 
     for var in all_vars:
         sig1 = spec_1.get_signature(var)
