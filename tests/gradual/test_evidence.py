@@ -160,160 +160,161 @@ class TestEvidenceProgressive(unittest.TestCase):
         self.assertEqual(specs_F, correct_specs_F)
 
     def test_interior_b_a(self):
-        expected_left = EvidenceSpecification({
-            EvidenceSignature("x", EvidenceInterval(self.B, self.B))
-        })
-        expected_right = EvidenceSpecification(set())
+        expected = Evidence(
+            EvidenceSpecification({
+                EvidenceSignature("x", EvidenceInterval(self.B, self.B))
+            }),
+            EvidenceSpecification(set())
+        )
 
         result = interior_class_specification(
-            self.environment, 
-            get_specifications(self.environment, self.B), 
+            self.environment,
+            get_specifications(self.environment, self.B),
             get_specifications(self.environment, self.A)
         )
         self.assertIsNotNone(result)
-        left_spec, right_spec = result
-        self.assertEqual(left_spec, expected_left)
-        self.assertEqual(right_spec, expected_right)
+        self.assertEqual(result, expected)
 
     def test_interior_c_a(self):
-        expected_left = EvidenceSpecification({
-            EvidenceSignature("x", EvidenceInterval(self.C, self.C)),
-            EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
-        })
-        expected_right = EvidenceSpecification(set())
+        expected = Evidence(
+            EvidenceSpecification({
+                EvidenceSignature("x", EvidenceInterval(self.C, self.C)),
+                EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
+            }),
+            EvidenceSpecification(set())
+        )
 
         result = interior_class_specification(
-            self.environment, 
-            get_specifications(self.environment, self.C), 
+            self.environment,
+            get_specifications(self.environment, self.C),
             get_specifications(self.environment, self.A)
         )
         self.assertIsNotNone(result)
-        left_spec, right_spec = result
-        self.assertEqual(left_spec, expected_left)
-        self.assertEqual(right_spec, expected_right)
+        self.assertEqual(result, expected)
 
     def test_interior_d_b(self):
-        expected_left = EvidenceSpecification({
-            EvidenceSignature("x", EvidenceInterval(BottomType(), self.B)),
-            EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
-            EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
-        })
-        expected_right = EvidenceSpecification({
-            EvidenceSignature("x", EvidenceInterval(self.B, self.B)),
-        })
+        expected = Evidence(
+            EvidenceSpecification({
+                EvidenceSignature("x", EvidenceInterval(BottomType(), self.B)),
+                EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
+                EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
+            }),
+            EvidenceSpecification({
+                EvidenceSignature("x", EvidenceInterval(self.B, self.B)),
+            })
+        )
 
         result = interior_class_specification(
-            self.environment, 
-            get_specifications(self.environment, self.D), 
+            self.environment,
+            get_specifications(self.environment, self.D),
             get_specifications(self.environment, self.B)
         )
         self.assertIsNotNone(result)
-        left_spec, right_spec = result
-        self.assertEqual(left_spec, expected_left)
-        self.assertEqual(right_spec, expected_right)
+        self.assertEqual(result, expected)
 
     def test_interior_d_c(self):
-        expected_left = EvidenceSpecification({
-            EvidenceSignature("x", EvidenceInterval(BottomType(), self.C)),
-            EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
-            EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
-        })
-        expected_right = EvidenceSpecification({
-            EvidenceSignature("x", EvidenceInterval(self.C, self.C)),
-            EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
-        })
+        expected = Evidence(
+            EvidenceSpecification({
+                EvidenceSignature("x", EvidenceInterval(BottomType(), self.C)),
+                EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
+                EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
+            }),
+            EvidenceSpecification({
+                EvidenceSignature("x", EvidenceInterval(self.C, self.C)),
+                EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
+            })
+        )
 
         result = interior_class_specification(
-            self.environment, 
-            get_specifications(self.environment, self.D), 
+            self.environment,
+            get_specifications(self.environment, self.D),
             get_specifications(self.environment, self.C)
         )
         self.assertIsNotNone(result)
-        left_spec, right_spec = result
-        self.assertEqual(left_spec, expected_left)
-        self.assertEqual(right_spec, expected_right)
+        self.assertEqual(result, expected)
 
     def test_interior_e_b(self):
-        expected_left = EvidenceSpecification({
-            EvidenceSignature("x", EvidenceInterval(self.E, self.E)),
-            EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
-        })
-        expected_right = EvidenceSpecification({
-            EvidenceSignature("x", EvidenceInterval(self.B, self.B)),
-        })
+        expected = Evidence(
+            EvidenceSpecification({
+                EvidenceSignature("x", EvidenceInterval(self.E, self.E)),
+                EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
+            }),
+            EvidenceSpecification({
+                EvidenceSignature("x", EvidenceInterval(self.B, self.B)),
+            })
+        )
 
         result = interior_class_specification(
-            self.environment, 
-            get_specifications(self.environment, self.E), 
+            self.environment,
+            get_specifications(self.environment, self.E),
             get_specifications(self.environment, self.B)
         )
         self.assertIsNotNone(result)
-        left_spec, right_spec = result
-        self.assertEqual(left_spec, expected_left)
-        self.assertEqual(right_spec, expected_right)
+        self.assertEqual(result, expected)
 
     def test_interior_e_c(self):
-        expected_left = EvidenceSpecification({
-            EvidenceSignature("x", EvidenceInterval(self.E, self.E)),
-            EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
-        })
-        expected_right = EvidenceSpecification({
-            EvidenceSignature("x", EvidenceInterval(self.C, self.C)),
-            EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
-        })
+        expected = Evidence(
+            EvidenceSpecification({
+                EvidenceSignature("x", EvidenceInterval(self.E, self.E)),
+                EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
+            }),
+            EvidenceSpecification({
+                EvidenceSignature("x", EvidenceInterval(self.C, self.C)),
+                EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
+            })
+        )
 
         result = interior_class_specification(
-            self.environment, 
-            get_specifications(self.environment, self.E), 
+            self.environment,
+            get_specifications(self.environment, self.E),
             get_specifications(self.environment, self.C)
         )
         self.assertIsNotNone(result)
-        left_spec, right_spec = result
-        self.assertEqual(left_spec, expected_left)
-        self.assertEqual(right_spec, expected_right)
+        self.assertEqual(result, expected)
 
     def test_interior_f_d(self):
-        expected_left = EvidenceSpecification({
-            EvidenceSignature("x", EvidenceInterval(BottomType(), TopType())),
-            EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
-            EvidenceSignature("z", EvidenceInterval(self.D, self.D)),
-        })
-        expected_right = EvidenceSpecification({
-            EvidenceSignature("x", EvidenceInterval(BottomType(), TopType())),
-            EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
-            EvidenceSignature("z", EvidenceInterval(self.D, TopType())),
-        })
+        expected = Evidence(
+            EvidenceSpecification({
+                EvidenceSignature("x", EvidenceInterval(BottomType(), TopType())),
+                EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
+                EvidenceSignature("z", EvidenceInterval(self.D, self.D)),
+            }),
+            EvidenceSpecification({
+                EvidenceSignature("x", EvidenceInterval(BottomType(), TopType())),
+                EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
+                EvidenceSignature("z", EvidenceInterval(self.D, TopType())),
+            })
+        )
 
         result = interior_class_specification(
-            self.environment, 
-            get_specifications(self.environment, self.F), 
+            self.environment,
+            get_specifications(self.environment, self.F),
             get_specifications(self.environment, self.D)
         )
         self.assertIsNotNone(result)
-        left_spec, right_spec = result
-        self.assertEqual(left_spec, expected_left)
-        self.assertEqual(right_spec, expected_right)
+        self.assertEqual(result, expected)
 
     def test_interior_f_e(self):
-        expected_left = EvidenceSpecification({
-            EvidenceSignature("x", EvidenceInterval(BottomType(), self.E)),
-            EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
-            EvidenceSignature("z", EvidenceInterval(self.D, self.D)),
-        })
-        expected_right = EvidenceSpecification({
-            EvidenceSignature("x", EvidenceInterval(self.E, self.E)),
-            EvidenceSignature("z", EvidenceInterval(self.D, TopType())),
-        })
+        expected = Evidence(
+            EvidenceSpecification({
+                EvidenceSignature("x", EvidenceInterval(BottomType(), self.E)),
+                EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
+                EvidenceSignature("z", EvidenceInterval(self.D, self.D)),
+            }),
+            EvidenceSpecification({
+                EvidenceSignature("x", EvidenceInterval(self.E, self.E)),
+                EvidenceSignature("z", EvidenceInterval(self.D, TopType())),
+            })
+        )
 
         result = interior_class_specification(
-            self.environment, 
-            get_specifications(self.environment, self.F), 
+            self.environment,
+            get_specifications(self.environment, self.F),
             get_specifications(self.environment, self.E)
         )
         self.assertIsNotNone(result)
-        left_spec, right_spec = result
-        self.assertEqual(left_spec, expected_left)
-        self.assertEqual(right_spec, expected_right)
+        self.assertEqual(result, expected)
+
     
 
 if __name__ == "__main__":
