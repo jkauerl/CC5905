@@ -84,6 +84,9 @@ class Evidence:
             self.specification_1 == other.specification_1 and
             self.specification_2 == other.specification_2
         )
+    
+    def __hash__(self):
+        return hash((self.specification_1, self.specification_2))
 
 
 class CompleteEvidence:
