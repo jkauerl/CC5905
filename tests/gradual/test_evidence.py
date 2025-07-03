@@ -10,8 +10,6 @@ from src.gradual.evidence.definitions import (
 from src.gradual.evidence.functions import (
     interior_class_specification,
     meet_complete_evidences,
-    transitivity_complete_evidences,
-    meet_evidence_intervals,
 )
 from src.gradual.functions import (
     get_specifications,
@@ -315,6 +313,115 @@ class TestEvidenceProgressive(unittest.TestCase):
         self.assertIsNotNone(result)
         self.assertEqual(result, expected)
 
+    def test_meet_evidences_d_c_and_d_b(self):
+        ev_d_c = interior_class_specification(
+            self.environment,
+            get_specifications(self.environment, self.D),
+            get_specifications(self.environment, self.C)
+        )
+        ev_d_b = interior_class_specification(
+            self.environment,
+            get_specifications(self.environment, self.D),
+            get_specifications(self.environment, self.B)
+        )
+
+        complete_d_c = CompleteEvidence({ev_d_c})
+        complete_d_b = CompleteEvidence({ev_d_b})
+
+        result = meet_complete_evidences(self.environment, complete_d_c, complete_d_b)
+
+        expected_d_c_and_d_b = CompleteEvidence({
+            Evidence(
+                EvidenceSpecification({
+                    EvidenceSignature("x", EvidenceInterval(BottomType(), self.D)),
+                    EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
+                    EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
+                }),
+                EvidenceSpecification({
+                    EvidenceSignature("x", EvidenceInterval(self.D, self.D)),
+                    EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
+                })
+            ),
+            Evidence(
+                EvidenceSpecification({
+                    EvidenceSignature("x", EvidenceInterval(BottomType(), self.E)),
+                    EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
+                    EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
+                }),
+                EvidenceSpecification({
+                    EvidenceSignature("x", EvidenceInterval(self.E, self.E)),
+                    EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
+                })
+            ),
+        })
+
+        self.assertEqual(result, expected_d_c_and_d_b)
+
+    def test_meet_evidences_e_c_and_e_b(self):
+        ev_e_c = interior_class_specification(
+            self.environment,
+            get_specifications(self.environment, self.E),
+            get_specifications(self.environment, self.C)
+        )
+        ev_e_b = interior_class_specification(
+            self.environment,
+            get_specifications(self.environment, self.E),
+            get_specifications(self.environment, self.B)
+        )
+
+        complete_e_c = CompleteEvidence({ev_e_c})
+        complete_e_b = CompleteEvidence({ev_e_b})
+
+        result = meet_complete_evidences(self.environment, complete_e_c, complete_e_b)
+
+        expected_e_c_and_e_b = CompleteEvidence({
+            Evidence(
+                EvidenceSpecification({
+                    EvidenceSignature("x", EvidenceInterval(self.E, self.E)),
+                    EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
+                }),
+                EvidenceSpecification({
+                    EvidenceSignature("x", EvidenceInterval(self.E, self.E)),
+                    EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
+                })
+            )
+        })
+
+        self.assertEqual(result, expected_e_c_and_e_b)
+
+    def test_meet_evidences_f_e_and_f_d(self):
+        ev_f_e = interior_class_specification(
+            self.environment,
+            get_specifications(self.environment, self.F),
+            get_specifications(self.environment, self.E)
+        )
+        ev_f_d = interior_class_specification(
+            self.environment,
+            get_specifications(self.environment, self.F),
+            get_specifications(self.environment, self.D)
+        )
+
+        complete_f_e = CompleteEvidence({ev_f_e})
+        complete_f_d = CompleteEvidence({ev_f_d})
+
+        result = meet_complete_evidences(self.environment, complete_f_e, complete_f_d)
+
+        expected_f_e_and_f_d = CompleteEvidence({
+            Evidence(
+                EvidenceSpecification({
+                    EvidenceSignature("x", EvidenceInterval(BottomType(), self.E)),
+                    EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
+                    EvidenceSignature("z", EvidenceInterval(self.D, self.D)),
+                }),
+                EvidenceSpecification({
+                    EvidenceSignature("x", EvidenceInterval(BottomType(), self.E)),
+                    EvidenceSignature("y", EvidenceInterval(self.A, self.A)), #TODO Check this
+                    EvidenceSignature("z", EvidenceInterval(self.D, TopType())),
+                })
+            )
+        })
+
+        self.assertEqual(result, expected_f_e_and_f_d)
     
 
 if __name__ == "__main__":
