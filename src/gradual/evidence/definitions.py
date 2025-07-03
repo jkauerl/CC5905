@@ -74,6 +74,17 @@ class Evidence:
         self.specification_1 = specification_1
         self.specification_2 = specification_2
 
+    def __repr__(self):
+        return f"Evidence(specification_1={self.specification_1}, specification_2={self.specification_2})"
+    
+    def __eq__(self, other):
+        if not isinstance(other, Evidence):
+            return False
+        return (
+            self.specification_1 == other.specification_1 and
+            self.specification_2 == other.specification_2
+        )
+
 
 class CompleteEvidence:
     """Represents complete evidence in the type system"""
