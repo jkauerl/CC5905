@@ -9,19 +9,29 @@ from typing import Tuple
 class Type(ABC):
     """Abstract base class for all types."""
 
-    pass
+    def __eq__(self, other):
+        return isinstance(other, self.__class__)
+
+    def __hash__(self):
+        return hash(self.__class__.__name__)
+
+    def __repr__(self):
+        return self.__class__.__name__
+
 
 
 class TopType(Type):
     """Represents the top type in the type system."""
 
-    pass
+    def __repr__(self):
+        return "TopType"
 
 
 class BottomType(Type):
     """Represents the bottom type in the type system."""
 
-    pass
+    def __repr__(self):
+        return "BottomType"
 
 
 @dataclass(frozen=True)
@@ -56,7 +66,7 @@ class Edge:
 class Signature:
     """Represents a signature in the type system."""
 
-    def __init__(self, var: str, type: Type):
+    def __init__(self, var: str, type):
         self.var = var
         self.type = type
 
@@ -88,6 +98,15 @@ class Specification:
 
     def __hash__(self):
         return hash(frozenset(self.signatures))
+    
+    def keys(self):
+        return {sig.var for sig in self.signatures}
+    
+    def get_signature(self, var):
+        for sig in self.signatures:
+            if sig.var == var:
+                return sig
+        return None
 
 
 class Environment:
