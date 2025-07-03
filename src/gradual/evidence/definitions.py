@@ -59,9 +59,6 @@ class EvidenceSpecification:
     def __hash__(self):
         return hash(frozenset(self.signatures))
 
-    def __repr__(self):
-        return f"EvidenceSpecification({self.signatures})"
-
 
 class Evidence:
     """Represents a collection of evidences in the type system"""
