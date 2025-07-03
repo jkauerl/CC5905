@@ -35,11 +35,11 @@ class GradualType(ABC):
 
 
 @dataclass(frozen=True)
-class GradualFunctionType(Type):
+class GradualFunctionType(GradualType):
     """Represents a function type in the gradual system."""
 
-    domain: Tuple[Type, ...]
-    codomain: Type
+    domain: Tuple[GradualType, ...]
+    codomain: GradualType
 
 
 @dataclass(frozen=True)
