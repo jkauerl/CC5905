@@ -361,7 +361,7 @@ def interior_class_specification(
     environment: Environment,
     spec_1: Specification,
     spec_2: Specification,
-) -> Optional[Tuple[EvidenceSpecification, EvidenceSpecification]]:
+) -> Optional[Evidence]:
     """Compute the interior specifications of two specifications in the type system.
 
     :param environment: The Environment object representing the type system.
@@ -406,10 +406,14 @@ def interior_class_specification(
         elif t2 is not None:
             right_spec.add(EvidenceSignature(var, lift_gradual_type(t2)))
 
-    return (
+    return Evidence(
         EvidenceSpecification(left_spec),
         EvidenceSpecification(right_spec),
     )
+
+
+""" Transitivity functions
+"""
 
 
 def transitivity_interval(
