@@ -1,6 +1,6 @@
 from typing import Callable, Set
 
-from .definitions import ClassName, Environment, Signature, Specification, Type
+from .definitions import ClassName, Environment, Signature, Specification, Type, TopType, BottomType
 from .subtyping import is_direct_subtype, is_subtype
 
 """ Function to get parent specifications
@@ -38,7 +38,13 @@ def lower_set(environment: Environment, ti: Type) -> set[Type]:
     :param ti: The target class name.
     :return: A set of Types that are subtypes of ti.
     """
-    return {T for T in environment.Ns if is_subtype(environment, T, ti)}
+    result = {ti}
+    for t in environment.Ns:
+        if is_subtype(environment, t, ti) and t != ti:
+            result.add(t)
+    if is_subtype(environment, BottomType(), ti):
+        result.add(BottomType())
+    return result
 
 
 def upper_set(environment: Environment, ti: Type) -> set[Type]:
@@ -59,15 +65,17 @@ def meet(environment: Environment, ti: Type, tj: Type) -> set[Type]:
     :param tj: The second class name.
     :return: A set of Type representing the meet.
     """
-    common = lower_set(environment, ti).intersection(lower_set(environment, tj))
+    if ti == tj:
+        return {ti}
+
+    lower_ti = lower_set(environment, ti)
+    lower_tj = lower_set(environment, tj)
+
+    common = lower_ti.intersection(lower_tj)
 
     meet_set = set()
     for t in common:
-        if all(
-            not is_subtype(environment, t, t_prime)
-            for t_prime in common
-            if t != t_prime
-        ):
+        if all(not is_subtype(environment, t, t_prime) for t_prime in common if t_prime != t):
             meet_set.add(t)
 
     return meet_set
