@@ -1,5 +1,5 @@
 from ..definitions import Environment
-from ..subtyping import is_subtype
+from ..subtyping import is_gradual_subtype
 from .definitions import EvidenceInterval, EvidenceSpecification
 
 
@@ -11,8 +11,8 @@ def is_subtype_interval(environment: Environment, interval_1: EvidenceInterval, 
     :param interval_2: The second evidence interval to check.
     :return: True if interval_1 is a subtype of interval_2, False otherwise.
     """
-    return (is_subtype(environment, interval_1.lower_bound, interval_2.lower_bound) and
-            is_subtype(environment, interval_1.upper_bound, interval_2.upper_bound))
+    return (is_gradual_subtype(environment, interval_1.lower_bound, interval_2.lower_bound) and
+            is_gradual_subtype(environment, interval_1.upper_bound, interval_2.upper_bound))
 
 
 def is_subtype_evidence_spec(environment: Environment, evidence_1: EvidenceSpecification, evidence_2: EvidenceSpecification) -> bool:
@@ -29,7 +29,10 @@ def is_subtype_evidence_spec(environment: Environment, evidence_1: EvidenceSpeci
             None
         )
         if matching_sig1 is None:
+            print(f"Variable {sig2.var} missing in evidence_1")
             return False
-        if not is_subtype_interval(environment, matching_sig1.interval, sig2.interval):
+        result = is_subtype_interval(environment, matching_sig1.interval, sig2.interval)
+        print(f"Checking var '{sig2.var}': {matching_sig1.interval} ≤ {sig2.interval} ? {result}")
+        if not result:
             return False
     return True

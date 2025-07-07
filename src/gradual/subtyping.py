@@ -1,4 +1,4 @@
-import src.static.subtyping as static_subtyping
+from src.static.subtyping import is_subtype
 from src.static.subtyping import _is_subtype_spec_core
 
 from .definitions import (
@@ -16,7 +16,7 @@ from .definitions import (
 """
 
 
-def is_subtype(
+def is_gradual_subtype(
     environment: Environment, t1: GradualType, t2: GradualType, visited=None
 ) -> bool:
     """Check if t1 is a subtype of t2 in the Environment type system.
@@ -61,7 +61,7 @@ def is_subtype(
         return domain_check and codomain_check
 
     if isinstance(t1, ClassName) and isinstance(t2, ClassName):
-        return static_subtyping.is_subtype(environment, t1, t2)
+        return is_subtype(environment, t1, t2)
 
     return False
 
