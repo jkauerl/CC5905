@@ -144,6 +144,13 @@ def meet_precision_interval(
     i1: EvidenceInterval, 
     i2: EvidenceInterval
 ) -> Set[EvidenceInterval]:
+    """Compute the precision meet of two intervals in the type system.
+
+    :param environment: The Environment object representing the type system.
+    :param i1: The first interval to meet.
+    :param i2: The second interval to meet.
+    :return: A set of EvidenceIntervals that are the precision meet of the two intervals.
+    """
     lower_joins = join(environment, i1.lower_bound, i2.lower_bound)
     upper_meets = meet(environment, i1.upper_bound, i2.upper_bound)
 
@@ -160,6 +167,13 @@ def meet_precision_specification(
     spec1: EvidenceSpecification,
     spec2: EvidenceSpecification,
 ) -> Set[EvidenceSpecification]:
+    """ Compute the precision meet of two specifications in the type system.
+
+    :param environment: The Environment object representing the type system.
+    :param spec1: The first specification to meet.
+    :param spec2: The second specification to meet.
+    :return: A new Specification that is the precision meet of the two specifications.
+    """
     result = set()
     sigs1 = {sig.var: sig for sig in spec1.signatures}
     sigs2 = {sig.var: sig for sig in spec2.signatures}
