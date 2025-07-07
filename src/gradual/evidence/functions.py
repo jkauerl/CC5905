@@ -38,7 +38,7 @@ def meet_evidence_intervals(
     :return: A new Interval that is the meet of the two intervals.
     """
 
-    lower_bounds = meet(environment, sig_1.interval.lower_bound, sig_2.interval.lower_bound) # TODO Check if this join is correct 
+    lower_bounds = meet(environment, sig_1.interval.lower_bound, sig_2.interval.lower_bound)
     upper_bounds = meet(environment, sig_1.interval.upper_bound, sig_2.interval.upper_bound) 
 
     signatures = set()

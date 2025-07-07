@@ -146,7 +146,7 @@ class TestEvidenceProgressive(unittest.TestCase):
             signatures={
                 Signature(var="x", type=Unknown()),
                 Signature(var="y", type=self.A),
-                Signature(var="z", type=self.D), # TODO: Memoria has self.D
+                Signature(var="z", type=self.D),
             }
         )
         result = get_specifications(self.environment, self.F)
@@ -242,7 +242,7 @@ class TestEvidenceProgressive(unittest.TestCase):
                     EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
                 }),
                 EvidenceSpecification({
-                    EvidenceSignature("x", EvidenceInterval(self.E, self.B)), # TODO Memoria has self.B in both intervals
+                    EvidenceSignature("x", EvidenceInterval(self.E, self.B)),
                 })
             )
         })
@@ -263,7 +263,7 @@ class TestEvidenceProgressive(unittest.TestCase):
                     EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
                 }),
                 EvidenceSpecification({
-                    EvidenceSignature("x", EvidenceInterval(self.E, self.C)), # TODO Memoria has self.C in both intervals
+                    EvidenceSignature("x", EvidenceInterval(self.E, self.C)),
                     EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
                 })
             )
@@ -417,7 +417,7 @@ class TestEvidenceProgressive(unittest.TestCase):
                 }),
                 EvidenceSpecification({
                     EvidenceSignature("x", EvidenceInterval(BottomType(), self.E)),
-                    EvidenceSignature("y", EvidenceInterval(self.A, self.A)), # TODO Check if this is needed
+                    EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
                     EvidenceSignature("z", EvidenceInterval(self.D, TopType())),
                 })
             )
@@ -447,9 +447,7 @@ class TestEvidenceProgressive(unittest.TestCase):
                     EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
                     EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
                 }),
-                EvidenceSpecification({
-                    # EvidenceSignature("x", EvidenceInterval(self.B, self.B)), # TODO Memoria does not have this
-                })
+                EvidenceSpecification(set())
             )
         })
 
@@ -533,8 +531,7 @@ class TestEvidenceProgressive(unittest.TestCase):
         expected = CompleteEvidence({
             Evidence(
                 EvidenceSpecification({
-                    EvidenceSignature("x", EvidenceInterval(BottomType(), self.B)), # TODO Memoria has self.C
-                    # EvidenceSignature("x", EvidenceInterval(BottomType(), self.C)), 
+                    EvidenceSignature("x", EvidenceInterval(BottomType(), self.B)),
                     EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
                     EvidenceSignature("z", EvidenceInterval(self.D, self.D)),
                 }),
