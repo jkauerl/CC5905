@@ -1,15 +1,13 @@
 import unittest
 
 from src.gradual.definitions import (
-    BottomType,
-    ClassName,
     Edge,
-    GradualFunctionType,
     Environment,
     Signature,
     Specification,
-    TopType,
 )
+from src.gradual.types import GradualFunctionType
+from src.static.types import TopType, BottomType, ClassName
 from src.gradual.functions import (
     inherited,
     join_unique,

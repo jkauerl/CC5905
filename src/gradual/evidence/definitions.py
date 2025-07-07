@@ -1,5 +1,5 @@
 from typing import Set
-from src.gradual.definitions import GradualType
+from src.gradual.types import GradualType
 
 
 class EvidenceInterval:
@@ -19,6 +19,9 @@ class EvidenceInterval:
 
     def __repr__(self):
         return f"EvidenceInterval(lower_bound={self.lower_bound}, upper_bound={self.upper_bound})"
+
+    def __str__(self):
+        return f"[{self.lower_bound}, {self.upper_bound}]"
 
 
 class EvidenceSignature:
@@ -41,6 +44,9 @@ class EvidenceSignature:
     def __repr__(self):
         return f"EvidenceSignature(var={self.var}, interval={self.interval})"
 
+    def __str__(self):
+        return f"{self.var}: {self.interval}"
+
 
 class EvidenceSpecification:
     """Represents a specification in the type system but with lower and upper bounds"""
@@ -58,6 +64,9 @@ class EvidenceSpecification:
 
     def __hash__(self):
         return hash(frozenset(self.signatures))
+
+    def __str__(self):
+        return "{" + ", ".join(str(sig) for sig in self.signatures) + "}"
 
 
 class Evidence:
@@ -85,6 +94,8 @@ class Evidence:
     def __hash__(self):
         return hash((self.specification_1, self.specification_2))
 
+    def __str__(self):
+        return f"⟨{self.specification_1}, {self.specification_2}⟩"
 
 class CompleteEvidence:
     """Represents complete evidence in the type system"""
@@ -102,3 +113,6 @@ class CompleteEvidence:
     
     def __hash__(self):
         return hash(frozenset(self.evidences))
+
+    def __str__(self):
+        return "{" + ", ".join(str(evidence) for evidence in self.evidences) + "}"

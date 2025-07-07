@@ -1,6 +1,7 @@
 from typing import Callable, Set
 
-from .definitions import ClassName, Environment, Signature, Specification, Type, TopType, BottomType
+from .definitions import Environment, Signature, Specification
+from .types import Type, TopType, BottomType, ClassName
 from .subtyping import is_direct_subtype, is_subtype
 
 """ Function to get parent specifications

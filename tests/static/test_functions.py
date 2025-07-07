@@ -1,15 +1,12 @@
 import unittest
 
 from src.static.definitions import (
-    BottomType,
-    ClassName,
     Edge,
-    FunctionType,
     Environment,
     Signature,
     Specification,
-    TopType,
 )
+from src.static.types import TopType, BottomType, FunctionType, ClassName
 from src.static.functions import (
     inherited,
     join,

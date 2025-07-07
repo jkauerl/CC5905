@@ -2,11 +2,10 @@ from collections import defaultdict
 from typing import Callable
 
 from .definitions import (
-    ClassName,
     Environment,
     Specification,
-    Type,
 )
+from .types import Type, ClassName
 from .functions import get_all_parent_specifications, names
 from .subtyping import is_subtype_spec
 

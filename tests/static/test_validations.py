@@ -1,13 +1,12 @@
 import unittest
 
 from src.static.definitions import (
-    ClassName,
     Edge,
-    FunctionType,
     Environment,
     Signature,
     Specification,
 )
+from src.static.types import FunctionType, ClassName
 from src.static.validations import (
     acyclic,
     exists_all_signatures,

@@ -2,15 +2,11 @@ from src.static.subtyping import is_subtype
 from src.static.subtyping import _is_subtype_spec_core
 
 from .definitions import (
-    BottomType,
-    ClassName,
     Environment,
-    GradualFunctionType,
-    GradualType,
     Specification,
-    TopType,
-    Unknown,
 )
+from .types import GradualType, GradualFunctionType, Unknown
+from ..static.types import TopType, BottomType, ClassName
 
 """ Propositions to check the type system
 """

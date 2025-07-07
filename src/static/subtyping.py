@@ -1,14 +1,10 @@
 from typing import Callable
 
 from .definitions import (
-    BottomType,
-    ClassName,
     Environment,
-    FunctionType,
     Specification,
-    TopType,
-    Type,
 )
+from .types import Type, TopType, BottomType, FunctionType, ClassName
 
 """ Propositions to check the type system
 """

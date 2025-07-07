@@ -1,13 +1,13 @@
 import unittest
 
 from src.gradual.definitions import (
-    ClassName,
     Edge,
-    GradualFunctionType,
     Environment,
     Signature,
     Specification,
 )
+from src.gradual.types import GradualFunctionType
+from src.static.types import ClassName
 from src.gradual.validations import (
     acyclic,
     exists_all_signatures,

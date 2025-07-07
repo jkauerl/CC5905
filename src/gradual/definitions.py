@@ -1,49 +1,17 @@
-from abc import ABC
-from dataclasses import dataclass
-from typing import Tuple
-
 from src.static.definitions import (
-    BottomType,
-    ClassName,
     Edge,
     Environment,
     Signature,
     Specification,
-    TopType,
-    Type,
 )
 
 """ Exports the classes and functions from the static definitions module. """
 
 __all__ = [
-    "TopType",
-    "BottomType",
-    "ClassName",
     "Edge",
     "Environment",
     "Specification",
     "Signature",
-    "Type",
 ]
 
 
-@dataclass(frozen=True)
-class GradualType(ABC):
-    """Abstract base class for all types."""
-
-    pass
-
-
-@dataclass(frozen=True)
-class GradualFunctionType(GradualType):
-    """Represents a function type in the gradual system."""
-
-    domain: Tuple[GradualType, ...]
-    codomain: GradualType
-
-
-@dataclass(frozen=True)
-class Unknown(GradualType):
-    """Represents an unknown type in the type system."""
-
-    pass

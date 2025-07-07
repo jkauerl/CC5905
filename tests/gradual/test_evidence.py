@@ -16,15 +16,13 @@ from src.gradual.functions import (
     get_specifications,
 )
 from src.gradual.definitions import (
-    ClassName,
     Edge,
     Environment,
     Signature,
     Specification,
-    Unknown,
-    BottomType,
-    TopType,
 )
+from src.gradual.types import Unknown
+from src.static.types import TopType, BottomType, ClassName
 
 
 class TestSimpleEvidence(unittest.TestCase):
@@ -431,21 +429,26 @@ class TestEvidenceProgressive(unittest.TestCase):
         self.assertEqual(result, expected_f_e_and_f_d)
 
     def test_transitivity_idb_ib_a(self):
-        id_b = interior_class_specification(
+        ce1 = interior_class_specification(
             self.environment,
             get_specifications(self.environment, self.D),
             get_specifications(self.environment, self.B),
         )
-        ib_a = interior_class_specification(
+        print(get_specifications(self.environment, self.D))
+        print(get_specifications(self.environment, self.B))
+
+        ce2 = interior_class_specification(
             self.environment,
             get_specifications(self.environment, self.B),
             get_specifications(self.environment, self.A),
         )
 
-        ce1 = CompleteEvidence({id_b})
-        ce2 = CompleteEvidence({ib_a})
+        print(f"{ce1} o {ce2}")
+
 
         result = transitivity_complete_evidences(self.environment, ce1, ce2)
+
+        print(f"result {result}")
 
         expected = CompleteEvidence({
             Evidence(
@@ -454,7 +457,9 @@ class TestEvidenceProgressive(unittest.TestCase):
                     EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
                     EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
                 }),
-                EvidenceSpecification({})
+                EvidenceSpecification({
+                    EvidenceSignature("x", EvidenceInterval(self.B, self.B)),
+                })
             )
         })
 

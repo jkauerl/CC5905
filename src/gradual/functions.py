@@ -1,6 +1,4 @@
-from src.static.definitions import (
-    Type,
-)
+from ..static.types import Type, TopType, BottomType, ClassName
 from src.static.functions import (
     _get_specifications_core,
     _inherited_core,
@@ -14,16 +12,11 @@ from src.static.functions import (
 )
 
 from .definitions import (
-    BottomType,
-    ClassName,
     Environment,
-    GradualFunctionType,
-    GradualType,
     Signature,
     Specification,
-    TopType,
-    Unknown,
 )
+from .types import GradualType, GradualFunctionType, Unknown
 
 __all__ = [
     "join_unique",

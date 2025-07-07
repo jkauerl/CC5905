@@ -1,12 +1,8 @@
 from .definitions import (
-    BottomType,
-    ClassName,
     Environment,
-    FunctionType,
     Specification,
-    TopType,
-    Type,
 )
+from .types import Type, TopType, BottomType, FunctionType, ClassName
 from .propositions import (
     acyclic,
     exists_all_signatures,

@@ -7,7 +7,8 @@ from src.static.propositions import (
     no_overloading,
 )
 
-from .definitions import ClassName, Environment, Specification
+from .definitions import Environment, Specification
+from ..static.types import ClassName
 
 __all__ = [
     "acyclic",

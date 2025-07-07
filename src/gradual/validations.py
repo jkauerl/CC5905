@@ -1,13 +1,9 @@
 from .definitions import (
-    BottomType,
-    ClassName,
     Environment,
-    GradualFunctionType,
-    GradualType,
     Specification,
-    TopType,
-    Unknown,
 )
+from .types import GradualType, GradualFunctionType, Unknown
+from ..static.types import TopType, BottomType, ClassName
 from .propositions import (
     acyclic,
     exists_all_signatures,

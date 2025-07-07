@@ -1,19 +1,15 @@
 from typing import Set, Tuple, Optional, Dict
 from itertools import product
 
-from src.static.definitions import Type
+from ...static.types import Type, TopType, BottomType
 from src.static.functions import join, meet
 from src.static.subtyping import is_subtype
 
 from ..definitions import (
-    BottomType,
     Environment,
-    GradualFunctionType,
-    GradualType,
-    TopType,
-    Unknown,
     Specification,
 )
+from ..types import GradualType, GradualFunctionType, Unknown
 from ..subtyping import is_gradual_subtype
 from .subtyping import is_subtype_evidence_spec
 from .definitions import (
@@ -349,7 +345,7 @@ def interior_class_specification(
     environment: Environment,
     spec_1: Specification,
     spec_2: Specification,
-) -> Optional[Evidence]:
+) -> Optional[CompleteEvidence]:
     """Compute the interior specifications of two specifications in the type system.
 
     :param environment: The Environment object representing the type system.
@@ -391,10 +387,10 @@ def interior_class_specification(
         elif t2 is not None:
             right_spec.add(EvidenceSignature(var, lift_gradual_type(t2)))
 
-    return Evidence(
+    return CompleteEvidence({Evidence(
         EvidenceSpecification(left_spec),
         EvidenceSpecification(right_spec),
-    )
+    )})
 
 
 """ Transitivity functions
