@@ -50,10 +50,10 @@ class Specification:
 
     def __hash__(self):
         return hash(frozenset(self.signatures))
-    
+
     def keys(self):
         return {sig.var for sig in self.signatures}
-    
+
     def get_signature(self, var):
         for sig in self.signatures:
             if sig.var == var:

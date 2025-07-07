@@ -1,5 +1,5 @@
 from typing import Optional
-from ..static.types import Type, TopType, BottomType, ClassName
+
 from src.static.functions import (
     _get_specifications_core,
     _inherited_core,
@@ -12,12 +12,13 @@ from src.static.functions import (
     upper_set,
 )
 
+from ..static.types import BottomType, ClassName, TopType, Type
 from .definitions import (
     Environment,
     Signature,
     Specification,
 )
-from .types import GradualType, GradualFunctionType, Unknown
+from .types import GradualFunctionType, GradualType, Unknown
 
 __all__ = [
     "join_unique",

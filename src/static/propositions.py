@@ -5,9 +5,9 @@ from .definitions import (
     Environment,
     Specification,
 )
-from .types import Type, ClassName
 from .functions import get_all_parent_specifications, names
 from .subtyping import is_subtype_spec
+from .types import ClassName, Type
 
 """ Node validation propositions
 """

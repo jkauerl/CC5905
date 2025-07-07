@@ -6,8 +6,8 @@ from src.static.definitions import (
     Signature,
     Specification,
 )
-from src.static.types import TopType, BottomType, FunctionType, ClassName
 from src.static.functions import (
+    get_specifications,
     inherited,
     join,
     join_unique,
@@ -17,7 +17,6 @@ from src.static.functions import (
     names,
     proj,
     proj_many,
-    get_specifications,
     undeclared,
     upper_set,
 )
@@ -29,6 +28,7 @@ from src.static.subtyping import (
     is_subtype,
     is_subtype_spec,
 )
+from src.static.types import BottomType, ClassName, FunctionType, TopType
 
 
 class TestFunctions(unittest.TestCase):
@@ -49,7 +49,9 @@ class TestFunctions(unittest.TestCase):
         self.spec_B = Specification(
             signatures=[
                 Signature(var="x", type=self.A),
-                Signature(var="y", type=FunctionType(domain=(self.A,), codomain=self.B)),
+                Signature(
+                    var="y", type=FunctionType(domain=(self.A,), codomain=self.B)
+                ),
             ]
         )
 

@@ -1,8 +1,8 @@
-from typing import Callable, Set, Optional
+from typing import Callable, Optional, Set
 
 from .definitions import Environment, Signature, Specification
-from .types import Type, TopType, BottomType, ClassName
 from .subtyping import is_direct_subtype, is_subtype
+from .types import BottomType, ClassName, Type
 
 """ Function to get parent specifications
 """
@@ -23,7 +23,9 @@ def get_all_parent_specifications(
 
     parent_specifications = set()
     for edge in environment.Es:
-        if edge.source == class_name and is_direct_subtype(environment, edge.source, edge.target):
+        if edge.source == class_name and is_direct_subtype(
+            environment, edge.source, edge.target
+        ):
             parent_specifications.add(environment.sigma[edge.target.name])
     return parent_specifications
 
@@ -76,7 +78,11 @@ def meet(environment: Environment, ti: Type, tj: Type) -> set[Type]:
 
     meet_set = set()
     for t in common:
-        if all(not is_subtype(environment, t, t_prime) for t_prime in common if t_prime != t):
+        if all(
+            not is_subtype(environment, t, t_prime)
+            for t_prime in common
+            if t_prime != t
+        ):
             meet_set.add(t)
 
     return meet_set

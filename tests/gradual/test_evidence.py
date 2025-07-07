@@ -1,11 +1,17 @@
 import unittest
 
+from src.gradual.definitions import (
+    Edge,
+    Environment,
+    Signature,
+    Specification,
+)
 from src.gradual.evidence.definitions import (
+    CompleteEvidence,
+    Evidence,
     EvidenceInterval,
     EvidenceSignature,
     EvidenceSpecification,
-    Evidence,
-    CompleteEvidence,
 )
 from src.gradual.evidence.functions import (
     interior_class_specification,
@@ -15,14 +21,8 @@ from src.gradual.evidence.functions import (
 from src.gradual.functions import (
     get_specifications,
 )
-from src.gradual.definitions import (
-    Edge,
-    Environment,
-    Signature,
-    Specification,
-)
 from src.gradual.types import Unknown
-from src.static.types import TopType, BottomType, ClassName
+from src.static.types import BottomType, ClassName, TopType
 
 
 class TestSimpleEvidence(unittest.TestCase):
@@ -33,9 +33,7 @@ class TestSimpleEvidence(unittest.TestCase):
 
         self.evidence_signature = EvidenceSignature("x", self.evidence_interval)
 
-        self.evidence_specification = EvidenceSpecification(
-            [self.evidence_signature]
-        )
+        self.evidence_specification = EvidenceSpecification([self.evidence_signature])
 
         self.evidence_1 = Evidence(
             specification_1=self.evidence_specification,
@@ -45,12 +43,8 @@ class TestSimpleEvidence(unittest.TestCase):
         self.complete_evidence = CompleteEvidence([self.evidence_1])
 
     def test_evidence_interval_initialization(self):
-        self.assertEqual(
-            self.evidence_interval.lower_bound, self.lower_bound
-        )
-        self.assertEqual(
-            self.evidence_interval.upper_bound, self.upper_bound
-        )
+        self.assertEqual(self.evidence_interval.lower_bound, self.lower_bound)
+        self.assertEqual(self.evidence_interval.upper_bound, self.upper_bound)
 
 
 class TestEvidenceProgressive(unittest.TestCase):
@@ -118,8 +112,8 @@ class TestEvidenceProgressive(unittest.TestCase):
         self.assertIn(self.spec_E, self.environment.sigma.values())
         self.assertIn(self.spec_F, self.environment.sigma.values())
 
-    def test_get_specifications_D(self):
-        expected_specs_D = Specification(
+    def test_get_specifications_e(self):
+        expected_specs_d = Specification(
             signatures={
                 Signature(var="x", type=Unknown()),
                 Signature(var="y", type=self.A),
@@ -127,22 +121,10 @@ class TestEvidenceProgressive(unittest.TestCase):
             }
         )
         result = get_specifications(self.environment, self.D)
-        self.assertEqual(expected_specs_D, result)
+        self.assertEqual(expected_specs_d, result)
 
-
-    def test_get_specifications_E(self):
-        expected_specs_E = Specification(
-            signatures={
-                Signature(var="x", type=self.E),
-                Signature(var="z", type=Unknown()),
-            }
-        )
-        result = get_specifications(self.environment, self.E)
-        self.assertEqual(expected_specs_E, result)
-
-
-    def test_get_specifications_F(self):
-        expected_specs_F = Specification(
+    def test_get_specifications_f(self):
+        expected_specs_f = Specification(
             signatures={
                 Signature(var="x", type=Unknown()),
                 Signature(var="y", type=self.A),
@@ -150,176 +132,242 @@ class TestEvidenceProgressive(unittest.TestCase):
             }
         )
         result = get_specifications(self.environment, self.F)
-        self.assertEqual(expected_specs_F, result)
+        self.assertEqual(expected_specs_f, result)
 
     def test_interior_b_a(self):
-        expected = CompleteEvidence({
-            Evidence(
-                EvidenceSpecification({
-                    EvidenceSignature("x", EvidenceInterval(self.B, self.B))
-                }),
-                EvidenceSpecification(set())
-            )
-        })
+        expected = CompleteEvidence(
+            {
+                Evidence(
+                    EvidenceSpecification(
+                        {EvidenceSignature("x", EvidenceInterval(self.B, self.B))}
+                    ),
+                    EvidenceSpecification(set()),
+                )
+            }
+        )
 
         result = interior_class_specification(
             self.environment,
             get_specifications(self.environment, self.B),
-            get_specifications(self.environment, self.A)
+            get_specifications(self.environment, self.A),
         )
         self.assertIsNotNone(result)
         self.assertEqual(expected, result)
 
     def test_interior_c_a(self):
-        expected = CompleteEvidence({
-            Evidence(
-                EvidenceSpecification({
-                    EvidenceSignature("x", EvidenceInterval(self.C, self.C)),
-                    EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
-                }),
-                EvidenceSpecification(set())
+        expected = CompleteEvidence(
+            {
+                Evidence(
+                    EvidenceSpecification(
+                        {
+                            EvidenceSignature("x", EvidenceInterval(self.C, self.C)),
+                            EvidenceSignature(
+                                "z", EvidenceInterval(BottomType(), TopType())
+                            ),
+                        }
+                    ),
+                    EvidenceSpecification(set()),
                 )
-        })
+            }
+        )
 
         result = interior_class_specification(
             self.environment,
             get_specifications(self.environment, self.C),
-            get_specifications(self.environment, self.A)
+            get_specifications(self.environment, self.A),
         )
         self.assertIsNotNone(result)
         self.assertEqual(expected, result)
 
     def test_interior_d_b(self):
-        expected = CompleteEvidence({
-            Evidence(
-                EvidenceSpecification({
-                    EvidenceSignature("x", EvidenceInterval(BottomType(), self.B)),
-                    EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
-                    EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
-                }),
-                EvidenceSpecification({
-                    EvidenceSignature("x", EvidenceInterval(self.B, self.B)),
-                })
-            )
-        })
+        expected = CompleteEvidence(
+            {
+                Evidence(
+                    EvidenceSpecification(
+                        {
+                            EvidenceSignature(
+                                "x", EvidenceInterval(BottomType(), self.B)
+                            ),
+                            EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
+                            EvidenceSignature(
+                                "z", EvidenceInterval(BottomType(), TopType())
+                            ),
+                        }
+                    ),
+                    EvidenceSpecification(
+                        {
+                            EvidenceSignature("x", EvidenceInterval(self.B, self.B)),
+                        }
+                    ),
+                )
+            }
+        )
 
         result = interior_class_specification(
             self.environment,
             get_specifications(self.environment, self.D),
-            get_specifications(self.environment, self.B)
+            get_specifications(self.environment, self.B),
         )
         self.assertIsNotNone(result)
         self.assertEqual(expected, result)
 
     def test_interior_d_c(self):
-        expected = CompleteEvidence({
-            Evidence(
-                EvidenceSpecification({
-                    EvidenceSignature("x", EvidenceInterval(BottomType(), self.C)),
-                    EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
-                    EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
-                }),
-                EvidenceSpecification({
-                    EvidenceSignature("x", EvidenceInterval(self.C, self.C)),
-                    EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
-                })
-            )
-        })
+        expected = CompleteEvidence(
+            {
+                Evidence(
+                    EvidenceSpecification(
+                        {
+                            EvidenceSignature(
+                                "x", EvidenceInterval(BottomType(), self.C)
+                            ),
+                            EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
+                            EvidenceSignature(
+                                "z", EvidenceInterval(BottomType(), TopType())
+                            ),
+                        }
+                    ),
+                    EvidenceSpecification(
+                        {
+                            EvidenceSignature("x", EvidenceInterval(self.C, self.C)),
+                            EvidenceSignature(
+                                "z", EvidenceInterval(BottomType(), TopType())
+                            ),
+                        }
+                    ),
+                )
+            }
+        )
 
         result = interior_class_specification(
             self.environment,
             get_specifications(self.environment, self.D),
-            get_specifications(self.environment, self.C)
+            get_specifications(self.environment, self.C),
         )
         self.assertIsNotNone(result)
         self.assertEqual(expected, result)
 
     def test_interior_e_b(self):
-        expected = CompleteEvidence({
-            Evidence(
-                EvidenceSpecification({
-                    EvidenceSignature("x", EvidenceInterval(self.E, self.E)),
-                    EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
-                }),
-                EvidenceSpecification({
-                    EvidenceSignature("x", EvidenceInterval(self.E, self.B)),
-                })
-            )
-        })
+        expected = CompleteEvidence(
+            {
+                Evidence(
+                    EvidenceSpecification(
+                        {
+                            EvidenceSignature("x", EvidenceInterval(self.E, self.E)),
+                            EvidenceSignature(
+                                "z", EvidenceInterval(BottomType(), TopType())
+                            ),
+                        }
+                    ),
+                    EvidenceSpecification(
+                        {
+                            EvidenceSignature("x", EvidenceInterval(self.E, self.B)),
+                        }
+                    ),
+                )
+            }
+        )
 
         result = interior_class_specification(
             self.environment,
             get_specifications(self.environment, self.E),
-            get_specifications(self.environment, self.B)
+            get_specifications(self.environment, self.B),
         )
         self.assertIsNotNone(result)
         self.assertEqual(expected, result)
 
     def test_interior_e_c(self):
-        expected = CompleteEvidence({
-            Evidence(
-                EvidenceSpecification({
-                    EvidenceSignature("x", EvidenceInterval(self.E, self.E)),
-                    EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
-                }),
-                EvidenceSpecification({
-                    EvidenceSignature("x", EvidenceInterval(self.E, self.C)),
-                    EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
-                })
-            )
-        })
+        expected = CompleteEvidence(
+            {
+                Evidence(
+                    EvidenceSpecification(
+                        {
+                            EvidenceSignature("x", EvidenceInterval(self.E, self.E)),
+                            EvidenceSignature(
+                                "z", EvidenceInterval(BottomType(), TopType())
+                            ),
+                        }
+                    ),
+                    EvidenceSpecification(
+                        {
+                            EvidenceSignature("x", EvidenceInterval(self.E, self.C)),
+                            EvidenceSignature(
+                                "z", EvidenceInterval(BottomType(), TopType())
+                            ),
+                        }
+                    ),
+                )
+            }
+        )
 
         result = interior_class_specification(
             self.environment,
             get_specifications(self.environment, self.E),
-            get_specifications(self.environment, self.C)
+            get_specifications(self.environment, self.C),
         )
         self.assertIsNotNone(result)
         self.assertEqual(expected, result)
 
     def test_interior_f_d(self):
-        expected = CompleteEvidence({
-            Evidence(
-                EvidenceSpecification({
-                    EvidenceSignature("x", EvidenceInterval(BottomType(), TopType())),
-                    EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
-                    EvidenceSignature("z", EvidenceInterval(self.D, self.D)),
-                }),
-                EvidenceSpecification({
-                    EvidenceSignature("x", EvidenceInterval(BottomType(), TopType())),
-                    EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
-                    EvidenceSignature("z", EvidenceInterval(self.D, TopType())),
-                })
-            )
-        })
+        expected = CompleteEvidence(
+            {
+                Evidence(
+                    EvidenceSpecification(
+                        {
+                            EvidenceSignature(
+                                "x", EvidenceInterval(BottomType(), TopType())
+                            ),
+                            EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
+                            EvidenceSignature("z", EvidenceInterval(self.D, self.D)),
+                        }
+                    ),
+                    EvidenceSpecification(
+                        {
+                            EvidenceSignature(
+                                "x", EvidenceInterval(BottomType(), TopType())
+                            ),
+                            EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
+                            EvidenceSignature("z", EvidenceInterval(self.D, TopType())),
+                        }
+                    ),
+                )
+            }
+        )
 
         result = interior_class_specification(
             self.environment,
             get_specifications(self.environment, self.F),
-            get_specifications(self.environment, self.D)
+            get_specifications(self.environment, self.D),
         )
         self.assertIsNotNone(result)
         self.assertEqual(expected, result)
 
     def test_interior_f_e(self):
-        expected = CompleteEvidence({
-            Evidence(
-                EvidenceSpecification({
-                    EvidenceSignature("x", EvidenceInterval(BottomType(), self.E)),
-                    EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
-                    EvidenceSignature("z", EvidenceInterval(self.D, self.D)),
-                }),
-                EvidenceSpecification({
-                    EvidenceSignature("x", EvidenceInterval(self.E, self.E)),
-                    EvidenceSignature("z", EvidenceInterval(self.D, TopType())),
-                })
-            )
-        })
+        expected = CompleteEvidence(
+            {
+                Evidence(
+                    EvidenceSpecification(
+                        {
+                            EvidenceSignature(
+                                "x", EvidenceInterval(BottomType(), self.E)
+                            ),
+                            EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
+                            EvidenceSignature("z", EvidenceInterval(self.D, self.D)),
+                        }
+                    ),
+                    EvidenceSpecification(
+                        {
+                            EvidenceSignature("x", EvidenceInterval(self.E, self.E)),
+                            EvidenceSignature("z", EvidenceInterval(self.D, TopType())),
+                        }
+                    ),
+                )
+            }
+        )
 
         result = interior_class_specification(
             self.environment,
             get_specifications(self.environment, self.F),
-            get_specifications(self.environment, self.E)
+            get_specifications(self.environment, self.E),
         )
         self.assertIsNotNone(result)
         self.assertEqual(expected, result)
@@ -328,40 +376,62 @@ class TestEvidenceProgressive(unittest.TestCase):
         complete_d_c = interior_class_specification(
             self.environment,
             get_specifications(self.environment, self.D),
-            get_specifications(self.environment, self.C)
+            get_specifications(self.environment, self.C),
         )
         complete_d_b = interior_class_specification(
             self.environment,
             get_specifications(self.environment, self.D),
-            get_specifications(self.environment, self.B)
+            get_specifications(self.environment, self.B),
         )
 
         result = meet_complete_evidences(self.environment, complete_d_c, complete_d_b)
 
-        expected_d_c_and_d_b = CompleteEvidence({
-            Evidence(
-                EvidenceSpecification({
-                    EvidenceSignature("x", EvidenceInterval(BottomType(), self.D)),
-                    EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
-                    EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
-                }),
-                EvidenceSpecification({
-                    EvidenceSignature("x", EvidenceInterval(self.D, self.D)),
-                    EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
-                })
-            ),
-            Evidence(
-                EvidenceSpecification({
-                    EvidenceSignature("x", EvidenceInterval(BottomType(), self.E)),
-                    EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
-                    EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
-                }),
-                EvidenceSpecification({
-                    EvidenceSignature("x", EvidenceInterval(self.E, self.E)),
-                    EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
-                })
-            ),
-        })
+        expected_d_c_and_d_b = CompleteEvidence(
+            {
+                Evidence(
+                    EvidenceSpecification(
+                        {
+                            EvidenceSignature(
+                                "x", EvidenceInterval(BottomType(), self.D)
+                            ),
+                            EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
+                            EvidenceSignature(
+                                "z", EvidenceInterval(BottomType(), TopType())
+                            ),
+                        }
+                    ),
+                    EvidenceSpecification(
+                        {
+                            EvidenceSignature("x", EvidenceInterval(self.D, self.D)),
+                            EvidenceSignature(
+                                "z", EvidenceInterval(BottomType(), TopType())
+                            ),
+                        }
+                    ),
+                ),
+                Evidence(
+                    EvidenceSpecification(
+                        {
+                            EvidenceSignature(
+                                "x", EvidenceInterval(BottomType(), self.E)
+                            ),
+                            EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
+                            EvidenceSignature(
+                                "z", EvidenceInterval(BottomType(), TopType())
+                            ),
+                        }
+                    ),
+                    EvidenceSpecification(
+                        {
+                            EvidenceSignature("x", EvidenceInterval(self.E, self.E)),
+                            EvidenceSignature(
+                                "z", EvidenceInterval(BottomType(), TopType())
+                            ),
+                        }
+                    ),
+                ),
+            }
+        )
 
         self.assertEqual(expected_d_c_and_d_b, result)
 
@@ -369,28 +439,38 @@ class TestEvidenceProgressive(unittest.TestCase):
         complete_e_c = interior_class_specification(
             self.environment,
             get_specifications(self.environment, self.E),
-            get_specifications(self.environment, self.C)
+            get_specifications(self.environment, self.C),
         )
         complete_e_b = interior_class_specification(
             self.environment,
             get_specifications(self.environment, self.E),
-            get_specifications(self.environment, self.B)
+            get_specifications(self.environment, self.B),
         )
 
         result = meet_complete_evidences(self.environment, complete_e_c, complete_e_b)
 
-        expected_e_c_and_e_b = CompleteEvidence({
-            Evidence(
-                EvidenceSpecification({
-                    EvidenceSignature("x", EvidenceInterval(self.E, self.E)),
-                    EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
-                }),
-                EvidenceSpecification({
-                    EvidenceSignature("x", EvidenceInterval(self.E, self.E)),
-                    EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
-                })
-            ),
-        })
+        expected_e_c_and_e_b = CompleteEvidence(
+            {
+                Evidence(
+                    EvidenceSpecification(
+                        {
+                            EvidenceSignature("x", EvidenceInterval(self.E, self.E)),
+                            EvidenceSignature(
+                                "z", EvidenceInterval(BottomType(), TopType())
+                            ),
+                        }
+                    ),
+                    EvidenceSpecification(
+                        {
+                            EvidenceSignature("x", EvidenceInterval(self.E, self.E)),
+                            EvidenceSignature(
+                                "z", EvidenceInterval(BottomType(), TopType())
+                            ),
+                        }
+                    ),
+                ),
+            }
+        )
 
         self.assertEqual(expected_e_c_and_e_b, result)
 
@@ -398,30 +478,40 @@ class TestEvidenceProgressive(unittest.TestCase):
         complete_f_e = interior_class_specification(
             self.environment,
             get_specifications(self.environment, self.F),
-            get_specifications(self.environment, self.E)
+            get_specifications(self.environment, self.E),
         )
         complete_f_d = interior_class_specification(
             self.environment,
             get_specifications(self.environment, self.F),
-            get_specifications(self.environment, self.D)
+            get_specifications(self.environment, self.D),
         )
 
         result = meet_complete_evidences(self.environment, complete_f_e, complete_f_d)
 
-        expected_f_e_and_f_d = CompleteEvidence({
-            Evidence(
-                EvidenceSpecification({
-                    EvidenceSignature("x", EvidenceInterval(BottomType(), self.E)),
-                    EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
-                    EvidenceSignature("z", EvidenceInterval(self.D, self.D)),
-                }),
-                EvidenceSpecification({
-                    EvidenceSignature("x", EvidenceInterval(BottomType(), self.E)),
-                    EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
-                    EvidenceSignature("z", EvidenceInterval(self.D, TopType())),
-                })
-            )
-        })
+        expected_f_e_and_f_d = CompleteEvidence(
+            {
+                Evidence(
+                    EvidenceSpecification(
+                        {
+                            EvidenceSignature(
+                                "x", EvidenceInterval(BottomType(), self.E)
+                            ),
+                            EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
+                            EvidenceSignature("z", EvidenceInterval(self.D, self.D)),
+                        }
+                    ),
+                    EvidenceSpecification(
+                        {
+                            EvidenceSignature(
+                                "x", EvidenceInterval(BottomType(), self.E)
+                            ),
+                            EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
+                            EvidenceSignature("z", EvidenceInterval(self.D, TopType())),
+                        }
+                    ),
+                )
+            }
+        )
 
         self.assertEqual(expected_f_e_and_f_d, result)
 
@@ -440,16 +530,24 @@ class TestEvidenceProgressive(unittest.TestCase):
 
         result = transitivity_complete_evidences(self.environment, id_b, ib_a)
 
-        expected = CompleteEvidence({
-            Evidence(
-                EvidenceSpecification({
-                    EvidenceSignature("x", EvidenceInterval(BottomType(), self.B)),
-                    EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
-                    EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
-                }),
-                EvidenceSpecification(set())
-            )
-        })
+        expected = CompleteEvidence(
+            {
+                Evidence(
+                    EvidenceSpecification(
+                        {
+                            EvidenceSignature(
+                                "x", EvidenceInterval(BottomType(), self.B)
+                            ),
+                            EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
+                            EvidenceSignature(
+                                "z", EvidenceInterval(BottomType(), TopType())
+                            ),
+                        }
+                    ),
+                    EvidenceSpecification(set()),
+                )
+            }
+        )
 
         self.assertEqual(expected, result)
 
@@ -467,15 +565,21 @@ class TestEvidenceProgressive(unittest.TestCase):
 
         result = transitivity_complete_evidences(self.environment, id_b, ib_a)
 
-        expected = CompleteEvidence({
-            Evidence(
-                EvidenceSpecification({
-                    EvidenceSignature("x", EvidenceInterval(self.E, self.E)),
-                    EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
-                }),
-                EvidenceSpecification({})
-            )
-        })
+        expected = CompleteEvidence(
+            {
+                Evidence(
+                    EvidenceSpecification(
+                        {
+                            EvidenceSignature("x", EvidenceInterval(self.E, self.E)),
+                            EvidenceSignature(
+                                "z", EvidenceInterval(BottomType(), TopType())
+                            ),
+                        }
+                    ),
+                    EvidenceSpecification({}),
+                )
+            }
+        )
 
         self.assertEqual(expected, result)
 
@@ -493,18 +597,26 @@ class TestEvidenceProgressive(unittest.TestCase):
 
         result = transitivity_complete_evidences(self.environment, if_d, id_b)
 
-        expected = CompleteEvidence({
-            Evidence(
-                EvidenceSpecification({
-                    EvidenceSignature("x", EvidenceInterval(BottomType(), self.B)),
-                    EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
-                    EvidenceSignature("z", EvidenceInterval(self.D, self.D)),
-                }),
-                EvidenceSpecification({
-                    EvidenceSignature("x", EvidenceInterval(self.B, self.B)),
-                })
-            )
-        })
+        expected = CompleteEvidence(
+            {
+                Evidence(
+                    EvidenceSpecification(
+                        {
+                            EvidenceSignature(
+                                "x", EvidenceInterval(BottomType(), self.B)
+                            ),
+                            EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
+                            EvidenceSignature("z", EvidenceInterval(self.D, self.D)),
+                        }
+                    ),
+                    EvidenceSpecification(
+                        {
+                            EvidenceSignature("x", EvidenceInterval(self.B, self.B)),
+                        }
+                    ),
+                )
+            }
+        )
 
         self.assertEqual(expected, result)
 
@@ -528,16 +640,22 @@ class TestEvidenceProgressive(unittest.TestCase):
         step1 = transitivity_complete_evidences(self.environment, if_d, id_b)
         result = transitivity_complete_evidences(self.environment, step1, ib_a)
 
-        expected = CompleteEvidence({
-            Evidence(
-                EvidenceSpecification({
-                    EvidenceSignature("x", EvidenceInterval(BottomType(), self.B)),
-                    EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
-                    EvidenceSignature("z", EvidenceInterval(self.D, self.D)),
-                }),
-                EvidenceSpecification({})
-            )
-        })
+        expected = CompleteEvidence(
+            {
+                Evidence(
+                    EvidenceSpecification(
+                        {
+                            EvidenceSignature(
+                                "x", EvidenceInterval(BottomType(), self.B)
+                            ),
+                            EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
+                            EvidenceSignature("z", EvidenceInterval(self.D, self.D)),
+                        }
+                    ),
+                    EvidenceSpecification({}),
+                )
+            }
+        )
 
         self.assertEqual(expected, result)
 

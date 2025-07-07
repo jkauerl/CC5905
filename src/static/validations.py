@@ -2,7 +2,6 @@ from .definitions import (
     Environment,
     Specification,
 )
-from .types import Type, TopType, BottomType, FunctionType, ClassName
 from .propositions import (
     acyclic,
     exists_all_signatures,
@@ -10,6 +9,7 @@ from .propositions import (
     minimal_specification,
     no_overloading,
 )
+from .types import BottomType, ClassName, FunctionType, TopType, Type
 
 """ Validation of types
 """

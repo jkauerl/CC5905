@@ -4,7 +4,7 @@ from .definitions import (
     Environment,
     Specification,
 )
-from .types import Type, TopType, BottomType, FunctionType, ClassName
+from .types import BottomType, ClassName, FunctionType, TopType, Type
 
 """ Propositions to check the type system
 """

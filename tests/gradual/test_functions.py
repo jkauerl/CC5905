@@ -6,9 +6,8 @@ from src.gradual.definitions import (
     Signature,
     Specification,
 )
-from src.gradual.types import GradualFunctionType
-from src.static.types import TopType, BottomType, ClassName
 from src.gradual.functions import (
+    get_specifications,
     inherited,
     join_unique,
     lower_set,
@@ -16,7 +15,6 @@ from src.gradual.functions import (
     names,
     proj,
     proj_many,
-    get_specifications,
     undeclared,
     upper_set,
 )
@@ -24,14 +22,17 @@ from src.gradual.subtyping import (
     is_subtype,
     is_subtype_spec,
 )
+from src.gradual.types import GradualFunctionType
 from src.static.functions import (
     get_all_parent_specifications,
-    meet,
     join,
+    meet,
 )
 from src.static.subtyping import (
     is_direct_subtype,
 )
+from src.static.types import BottomType, ClassName, TopType
+
 
 class TestFunctions(unittest.TestCase):
     def setUp(self):
@@ -111,7 +112,8 @@ class TestFunctions(unittest.TestCase):
     def test_proj(self):
         self.assertEqual(proj("x", self.spec_B), self.A)
         self.assertEqual(
-            proj("y", self.spec_B), GradualFunctionType(domain=(self.A,), codomain=self.B)
+            proj("y", self.spec_B),
+            GradualFunctionType(domain=(self.A,), codomain=self.B),
         )
         self.assertIsNone(proj("z", self.spec_B))
 

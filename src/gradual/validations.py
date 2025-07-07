@@ -1,9 +1,8 @@
+from ..static.types import BottomType, ClassName, TopType
 from .definitions import (
     Environment,
     Specification,
 )
-from .types import GradualType, GradualFunctionType, Unknown
-from ..static.types import TopType, BottomType, ClassName
 from .propositions import (
     acyclic,
     exists_all_signatures,
@@ -11,6 +10,7 @@ from .propositions import (
     minimal_specification,
     no_overloading,
 )
+from .types import GradualFunctionType, GradualType, Unknown
 
 """ Validation of types
 """

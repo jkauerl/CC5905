@@ -1,24 +1,24 @@
-from typing import Set, Tuple, Optional, Dict
 from itertools import product
+from typing import Dict, Optional, Set, Tuple
 
-from ...static.types import Type, TopType, BottomType
 from src.static.functions import join, meet
 from src.static.subtyping import is_subtype
 
+from ...static.types import BottomType, TopType, Type
 from ..definitions import (
     Environment,
     Specification,
 )
-from ..types import GradualType, GradualFunctionType, Unknown
 from ..subtyping import is_gradual_subtype
-from .subtyping import is_subtype_evidence_spec
+from ..types import GradualFunctionType, GradualType, Unknown
 from .definitions import (
     CompleteEvidence,
     Evidence,
     EvidenceInterval,
-    EvidenceSpecification,
     EvidenceSignature,
+    EvidenceSpecification,
 )
+from .subtyping import is_subtype_evidence_spec
 
 """ Defintions of meet and join over the evidence in the type system
 """
@@ -38,8 +38,12 @@ def meet_evidence_intervals(
     :return: A new Interval that is the meet of the two intervals.
     """
 
-    lower_bounds = meet(environment, sig_1.interval.lower_bound, sig_2.interval.lower_bound)
-    upper_bounds = meet(environment, sig_1.interval.upper_bound, sig_2.interval.upper_bound) 
+    lower_bounds = meet(
+        environment, sig_1.interval.lower_bound, sig_2.interval.lower_bound
+    )
+    upper_bounds = meet(
+        environment, sig_1.interval.upper_bound, sig_2.interval.upper_bound
+    )
 
     signatures = set()
     for lower in lower_bounds:
@@ -140,16 +144,15 @@ def meet_complete_evidences(
 
 
 def meet_precision_interval(
-    environment: Environment, 
-    i1: EvidenceInterval, 
-    i2: EvidenceInterval
+    environment: Environment, i1: EvidenceInterval, i2: EvidenceInterval
 ) -> Set[EvidenceInterval]:
     """Compute the precision meet of two intervals in the type system.
 
     :param environment: The Environment object representing the type system.
     :param i1: The first interval to meet.
     :param i2: The second interval to meet.
-    :return: A set of EvidenceIntervals that are the precision meet of the two intervals.
+    :return: A set of EvidenceIntervals that are the precision meet of the two
+        intervals.
     """
     lower_joins = join(environment, i1.lower_bound, i2.lower_bound)
     upper_meets = meet(environment, i1.upper_bound, i2.upper_bound)
@@ -167,7 +170,7 @@ def meet_precision_specification(
     spec1: EvidenceSpecification,
     spec2: EvidenceSpecification,
 ) -> Set[EvidenceSpecification]:
-    """ Compute the precision meet of two specifications in the type system.
+    """Compute the precision meet of two specifications in the type system.
 
     :param environment: The Environment object representing the type system.
     :param spec1: The first specification to meet.
@@ -191,6 +194,7 @@ def meet_precision_specification(
         result.add(EvidenceSpecification(set(combo)))
 
     return result
+
 
 """ Interior functions
 """
@@ -283,7 +287,7 @@ def interior_gradual_specification(
         sigs1 = set()
         sigs2 = set()
 
-        for (var, (i1, i2)) in zip(interval_pairs_by_var.keys(), combo):
+        for var, (i1, i2) in zip(interval_pairs_by_var.keys(), combo):
             sigs1.add(EvidenceSignature(var, i1))
             sigs2.add(EvidenceSignature(var, i2))
 
@@ -304,7 +308,8 @@ def interior_types(
     :param environment: The Environment object representing the type system.
     :param ti: The first gradual type.
     :param tj: The second gradual type.
-    :return: A pair of evidence intervals representing the interior, or None if undefined.
+    :return: A pair of evidence intervals representing the interior, or None if
+        undefined.
     """
     match ti, tj:
         case GradualFunctionType(f1i, g2), GradualFunctionType(g3i, g4):
@@ -362,7 +367,8 @@ def interior_class_specification(
     :param environment: The Environment object representing the type system.
     :param spec_1: The first specification to compute the interior of.
     :param spec_2: The second specification to compute the interior of.
-    :return: A pair of EvidenceSpecifications that represent the interior of the two specifications.
+    :return: A pair of EvidenceSpecifications that represent the interior of the two
+        specifications.
     """
     left_spec = set()
     right_spec = set()
@@ -398,10 +404,14 @@ def interior_class_specification(
         elif t2 is not None:
             right_spec.add(EvidenceSignature(var, lift_gradual_type(t2)))
 
-    return CompleteEvidence({Evidence(
-        EvidenceSpecification(left_spec),
-        EvidenceSpecification(right_spec),
-    )})
+    return CompleteEvidence(
+        {
+            Evidence(
+                EvidenceSpecification(left_spec),
+                EvidenceSpecification(right_spec),
+            )
+        }
+    )
 
 
 """ Transitivity functions
@@ -422,15 +432,19 @@ def transitivity_interval(
     """
     result = set()
 
-    middle_intervals = meet_precision_interval(environment, par_interval_1.interval, par_interval_2.interval)
+    middle_intervals = meet_precision_interval(
+        environment, par_interval_1.interval, par_interval_2.interval
+    )
 
     for im in middle_intervals:
         left_pairs = interior_intervals(environment, par_interval_1.interval, im)
         right_pairs = interior_intervals(environment, im, par_interval_2.interval)
 
-        for (left_low, _) in left_pairs:
-            for (right_low, right_high) in right_pairs:
-                combined_interval = EvidenceInterval(left_low.lower_bound, right_high.upper_bound)
+        for left_low, _ in left_pairs:
+            for right_low, right_high in right_pairs:
+                combined_interval = EvidenceInterval(
+                    left_low.lower_bound, right_high.upper_bound
+                )
                 result.add(EvidenceSignature(par_interval_1.var, combined_interval))
 
     return result
@@ -450,14 +464,20 @@ def transitivity_specifications(
     """
     result = set()
 
-    middle_specs = meet_precision_specification(environment, par_spec_1.specification_2, par_spec_2.specification_1)
+    middle_specs = meet_precision_specification(
+        environment, par_spec_1.specification_2, par_spec_2.specification_1
+    )
 
     for sm in middle_specs:
-        left_interior_pairs = interior_gradual_specification(environment, par_spec_1.specification_1, sm)
-        right_interior_pairs = interior_gradual_specification(environment, sm, par_spec_2.specification_2)
+        left_interior_pairs = interior_gradual_specification(
+            environment, par_spec_1.specification_1, sm
+        )
+        right_interior_pairs = interior_gradual_specification(
+            environment, sm, par_spec_2.specification_2
+        )
 
-        for (left_spec, _) in left_interior_pairs:
-            for (_, right_spec) in right_interior_pairs:
+        for left_spec, _ in left_interior_pairs:
+            for _, right_spec in right_interior_pairs:
                 combined = Evidence(left_spec, right_spec)
                 result.add(combined)
     return result
