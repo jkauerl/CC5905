@@ -467,7 +467,7 @@ def transitivity_complete_evidences(
     environment: Environment,
     complete_evidence_1: CompleteEvidence,
     complete_evidence_2: CompleteEvidence,
-) -> CompleteEvidence:
+) -> Optional[CompleteEvidence]:
     """Compute the transitivity of two complete evidences in the type system.
 
     :param environment: The Environment object representing the type system.
@@ -484,4 +484,6 @@ def transitivity_complete_evidences(
             new_evidences = transitivity_specifications(environment, ev1, ev2)
             results.update(new_evidences)
 
+    if not results:
+        return None
     return CompleteEvidence(results)

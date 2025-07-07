@@ -1,3 +1,4 @@
+from typing import Optional
 from ..static.types import Type, TopType, BottomType, ClassName
 from src.static.functions import (
     _get_specifications_core,
@@ -31,7 +32,7 @@ __all__ = [
 
 def meet_unique_consistent(
     environment: Environment, ti: GradualType, tj: GradualType
-) -> GradualType | None:
+) -> Optional[GradualType]:
     """Calculate the meet of two types, ensuring consistency in the type system.
 
     :param environment: The Environment object representing the type system.
@@ -74,7 +75,7 @@ def meet_unique_consistent(
 
 def join_unique_consistent(
     environment: Environment, ti: GradualType, tj: GradualType
-) -> GradualType | None:
+) -> Optional[GradualType]:
     """Calculate the join of two types, ensuring consistency in the type system.
 
     :param environment: The Environment object representing the type system.
@@ -115,7 +116,7 @@ def join_unique_consistent(
     return None
 
 
-def proj(x: str, s: Specification) -> GradualType | None:
+def proj(x: str, s: Specification) -> Optional[GradualType]:
     """Project a variable name from a specification to its type.
 
     :param x: The variable name to project.

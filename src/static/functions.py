@@ -1,4 +1,4 @@
-from typing import Callable, Set
+from typing import Callable, Set, Optional
 
 from .definitions import Environment, Signature, Specification
 from .types import Type, TopType, BottomType, ClassName
@@ -82,7 +82,7 @@ def meet(environment: Environment, ti: Type, tj: Type) -> set[Type]:
     return meet_set
 
 
-def meet_unique(environment: Environment, ti: Type, tj: Type) -> Type | None:
+def meet_unique(environment: Environment, ti: Type, tj: Type) -> Optional[Type]:
     """Return the unique meet of two class names in the type system.
 
     :param environment: The Environment object representing the type system.
@@ -122,7 +122,7 @@ def join(environment: Environment, ti: Type, tj: Type) -> set[Type]:
     return join_set
 
 
-def join_unique(environment: Environment, ti: Type, tj: Type) -> Type | None:
+def join_unique(environment: Environment, ti: Type, tj: Type) -> Optional[Type]:
     """Return the unique join of two class names in the type system.
 
     :param environment: The Environment object representing the type system.
@@ -137,7 +137,7 @@ def join_unique(environment: Environment, ti: Type, tj: Type) -> Type | None:
         return None
 
 
-def proj(x: str, s: Specification) -> Type | None:
+def proj(x: str, s: Specification) -> Optional[Type]:
     """Returns the type of the variable x in the specification s.
 
     :param x: The variable name to look up.
@@ -204,8 +204,8 @@ def undeclared(environment: Environment, class_name: ClassName) -> set[str]:
 def _inherited_core(
     environment: Environment,
     class_name: ClassName,
-    proj_many_function: Callable[[str, Specification], Type | None],
-    meet_unique_function: Callable[[Environment, Type, Type], Type | None],
+    proj_many_function: Callable[[str, Specification], Optional[Type]],
+    meet_unique_function: Callable[[Environment, Type, Type], Optional[Type]],
 ) -> Set[Signature]:
     """Core function to get the inherited variable names and their types.
 
