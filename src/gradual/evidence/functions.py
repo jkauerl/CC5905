@@ -1,8 +1,9 @@
-from typing import Set, Tuple, Optional
+from typing import Set, Tuple, Optional, Dict
 from itertools import product
 
 from src.static.definitions import Type
 from src.static.functions import join, meet
+from src.static.subtyping import is_subtype
 
 from ..definitions import (
     BottomType,
@@ -13,7 +14,7 @@ from ..definitions import (
     Unknown,
     Specification,
 )
-from ..subtyping import is_subtype
+from ..subtyping import is_gradual_subtype
 from .subtyping import is_subtype_evidence_spec
 from .definitions import (
     CompleteEvidence,
@@ -25,6 +26,7 @@ from .definitions import (
 
 """ Defintions of meet and join over the evidence in the type system
 """
+
 
 # Meet
 
@@ -39,15 +41,28 @@ def meet_evidence_intervals(
     :param interval_2: The second interval to meet.
     :return: A new Interval that is the meet of the two intervals.
     """
-    lower_bounds = meet(environment, sig_1.interval.lower_bound, sig_2.interval.lower_bound)
-    upper_bounds = meet(environment, sig_1.interval.upper_bound, sig_2.interval.upper_bound)
+    print(f"Meeting intervals for variable '{sig_1.var}'")
+    print(f" Interval 1: [{sig_1.interval.lower_bound}, {sig_1.interval.upper_bound}]")
+    print(f" Interval 2: [{sig_2.interval.lower_bound}, {sig_2.interval.upper_bound}]")
+
+    lower_bounds = meet(environment, sig_1.interval.lower_bound, sig_2.interval.lower_bound) # TODO Check if this join is correct 
+    upper_bounds = meet(environment, sig_1.interval.upper_bound, sig_2.interval.upper_bound) 
+
+    print(f" Lower bounds meet result: {lower_bounds}")
+    print(f" Upper bounds meet result: {upper_bounds}")
+
     signatures = set()
     for lower in lower_bounds:
         for upper in upper_bounds:
             if is_subtype(environment, lower, upper):
                 interval = EvidenceInterval(lower, upper)
+                print(f"  Adding EvidenceSignature: var={sig_1.var}, interval=[{lower}, {upper}]")
                 signatures.add(EvidenceSignature(sig_1.var, interval))
+            else:
+                print(f"  Skipping interval [{lower}, {upper}] because {lower} !<: {upper}")
+
     return signatures
+
 
 def meet_evidence_specifications(
     environment: Environment,
@@ -61,46 +76,37 @@ def meet_evidence_specifications(
     :param spec_2: The second specification to meet.
     :return: A new Specification that is the meet of the two specifications.
     """
-    vars_1 = {sig.var for sig in spec_1.signatures}
-    vars_2 = {sig.var for sig in spec_2.signatures}
-    all_vars = vars_1.union(vars_2)
+    result = set()
+    sigs_1 = {sig.var: sig for sig in spec_1.signatures}
+    sigs_2 = {sig.var: sig for sig in spec_2.signatures}
 
-    intervals_by_var = {}
+    meets_by_var = {}
+
+    """ common_vars = sigs_1.keys() & sigs_2.keys()
+
+    for var in common_vars:
+        sig_1 = sigs_1[var]
+        sig_2 = sigs_2[var]
+        meets_by_var[var] = meet_evidence_intervals(environment, sig_1, sig_2) """
+
+    all_vars = sigs_1.keys() | sigs_2.keys()  # union of variables
 
     for var in all_vars:
-        sigs_1 = [sig for sig in spec_1.signatures if sig.var == var]
-        sigs_2 = [sig for sig in spec_2.signatures if sig.var == var]
+        sig_1 = sigs_1.get(var)
+        sig_2 = sigs_2.get(var)
 
-        meets_for_var = set()
-
-        if sigs_1 and sigs_2:
-            for s1 in sigs_1:
-                for s2 in sigs_2:
-                    new_intervals = meet_evidence_intervals(environment, s1, s2)
-                    meets_for_var.update(new_intervals)
-        if sigs_1 and sigs_2:
-            for s1 in sigs_1:
-                for s2 in sigs_2:
-                    new_intervals = meet_evidence_intervals(environment, s1, s2)
-                    meets_for_var.update(new_intervals)
+        if sig_1 and sig_2:
+            meets_by_var[var] = meet_evidence_intervals(environment, sig_1, sig_2)
+        elif sig_1:
+            meets_by_var[var] = {sig_1}
         else:
-            continue
+            meets_by_var[var] = {sig_2}
 
-        if not meets_for_var:
-            return set()
-
-        intervals_by_var[var] = meets_for_var
-
-    # Sort vars to make deterministic combinations
-    all_vars_sorted = sorted(intervals_by_var.keys())
-    combos = product(*(intervals_by_var[var] for var in all_vars_sorted))
-
-    results = set()
-    for combo in combos:
+    for combo in product(*meets_by_var.values()):
         spec = EvidenceSpecification(set(combo))
-        results.add(spec)
+        result.add(spec)
 
-    return results
+    return result
 
 
 def meet_evidences(
@@ -119,12 +125,20 @@ def meet_evidences(
     s2_meet_s4 = meet_evidence_specifications(
         environment, evidence_1.specification_2, evidence_2.specification_2
     )
+
+    print("spec1 meets:", s1_meet_s3)
+    print("spec2 meets:", s2_meet_s4)
+
     evidences = set()
     for s_prime_1 in s1_meet_s3:
         for s_prime_2 in s2_meet_s4:
+            print("Checking subtype relation between:", s_prime_1, "and", s_prime_2)
             if is_subtype_evidence_spec(environment, s_prime_1, s_prime_2):
+                print("Subtype relation holds")
                 ev = Evidence(s_prime_1, s_prime_2)
                 evidences.add(ev)
+            else:
+                print("Subtype relation fails")
     return evidences
 
 
@@ -144,135 +158,55 @@ def meet_complete_evidences(
     for ev1 in complete_evidence_1.evidences:
         for ev2 in complete_evidence_2.evidences:
             new_evidences = meet_evidences(environment, ev1, ev2)
+            print(f"Meet evidences result size: {len(new_evidences)}")
             evidences.update(new_evidences)
 
     return CompleteEvidence(evidences)
 
 
-# Join
+""" Precision meet
+"""
 
 
-def join_evidence_intervals(
-    environment: Environment, sig_1: EvidenceSignature, sig_2: EvidenceSignature
-) -> Set[EvidenceSignature]:
-    """Compute the join of two intervals in the type system.
+def meet_precision_interval(
+    environment: Environment, 
+    i1: EvidenceInterval, 
+    i2: EvidenceInterval
+) -> Set[EvidenceInterval]:
+    lower_joins = join(environment, i1.lower_bound, i2.lower_bound)
+    upper_meets = meet(environment, i1.upper_bound, i2.upper_bound)
 
-    :param environment: The Environment object representing the type system.
-    :param sig_1: The first evidence signature (with an interval).
-    :param sig_2: The second evidence signature (with an interval).
-    :return: A set of EvidenceSignature representing the join of intervals.
-    """
-    lower_bounds = join(environment, sig_1.interval.lower_bound, sig_2.interval.lower_bound)
-    upper_bounds = join(environment, sig_1.interval.upper_bound, sig_2.interval.upper_bound)
-    signatures = set()
-    for lower in lower_bounds:
-        for upper in upper_bounds:
-            # Note: in join, upper should be a supertype of lower
-            if is_subtype(environment, upper, lower):
-                interval = EvidenceInterval(lower, upper)
-                signatures.add(EvidenceSignature(sig_1.var, interval))
-    return signatures
+    result = set()
+    for lower in lower_joins:
+        for upper in upper_meets:
+            if is_subtype(environment, lower, upper):
+                result.add(EvidenceInterval(lower, upper))
+    return result
 
 
-def join_evidence_specifications(
+def meet_precision_specification(
     environment: Environment,
-    spec_1: EvidenceSpecification,
-    spec_2: EvidenceSpecification,
+    spec1: EvidenceSpecification,
+    spec2: EvidenceSpecification,
 ) -> Set[EvidenceSpecification]:
-    """Compute the join of two evidence specifications.
+    result = set()
+    sigs1 = {sig.var: sig for sig in spec1.signatures}
+    sigs2 = {sig.var: sig for sig in spec2.signatures}
 
-    This handles variables present in either spec, performing joins coordinate-wise,
-    then producing all combinations of joined intervals.
+    common_vars = sigs1.keys() & sigs2.keys()
+    meets_by_var: Dict[str, Set[EvidenceSignature]] = {}
 
-    :param environment: The Environment object representing the type system.
-    :param spec_1: The first evidence specification.
-    :param spec_2: The second evidence specification.
-    :return: A set of EvidenceSpecification resulting from the join.
-    """
-    vars_1 = {sig.var for sig in spec_1.signatures}
-    vars_2 = {sig.var for sig in spec_2.signatures}
-    all_vars = vars_1.union(vars_2)
+    for var in common_vars:
+        sig1 = sigs1[var]
+        sig2 = sigs2[var]
+        intervals = meet_precision_interval(environment, sig1.interval, sig2.interval)
+        meets_by_var[var] = {EvidenceSignature(var, interval) for interval in intervals}
 
-    intervals_by_var = {}
+    for combo in product(*meets_by_var.values()):
+        result.add(EvidenceSpecification(set(combo)))
 
-    for var in all_vars:
-        sigs_1 = [sig for sig in spec_1.signatures if sig.var == var]
-        sigs_2 = [sig for sig in spec_2.signatures if sig.var == var]
+    return result
 
-        if sigs_1 and sigs_2:
-            # Join all pairs of signatures for this var
-            joined_intervals = set()
-            for s1 in sigs_1:
-                for s2 in sigs_2:
-                    joined_intervals.update(join_evidence_intervals(environment, s1, s2))
-            intervals_by_var[var] = joined_intervals
-        elif sigs_1:
-            # Only in spec_1, keep as is
-            intervals_by_var[var] = set(sigs_1)
-        elif sigs_2:
-            # Only in spec_2, keep as is
-            intervals_by_var[var] = set(sigs_2)
-        else:
-            # Should not happen
-            intervals_by_var[var] = set()
-
-        if not intervals_by_var[var]:
-            # No join possible for this variable => overall join fails
-            return set()
-
-    # Cartesian product of all variable intervals to build full specs
-    all_vars_sorted = sorted(intervals_by_var.keys())
-    combos = product(*(intervals_by_var[var] for var in all_vars_sorted))
-
-    results = set()
-    for combo in combos:
-        results.add(EvidenceSpecification(set(combo)))
-
-    return results
-
-
-def join_evidence(
-    environment: Environment, evidence_1: Evidence, evidence_2: Evidence
-) -> Set[Evidence]:
-    """Compute the join of two evidences.
-
-    :param environment: The Environment object representing the type system.
-    :param evidence_1: The first evidence.
-    :param evidence_2: The second evidence.
-    :return: A set of Evidence resulting from the join.
-    """
-    spec_1_joins = join_evidence_specifications(
-        environment, evidence_1.specification_1, evidence_2.specification_1
-    )
-    spec_2_joins = join_evidence_specifications(
-        environment, evidence_1.specification_2, evidence_2.specification_2
-    )
-    evidences = set()
-    for s1 in spec_1_joins:
-        for s2 in spec_2_joins:
-            if is_subtype_evidence_spec(environment, s1, s2):
-                evidences.add(Evidence(s1, s2))
-    return evidences
-
-
-def join_complete_evidences(
-    environment: Environment,
-    complete_evidence_1: CompleteEvidence,
-    complete_evidence_2: CompleteEvidence,
-) -> CompleteEvidence:
-    """Compute the join of two complete evidences.
-
-    :param environment: The Environment object representing the type system.
-    :param complete_evidence_1: The first complete evidence.
-    :param complete_evidence_2: The second complete evidence.
-    :return: A new CompleteEvidence representing the join.
-    """
-    evidences = set()
-    for ev1 in complete_evidence_1.evidences:
-        for ev2 in complete_evidence_2.evidences:
-            new_evidences = join_evidence(environment, ev1, ev2)
-            evidences.update(new_evidences)
-    return CompleteEvidence(evidences)
 
 
 """ Interior functions
@@ -383,17 +317,17 @@ def interior_types(
             )
             return (left, right)
         case Type(), Type():
-            if is_subtype(environment, ti, tj):
+            if is_gradual_subtype(environment, ti, tj):
                 left = lift_gradual_type(ti)
-                right = EvidenceInterval(tj, tj) # important to check this
+                right = EvidenceInterval(ti, tj)
                 return (left, right)
             return None
         case Type(), Unknown():
-            right = lift_gradual_type(ti)
-            return (right, EvidenceInterval(ti, TopType()))
+            left = lift_gradual_type(ti)
+            return (left, EvidenceInterval(ti, TopType()))
         case Unknown(), Type():
-            left = lift_gradual_type(tj)
-            return (EvidenceInterval(BottomType(), tj), left)
+            right = lift_gradual_type(tj)
+            return (EvidenceInterval(BottomType(), tj), right)
         case Unknown(), Unknown():
             spec = lift_gradual_type(Unknown())
             return (spec, spec)
@@ -435,7 +369,6 @@ def interior_class_specification(
         t1 = sig1.type if sig1 else None
         t2 = sig2.type if sig2 else None
 
-        # Case: both specs define the variable then we compute the interior
         if t1 is not None and t2 is not None:
             interiors = interior_types(environment, t1, t2)
             if interiors is None:
@@ -443,20 +376,18 @@ def interior_class_specification(
 
             i1, i2 = interiors
 
-            if is_subtype(environment, t1, t2):
+            if is_gradual_subtype(environment, t1, t2):
                 left_spec.add(EvidenceSignature(var, i1))
                 right_spec.add(EvidenceSignature(var, i2))
-            elif is_subtype(environment, t2, t1):
+            elif is_gradual_subtype(environment, t2, t1):
                 left_spec.add(EvidenceSignature(var, i2))
                 right_spec.add(EvidenceSignature(var, i1))
             else:
                 return None
 
-        # Case: only on the left
         elif t1 is not None:
             left_spec.add(EvidenceSignature(var, lift_gradual_type(t1)))
 
-        # Case: only on the right
         elif t2 is not None:
             right_spec.add(EvidenceSignature(var, lift_gradual_type(t2)))
 
@@ -472,60 +403,62 @@ def interior_class_specification(
 
 def transitivity_interval(
     environment: Environment,
-    par_interval_1: Tuple[EvidenceInterval, EvidenceInterval],
-    par_interval_2: Tuple[EvidenceInterval, EvidenceInterval],
-) -> Set[Tuple[EvidenceInterval, EvidenceInterval]]:
+    par_interval_1: EvidenceSignature,
+    par_interval_2: EvidenceSignature,
+) -> Set[EvidenceSignature]:
     """Compute the transitivity of two pairs of intervals in the type system.
 
     :param environment: The Environment object representing the type system.
-    :param par_interval_1: The first pair of intervals to compute the transitivity of.
-    :param par_interval_2: The second pair of intervals to compute the transitivity of.
-    :return: A set of pairs of intervals that are the transitivity of the two pairs of
-             intervals.
+    :param par_interval_1: EvidenceSignature representing.
+    :param par_interval_2: EvidenceSignature representing.
+    :return: Set of EvidenceSignatures representing transitivity intervals.
     """
-    meet_group = meet_evidence_intervals(
-        environment, par_interval_2[0], par_interval_1[1]
-    )
-
     result = set()
-    for i in meet_group:
-        left_interiors = meet_evidence_intervals(environment, par_interval_1[0], i)
-        right_interiors = meet_evidence_intervals(environment, i, par_interval_2[1])
-        for j in left_interiors:
-            for k in right_interiors:
-                if j.upper_bound == k.lower_bound:
-                    result.add((j.lower_bound, k.upper_bound))
+
+    middle_intervals = meet_precision_interval(environment, par_interval_1.interval, par_interval_2.interval)
+
+    print(f"Middle intervals between {par_interval_1.interval} and {par_interval_2.interval}: {middle_intervals}")
+
+    for im in middle_intervals:
+        left_pairs = interior_intervals(environment, par_interval_1.interval, im)
+        right_pairs = interior_intervals(environment, im, par_interval_2.interval)
+
+        for (left_low, left_high) in left_pairs:
+            for (right_low, right_high) in right_pairs:
+                combined_interval = EvidenceInterval(left_low.lower_bound, right_high.upper_bound)
+                result.add(EvidenceSignature(par_interval_1.var, combined_interval))
+
     return result
 
 
 def transitivity_specifications(
     environment: Environment,
-    par_spec_1: Tuple[EvidenceSpecification, EvidenceSpecification],
-    par_spec_2: Tuple[EvidenceSpecification, EvidenceSpecification],
-) -> Set[Tuple[EvidenceSpecification, EvidenceSpecification]]:
+    par_spec_1: Evidence,
+    par_spec_2: Evidence,
+) -> Set[Evidence]:
     """Compute the transitivity of two specifications in the type system.
 
     :param environment: The Environment object representing the type system.
-    :param spec_1: The first specification to compute the transitivity of.
-    :param spec_2: The second specification to compute the transitivity of.
-    :return: A set of pairs of specifications that are the transitivity of
-             the two specifications.
+    :param par_spec_1: Evidence representing.
+    :param par_spec_2: Evidence representing.
+    :return: Set of Evidence representing the transitivity.
     """
-    meet_group = meet_evidence_specifications(environment, par_spec_2[0], par_spec_1[1])
-
     result = set()
-    for i in meet_group:
-        left_interior = meet_evidence_specifications(environment, par_spec_1[0], i)
-        right_interior = meet_evidence_specifications(environment, i, par_spec_2[1])
-        for j in left_interior:
-            for k in right_interior:
-                if all(
-                    left.interval.upper_bound == right.interval.lower_bound
-                    for left, right in zip(j.signatures, k.signatures)
-                ):
-                    left_bounds = [sig.interval.lower_bound for sig in j.signatures]
-                    right_bounds = [sig.interval.upper_bound for sig in k.signatures]
-                    result.add((left_bounds, right_bounds))
+    
+    middle_specs = meet_precision_specification(environment, par_spec_1.specification_2, par_spec_2.specification_1)
+
+    print(f"\nMiddle specifications between {par_spec_1.specification_2} and {par_spec_2.specification_1}: {middle_specs}")
+    
+    for sm in middle_specs:
+        left_interior_pairs = interior_gradual_specification(environment, par_spec_1.specification_1, sm)
+        right_interior_pairs = interior_gradual_specification(environment, sm, par_spec_2.specification_2)
+        
+        for (left_spec, _) in left_interior_pairs:
+            for (_, right_spec) in right_interior_pairs:
+                result.add(Evidence(left_spec, right_spec))
+
+    print(f"Transitivity result size: {len(result)}")
+
     return result
 
 
@@ -547,11 +480,7 @@ def transitivity_complete_evidences(
     results = set()
     for ev1 in complete_evidence_1.evidences:
         for ev2 in complete_evidence_2.evidences:
-            evidences = transitivity_specifications(
-                environment,
-                (ev1.specification_1, ev1.specification_2),
-                (ev2.specification_1, ev2.specification_2),
-            )
-            for evidence in evidences:
-                results.add(Evidence(evidence[0], evidence[1]))
-    return CompleteEvidence(list(results))
+            new_evidences = transitivity_specifications(environment, ev1, ev2)
+            results.update(new_evidences)
+
+    return CompleteEvidence(results)

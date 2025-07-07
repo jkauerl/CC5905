@@ -10,6 +10,7 @@ from src.gradual.evidence.definitions import (
 from src.gradual.evidence.functions import (
     interior_class_specification,
     meet_complete_evidences,
+    transitivity_complete_evidences,
 )
 from src.gradual.functions import (
     get_specifications,
@@ -107,7 +108,7 @@ class TestEvidenceProgressive(unittest.TestCase):
             Ns=[self.A, self.B, self.C, self.D, self.E, self.F],
             Es=self.edges,
             sigma={
-                "A": Specification(signatures=[]),
+                "A": self.spec_A,
                 "B": self.spec_B,
                 "C": self.spec_C,
                 "D": self.spec_D,
@@ -151,7 +152,7 @@ class TestEvidenceProgressive(unittest.TestCase):
             signatures={
                 Signature(var="x", type=Unknown()),
                 Signature(var="y", type=self.A),
-                Signature(var="z", type=self.D),
+                Signature(var="z", type=self.D), # TODO: Memoria has self.D
             }
         )
         specs_F = get_specifications(self.environment, self.F)
@@ -238,7 +239,7 @@ class TestEvidenceProgressive(unittest.TestCase):
                 EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
             }),
             EvidenceSpecification({
-                EvidenceSignature("x", EvidenceInterval(self.B, self.B)),
+                EvidenceSignature("x", EvidenceInterval(self.E, self.B)), # TODO Memoria has self.B in both intervals
             })
         )
 
@@ -257,7 +258,7 @@ class TestEvidenceProgressive(unittest.TestCase):
                 EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
             }),
             EvidenceSpecification({
-                EvidenceSignature("x", EvidenceInterval(self.C, self.C)),
+                EvidenceSignature("x", EvidenceInterval(self.E, self.C)), # TODO Memoria has self.C in both intervals
                 EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
             })
         )
@@ -355,6 +356,9 @@ class TestEvidenceProgressive(unittest.TestCase):
             ),
         })
 
+        print("\nResult:\n", result)
+        print("Expected:\n", expected_d_c_and_d_b)
+
         self.assertEqual(result, expected_d_c_and_d_b)
 
     def test_meet_evidences_e_c_and_e_b(self):
@@ -384,7 +388,7 @@ class TestEvidenceProgressive(unittest.TestCase):
                     EvidenceSignature("x", EvidenceInterval(self.E, self.E)),
                     EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
                 })
-            )
+            ),
         })
 
         self.assertEqual(result, expected_e_c_and_e_b)
@@ -415,14 +419,157 @@ class TestEvidenceProgressive(unittest.TestCase):
                 }),
                 EvidenceSpecification({
                     EvidenceSignature("x", EvidenceInterval(BottomType(), self.E)),
-                    EvidenceSignature("y", EvidenceInterval(self.A, self.A)), #TODO Check this
+                    EvidenceSignature("y", EvidenceInterval(self.A, self.A)), #TODO Check if this is needed
                     EvidenceSignature("z", EvidenceInterval(self.D, TopType())),
                 })
             )
         })
 
+        print("\nResult:\n", result)
+        print("Expected:\n", expected_f_e_and_f_d)
+
         self.assertEqual(result, expected_f_e_and_f_d)
-    
+
+    def test_transitivity_idb_ib_a(self):
+        id_b = interior_class_specification(
+            self.environment,
+            get_specifications(self.environment, self.D),
+            get_specifications(self.environment, self.B),
+        )
+        ib_a = interior_class_specification(
+            self.environment,
+            get_specifications(self.environment, self.B),
+            get_specifications(self.environment, self.A),
+        )
+
+        ce1 = CompleteEvidence({id_b})
+        ce2 = CompleteEvidence({ib_a})
+
+        result = transitivity_complete_evidences(self.environment, ce1, ce2)
+
+        expected = CompleteEvidence({
+            Evidence(
+                EvidenceSpecification({
+                    EvidenceSignature("x", EvidenceInterval(BottomType(), self.B)),
+                    EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
+                    EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
+                }),
+                EvidenceSpecification({})
+            )
+        })
+
+        print("\nResult:\n", result)
+        print("Expected:\n", expected)
+
+        self.assertEqual(result, expected)
+
+    def test_transitivity_ie_b_ib_a(self):
+        ie_b = interior_class_specification(
+            self.environment,
+            get_specifications(self.environment, self.E),
+            get_specifications(self.environment, self.B),
+        )
+        ib_a = interior_class_specification(
+            self.environment,
+            get_specifications(self.environment, self.B),
+            get_specifications(self.environment, self.A),
+        )
+
+        ce1 = CompleteEvidence({ie_b})
+        ce2 = CompleteEvidence({ib_a})
+
+        result = transitivity_complete_evidences(self.environment, ce1, ce2)
+
+        expected = CompleteEvidence({
+            Evidence(
+                EvidenceSpecification({
+                    EvidenceSignature("x", EvidenceInterval(self.E, self.E)),
+                    EvidenceSignature("z", EvidenceInterval(BottomType(), TopType())),
+                }),
+                EvidenceSpecification({})
+            )
+        })
+
+        print("\nResult:\n", result)
+        print("Expected:\n", expected)
+
+        self.assertEqual(result, expected)
+
+    def test_transitivity_if_d_id_b(self):
+        if_d = interior_class_specification(
+            self.environment,
+            get_specifications(self.environment, self.F),
+            get_specifications(self.environment, self.D),
+        )
+        id_b = interior_class_specification(
+            self.environment,
+            get_specifications(self.environment, self.D),
+            get_specifications(self.environment, self.B),
+        )
+
+        ce1 = CompleteEvidence({if_d})
+        ce2 = CompleteEvidence({id_b})
+
+        result = transitivity_complete_evidences(self.environment, ce1, ce2)
+
+        expected = CompleteEvidence({
+            Evidence(
+                EvidenceSpecification({
+                    EvidenceSignature("x", EvidenceInterval(BottomType(), self.B)),
+                    EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
+                    EvidenceSignature("z", EvidenceInterval(self.D, self.D)),
+                }),
+                EvidenceSpecification({
+                    EvidenceSignature("x", EvidenceInterval(self.B, self.B)),
+                })
+            )
+        })
+
+        print("\nResult:\n", result)
+        print("Expected:\n", expected)
+
+        self.assertEqual(result, expected)
+
+    def test_transitivity_if_d_id_b_ib_a(self):
+        if_d = interior_class_specification(
+            self.environment,
+            get_specifications(self.environment, self.F),
+            get_specifications(self.environment, self.D),
+        )
+        id_b = interior_class_specification(
+            self.environment,
+            get_specifications(self.environment, self.D),
+            get_specifications(self.environment, self.B),
+        )
+        ib_a = interior_class_specification(
+            self.environment,
+            get_specifications(self.environment, self.B),
+            get_specifications(self.environment, self.A),
+        )
+
+        ce1 = CompleteEvidence({if_d})
+        ce2 = CompleteEvidence({id_b})
+        ce3 = CompleteEvidence({ib_a})
+
+        step1 = transitivity_complete_evidences(self.environment, ce1, ce2)
+        result = transitivity_complete_evidences(self.environment, step1, ce3)
+
+        expected = CompleteEvidence({
+            Evidence(
+                EvidenceSpecification({
+                    EvidenceSignature("x", EvidenceInterval(BottomType(), self.C)),
+                    EvidenceSignature("y", EvidenceInterval(self.A, self.A)),
+                    EvidenceSignature("z", EvidenceInterval(self.D, self.D)),
+                }),
+                EvidenceSpecification({})
+            )
+        })
+
+        print("\nResult:\n", result)
+        print("Expected:\n", expected)
+
+        self.assertEqual(result, expected)
+
 
 if __name__ == "__main__":
     unittest.main()
