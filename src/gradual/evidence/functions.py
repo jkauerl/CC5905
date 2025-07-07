@@ -37,26 +37,16 @@ def meet_evidence_intervals(
     :param interval_2: The second interval to meet.
     :return: A new Interval that is the meet of the two intervals.
     """
-    print(f"Meeting intervals for variable '{sig_1.var}'")
-    print(f" Interval 1: [{sig_1.interval.lower_bound}, {sig_1.interval.upper_bound}]")
-    print(f" Interval 2: [{sig_2.interval.lower_bound}, {sig_2.interval.upper_bound}]")
 
     lower_bounds = meet(environment, sig_1.interval.lower_bound, sig_2.interval.lower_bound) # TODO Check if this join is correct 
     upper_bounds = meet(environment, sig_1.interval.upper_bound, sig_2.interval.upper_bound) 
-
-    print(f" Lower bounds meet result: {lower_bounds}")
-    print(f" Upper bounds meet result: {upper_bounds}")
 
     signatures = set()
     for lower in lower_bounds:
         for upper in upper_bounds:
             if is_subtype(environment, lower, upper):
                 interval = EvidenceInterval(lower, upper)
-                print(f"  Adding EvidenceSignature: var={sig_1.var}, interval=[{lower}, {upper}]")
                 signatures.add(EvidenceSignature(sig_1.var, interval))
-            else:
-                print(f"  Skipping interval [{lower}, {upper}] because {lower} !<: {upper}")
-
     return signatures
 
 
@@ -77,13 +67,6 @@ def meet_evidence_specifications(
     sigs_2 = {sig.var: sig for sig in spec_2.signatures}
 
     meets_by_var = {}
-
-    """ common_vars = sigs_1.keys() & sigs_2.keys()
-
-    for var in common_vars:
-        sig_1 = sigs_1[var]
-        sig_2 = sigs_2[var]
-        meets_by_var[var] = meet_evidence_intervals(environment, sig_1, sig_2) """
 
     all_vars = sigs_1.keys() | sigs_2.keys()  # union of variables
 
@@ -122,19 +105,12 @@ def meet_evidences(
         environment, evidence_1.specification_2, evidence_2.specification_2
     )
 
-    print("spec1 meets:", s1_meet_s3)
-    print("spec2 meets:", s2_meet_s4)
-
     evidences = set()
     for s_prime_1 in s1_meet_s3:
         for s_prime_2 in s2_meet_s4:
-            print("Checking subtype relation between:", s_prime_1, "and", s_prime_2)
             if is_subtype_evidence_spec(environment, s_prime_1, s_prime_2):
-                print("Subtype relation holds")
                 ev = Evidence(s_prime_1, s_prime_2)
                 evidences.add(ev)
-            else:
-                print("Subtype relation fails")
     return evidences
 
 
@@ -154,7 +130,6 @@ def meet_complete_evidences(
     for ev1 in complete_evidence_1.evidences:
         for ev2 in complete_evidence_2.evidences:
             new_evidences = meet_evidences(environment, ev1, ev2)
-            print(f"Meet evidences result size: {len(new_evidences)}")
             evidences.update(new_evidences)
 
     return CompleteEvidence(evidences)
@@ -202,7 +177,6 @@ def meet_precision_specification(
         result.add(EvidenceSpecification(set(combo)))
 
     return result
-
 
 
 """ Interior functions
