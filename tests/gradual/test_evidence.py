@@ -85,19 +85,15 @@ class TestEvidenceProgressive(unittest.TestCase):
             signatures={
                 Signature(var="x", type=Unknown()),
                 Signature(var="y", type=self.A),
-                # Signature(var="z", type=Unknown()), # Inherited
             }
         )
         self.spec_E = Specification(
             signatures={
                 Signature(var="x", type=self.E),
-                # Signature(var="z", type=Unknown()), # inherited
             }
         )
         self.spec_F = Specification(
             signatures={
-                # Signature(var="x", type=Unknown()), # inherited
-                # Signature(var="y", type=self.A), # inherited
                 Signature(var="z", type=self.D),
             }
         )
@@ -123,38 +119,38 @@ class TestEvidenceProgressive(unittest.TestCase):
         self.assertIn(self.spec_F, self.environment.sigma.values())
 
     def test_get_specifications_D(self):
-        correct_specs_D = Specification(
+        expected_specs_D = Specification(
             signatures={
                 Signature(var="x", type=Unknown()),
                 Signature(var="y", type=self.A),
                 Signature(var="z", type=Unknown()),
             }
         )
-        specs_D = get_specifications(self.environment, self.D)
-        self.assertEqual(specs_D, correct_specs_D)
+        result = get_specifications(self.environment, self.D)
+        self.assertEqual(expected_specs_D, result)
 
 
     def test_get_specifications_E(self):
-        correct_specs_E = Specification(
+        expected_specs_E = Specification(
             signatures={
                 Signature(var="x", type=self.E),
                 Signature(var="z", type=Unknown()),
             }
         )
-        specs_E = get_specifications(self.environment, self.E)
-        self.assertEqual(specs_E, correct_specs_E)
+        result = get_specifications(self.environment, self.E)
+        self.assertEqual(expected_specs_E, result)
 
 
     def test_get_specifications_F(self):
-        correct_specs_F = Specification(
+        expected_specs_F = Specification(
             signatures={
                 Signature(var="x", type=Unknown()),
                 Signature(var="y", type=self.A),
                 Signature(var="z", type=self.D), # TODO: Memoria has self.D
             }
         )
-        specs_F = get_specifications(self.environment, self.F)
-        self.assertEqual(specs_F, correct_specs_F)
+        result = get_specifications(self.environment, self.F)
+        self.assertEqual(expected_specs_F, result)
 
     def test_interior_b_a(self):
         expected = CompleteEvidence({
@@ -172,7 +168,7 @@ class TestEvidenceProgressive(unittest.TestCase):
             get_specifications(self.environment, self.A)
         )
         self.assertIsNotNone(result)
-        self.assertEqual(result, expected)
+        self.assertEqual(expected, result)
 
     def test_interior_c_a(self):
         expected = CompleteEvidence({
@@ -191,7 +187,7 @@ class TestEvidenceProgressive(unittest.TestCase):
             get_specifications(self.environment, self.A)
         )
         self.assertIsNotNone(result)
-        self.assertEqual(result, expected)
+        self.assertEqual(expected, result)
 
     def test_interior_d_b(self):
         expected = CompleteEvidence({
@@ -213,7 +209,7 @@ class TestEvidenceProgressive(unittest.TestCase):
             get_specifications(self.environment, self.B)
         )
         self.assertIsNotNone(result)
-        self.assertEqual(result, expected)
+        self.assertEqual(expected, result)
 
     def test_interior_d_c(self):
         expected = CompleteEvidence({
@@ -236,7 +232,7 @@ class TestEvidenceProgressive(unittest.TestCase):
             get_specifications(self.environment, self.C)
         )
         self.assertIsNotNone(result)
-        self.assertEqual(result, expected)
+        self.assertEqual(expected, result)
 
     def test_interior_e_b(self):
         expected = CompleteEvidence({
@@ -257,7 +253,7 @@ class TestEvidenceProgressive(unittest.TestCase):
             get_specifications(self.environment, self.B)
         )
         self.assertIsNotNone(result)
-        self.assertEqual(result, expected)
+        self.assertEqual(expected, result)
 
     def test_interior_e_c(self):
         expected = CompleteEvidence({
@@ -279,7 +275,7 @@ class TestEvidenceProgressive(unittest.TestCase):
             get_specifications(self.environment, self.C)
         )
         self.assertIsNotNone(result)
-        self.assertEqual(result, expected)
+        self.assertEqual(expected, result)
 
     def test_interior_f_d(self):
         expected = CompleteEvidence({
@@ -303,7 +299,7 @@ class TestEvidenceProgressive(unittest.TestCase):
             get_specifications(self.environment, self.D)
         )
         self.assertIsNotNone(result)
-        self.assertEqual(result, expected)
+        self.assertEqual(expected, result)
 
     def test_interior_f_e(self):
         expected = CompleteEvidence({
@@ -326,7 +322,7 @@ class TestEvidenceProgressive(unittest.TestCase):
             get_specifications(self.environment, self.E)
         )
         self.assertIsNotNone(result)
-        self.assertEqual(result, expected)
+        self.assertEqual(expected, result)
 
     def test_meet_evidences_d_c_and_d_b(self):
         complete_d_c = interior_class_specification(
@@ -367,7 +363,7 @@ class TestEvidenceProgressive(unittest.TestCase):
             ),
         })
 
-        self.assertEqual(result, expected_d_c_and_d_b)
+        self.assertEqual(expected_d_c_and_d_b, result)
 
     def test_meet_evidences_e_c_and_e_b(self):
         complete_e_c = interior_class_specification(
@@ -396,7 +392,7 @@ class TestEvidenceProgressive(unittest.TestCase):
             ),
         })
 
-        self.assertEqual(result, expected_e_c_and_e_b)
+        self.assertEqual(expected_e_c_and_e_b, result)
 
     def test_meet_evidences_f_e_and_f_d(self):
         complete_f_e = interior_class_specification(
@@ -427,7 +423,7 @@ class TestEvidenceProgressive(unittest.TestCase):
             )
         })
 
-        self.assertEqual(result, expected_f_e_and_f_d)
+        self.assertEqual(expected_f_e_and_f_d, result)
 
     def test_transitivity_id_b_ib_a(self):
         id_b = interior_class_specification(
@@ -460,7 +456,7 @@ class TestEvidenceProgressive(unittest.TestCase):
         print("\nResult:\n", result)
         print("Expected:\n", expected)
 
-        self.assertEqual(result, expected)
+        self.assertEqual(expected, result)
 
     def test_transitivity_ie_b_ib_a(self):
         id_b = interior_class_specification(
@@ -489,7 +485,7 @@ class TestEvidenceProgressive(unittest.TestCase):
         print("\nResult:\n", result)
         print("Expected:\n", expected)
 
-        self.assertEqual(result, expected)
+        self.assertEqual(expected, result)
 
     def test_transitivity_if_d_id_b(self):
         if_d = interior_class_specification(
@@ -521,7 +517,7 @@ class TestEvidenceProgressive(unittest.TestCase):
         print("\nResult:\n", result)
         print("Expected:\n", expected)
 
-        self.assertEqual(result, expected)
+        self.assertEqual(expected, result)
 
     def test_transitivity_if_d_id_b_ib_a(self):
         if_d = interior_class_specification(
@@ -557,7 +553,7 @@ class TestEvidenceProgressive(unittest.TestCase):
         print("\nResult:\n", result)
         print("Expected:\n", expected)
 
-        self.assertEqual(result, expected)
+        self.assertEqual(expected, result)
 
 
 if __name__ == "__main__":
