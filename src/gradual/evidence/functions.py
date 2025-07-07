@@ -178,7 +178,6 @@ def meet_precision_specification(
 
     return result
 
-
 """ Interior functions
 """
 
@@ -243,19 +242,43 @@ def interior_gradual_specification(
              specifications.
     """
     pairs = set()
-    for signature_1 in spec_1.signatures:
-        for signature_2 in spec_2.signatures:
-            if signature_1.var == signature_2.var:
-                intervals = interior_intervals(
-                    environment, signature_1.interval, signature_2.interval
-                )
-                for interval_pair in intervals:
-                    sig1 = EvidenceSignature(signature_1.var, interval_pair[0])
-                    sig2 = EvidenceSignature(signature_2.var, interval_pair[1])
-                    pairs.add((
-                        EvidenceSpecification([sig1]),
-                        EvidenceSpecification([sig2])
-                    ))
+
+    sigs1_by_var = {sig.var: sig for sig in spec_1.signatures}
+    sigs2_by_var = {sig.var: sig for sig in spec_2.signatures}
+
+    if not spec_2.signatures:
+        return {(spec_1, EvidenceSpecification(set()))}
+
+    common_vars = sigs1_by_var.keys() & sigs2_by_var.keys()
+
+    interval_pairs_by_var = {}
+
+    for var in common_vars:
+        intv1 = sigs1_by_var[var].interval
+        intv2 = sigs2_by_var[var].interval
+        interval_pairs = interior_intervals(environment, intv1, intv2)
+
+        if not interval_pairs:
+            return set()
+
+        interval_pairs_by_var[var] = interval_pairs
+
+    from itertools import product
+
+    for combo in product(*interval_pairs_by_var.values()):
+        sigs1 = set()
+        sigs2 = set()
+
+        for (var, (i1, i2)) in zip(interval_pairs_by_var.keys(), combo):
+            sigs1.add(EvidenceSignature(var, i1))
+            sigs2.add(EvidenceSignature(var, i2))
+
+        unmatched_vars = sigs1_by_var.keys() - common_vars
+        for var in unmatched_vars:
+            sigs1.add(sigs1_by_var[var])
+
+        pairs.add((EvidenceSpecification(sigs1), EvidenceSpecification(sigs2)))
+
     return pairs
 
 
@@ -387,13 +410,11 @@ def transitivity_interval(
 
     middle_intervals = meet_precision_interval(environment, par_interval_1.interval, par_interval_2.interval)
 
-    print(f"Middle intervals between {par_interval_1.interval} and {par_interval_2.interval}: {middle_intervals}")
-
     for im in middle_intervals:
         left_pairs = interior_intervals(environment, par_interval_1.interval, im)
         right_pairs = interior_intervals(environment, im, par_interval_2.interval)
 
-        for (left_low, left_high) in left_pairs:
+        for (left_low, _) in left_pairs:
             for (right_low, right_high) in right_pairs:
                 combined_interval = EvidenceInterval(left_low.lower_bound, right_high.upper_bound)
                 result.add(EvidenceSignature(par_interval_1.var, combined_interval))
@@ -414,21 +435,17 @@ def transitivity_specifications(
     :return: Set of Evidence representing the transitivity.
     """
     result = set()
-    
+
     middle_specs = meet_precision_specification(environment, par_spec_1.specification_2, par_spec_2.specification_1)
 
-    print(f"\nMiddle specifications between {par_spec_1.specification_2} and {par_spec_2.specification_1}: {middle_specs}")
-    
     for sm in middle_specs:
         left_interior_pairs = interior_gradual_specification(environment, par_spec_1.specification_1, sm)
         right_interior_pairs = interior_gradual_specification(environment, sm, par_spec_2.specification_2)
-        
+
         for (left_spec, _) in left_interior_pairs:
             for (_, right_spec) in right_interior_pairs:
-                result.add(Evidence(left_spec, right_spec))
-
-    print(f"Transitivity result size: {len(result)}")
-
+                combined = Evidence(left_spec, right_spec)
+                result.add(combined)
     return result
 
 
