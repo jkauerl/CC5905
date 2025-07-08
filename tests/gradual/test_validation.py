@@ -33,7 +33,7 @@ class TestValidations(unittest.TestCase):
 
     def test_minimal_specification_true(self):
         spec = self.simple_psi.sigma["A"]
-        self.assertTrue(minimal_specification(ClassName("A"), spec, self.simple_psi))
+        self.assertTrue(minimal_specification(self.simple_psi, ClassName("A"), spec))
 
     def test_minimal_specification_false_due_to_missing_parent_method(self):
         class_a = ClassName("A")
@@ -46,18 +46,18 @@ class TestValidations(unittest.TestCase):
             sigma={"A": Specification([]), "B": Specification([parent_sig])},
         )
         spec = Specification([])
-        self.assertFalse(minimal_specification(class_a, spec, environment))
+        self.assertFalse(minimal_specification(environment, class_a, spec))
 
     def test_includes_node_true(self):
         spec = self.simple_psi.sigma["A"]
-        self.assertTrue(includes_node(ClassName("A"), spec, self.simple_psi))
+        self.assertTrue(includes_node(self.simple_psi, ClassName("A"), spec))
 
     def test_includes_node_false_missing_signature(self):
         cls = ClassName("A")
         sig = Signature("foo", ClassName("Int"))
         environment = Environment(Ns=[cls], Es=[], sigma={"A": Specification([sig])})
         spec = Specification([])
-        self.assertFalse(includes_node(cls, spec, environment))
+        self.assertFalse(includes_node(environment, cls, spec))
 
     def test_includes_node_false_wrong_type(self):
         cls = ClassName("A")
@@ -67,7 +67,7 @@ class TestValidations(unittest.TestCase):
         )
         wrong_sig = Signature("foo", ClassName("Bool"))
         spec = Specification([wrong_sig])
-        self.assertFalse(includes_node(cls, spec, environment))
+        self.assertFalse(includes_node(environment, cls, spec))
 
     def test_exists_all_signatures_true(self):
         spec = self.simple_psi.sigma["A"]

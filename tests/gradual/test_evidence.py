@@ -22,6 +22,7 @@ from src.gradual.functions import (
     get_specifications,
 )
 from src.gradual.types import Unknown
+from src.gradual.validations import is_valid_graph
 from src.static.types import BottomType, ClassName, TopType
 
 
@@ -104,6 +105,9 @@ class TestEvidenceProgressive(unittest.TestCase):
                 "F": self.spec_F,
             },
         )
+
+    def test_is_valid_graph(self):
+        self.assertTrue(is_valid_graph(self.environment))
 
     def test_declared_specification(self):
         self.assertIn(self.spec_B, self.environment.sigma.values())

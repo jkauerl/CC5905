@@ -156,13 +156,13 @@ class TestFunctions(unittest.TestCase):
         self.assertFalse(is_subtype(self.environment, ft1, ft2))
 
     def test_is_subtype_spec(self):
-        self.assertTrue(is_subtype_spec(self.spec_B, self.spec_A, self.environment))
-        self.assertFalse(is_subtype_spec(self.spec_A, self.spec_B, self.environment))
+        self.assertTrue(is_subtype_spec(self.environment, self.spec_B, self.spec_A))
+        self.assertFalse(is_subtype_spec(self.environment,self.spec_A, self.spec_B))
 
     def test_is_not_subtype_spec(self):
         spec1 = Specification(signatures=[Signature(var="x", type=self.B)])
         spec2 = Specification(signatures=[Signature(var="x", type=self.C)])
-        self.assertFalse(is_subtype_spec(spec1, spec2, self.environment))
+        self.assertFalse(is_subtype_spec(self.environment,spec1, spec2))
 
     def test_get_all_parent_specifications(self):
         parent_specs = get_all_parent_specifications(self.environment, self.D)
