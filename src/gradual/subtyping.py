@@ -72,4 +72,4 @@ def is_subtype_spec(
     :param environment: The Environment object representing the type system.
     :return: True if s is a subtype of sp, False otherwise.
     """
-    return _is_subtype_spec_core(s, sp, environment, is_subtype)
+    return _is_subtype_spec_core(s, sp, environment, is_gradual_subtype)
