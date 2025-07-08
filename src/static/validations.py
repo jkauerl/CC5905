@@ -39,7 +39,6 @@ def is_valid_type(environment: Environment, type: Type) -> bool:
 
 def is_valid_signature(environment: Environment, specification: Specification) -> bool:
     """Check if the given signature is valid in the Environment object.
-    This is a list of signatures.
 
     :param environment: The Environment object representing the type system.
     :param signature: The signature to check.

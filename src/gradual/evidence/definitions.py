@@ -4,6 +4,8 @@ from src.gradual.types import GradualType
 
 
 class EvidenceInterval:
+    """Represents an interval in the type system with lower and upper bounds"""
+
     def __init__(self, lower_bound: GradualType, upper_bound: GradualType):
         self.lower_bound = lower_bound
         self.upper_bound = upper_bound

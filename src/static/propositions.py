@@ -51,7 +51,13 @@ def minimal_specification(
 def includes_node(
     class_name: ClassName, s: Specification, environment: Environment
 ) -> bool:
-    """Check if all signatures of class_name in environment.sigma are included in s."""
+    """Check if all signatures of class_name in environment.sigma are included in s.
+    
+    :param environment: The Environment object representing the type system.
+    :param class_name: The class name to check.
+    :param s: The specification to check.
+    :return: True if all signatures are included, False otherwise.
+    """
     if class_name.name not in environment.sigma:
         return False
 
@@ -70,8 +76,7 @@ def includes_node(
 def exists_all_signatures(
     environment: Environment, class_name: ClassName, s: Specification
 ) -> bool:
-    """
-    Check if the specification s includes exactly the signatures that are
+    """Check if the specification s includes exactly the signatures that are
     either declared by the class N or inherited from its parents, with no extra methods.
 
     :param environment: The Environment object representing the type system.
@@ -150,7 +155,6 @@ def acyclic(environment: Environment) -> bool:
     """Check if the given Environment object is acyclic.
 
     :param environment: The Environment object representing the type system.
-
     :return: True if the object is acyclic, False otherwise.
     """
     visited = set()

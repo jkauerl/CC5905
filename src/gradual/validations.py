@@ -95,8 +95,7 @@ def is_valid_edge(
 
     :param environment: The Environment object representing the type system.
     :param class_name_1: The first class name to check.
-    :param class_name_2: The
-    second class name to check.
+    :param class_name_2: The second class name to check.
     :return: True if the edge is valid, False otherwise.
     """
     return any(
