@@ -14,10 +14,10 @@ from .types import ClassName, Type
 
 
 def _minimal_specification_core(
+    environment: Environment,
     class_name: ClassName,
     s: Specification,
-    environment: Environment,
-    is_subtype: Callable[[Environment, Type, Type], bool],
+    is_subtype_spec_fun: Callable[[Environment, Specification, Specification], bool],
 ) -> bool:
     """Core function to check if the given specification is minimal for the given
     class name.
@@ -29,13 +29,13 @@ def _minimal_specification_core(
     """
     parent_specs = get_all_parent_specifications(environment, class_name)
     for sp in parent_specs:
-        if not is_subtype(s, sp, environment):
+        if not is_subtype_spec_fun(environment, s, sp):
             return False
     return True
 
 
 def minimal_specification(
-    class_name: ClassName, s: Specification, environment: Environment
+    environment: Environment, class_name: ClassName, s: Specification
 ) -> bool:
     """Wrapper function to check if the given specification is minimal for the given
     class name.
@@ -45,11 +45,11 @@ def minimal_specification(
     :param s: The specification to check.
     :return: True if the specification is minimal, False otherwise.
     """
-    return _minimal_specification_core(class_name, s, environment, is_subtype_spec)
+    return _minimal_specification_core(environment, class_name, s, is_subtype_spec)
 
 
 def includes_node(
-    class_name: ClassName, s: Specification, environment: Environment
+    environment: Environment, class_name: ClassName, s: Specification, 
 ) -> bool:
     """Check if all signatures of class_name in environment.sigma are included in s.
     

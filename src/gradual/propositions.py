@@ -22,7 +22,7 @@ __all__ = [
 
 
 def minimal_specification(
-    class_name: ClassName, s: Specification, environment: Environment
+    environment: Environment, class_name: ClassName, s: Specification
 ) -> bool:
     """Wrapper function to check if the given specification is minimal for the given
     class name.
@@ -32,4 +32,4 @@ def minimal_specification(
     :param s: The specification to check.
     :return: True if the specification is minimal, False otherwise.
     """
-    return _minimal_specification_core(class_name, s, environment, is_subtype_spec)
+    return _minimal_specification_core(environment, class_name, s, is_subtype_spec)
