@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Any
 
 from .definitions import (
     Environment,
@@ -75,10 +75,10 @@ def is_subtype(environment: Environment, t1: Type, t2: Type, visited=None) -> bo
 
 
 def _is_subtype_spec_core(
+    environment: Environment,
     s: Specification,
     sp: Specification,
-    environment: Environment,
-    is_subtype: Callable[[Environment, Type, Type], bool],
+    is_subtype_fun: Callable[[Environment, Any, Any], bool],
 ) -> bool:
     """Core function to check if specification s is a subtype of specification sp.
 
@@ -91,13 +91,14 @@ def _is_subtype_spec_core(
     for sig_p in sp.signatures:
         if sig_p.var not in s_dict:
             return False
-        if not is_subtype(environment, s_dict[sig_p.var], sig_p.type):
+        s_type = s_dict[sig_p.var]
+        if not is_subtype_fun(environment, s_type, sig_p.type):
             return False
     return True
 
 
 def is_subtype_spec(
-    s: Specification, sp: Specification, environment: Environment
+    environment: Environment, s: Specification, sp: Specification
 ) -> bool:
     """Wrapper function to check if specification s is a subtype of specification sp.
 
@@ -106,4 +107,4 @@ def is_subtype_spec(
     :param environment: The Environment object representing the type system.
     :return: True if s is a subtype of sp, False otherwise.
     """
-    return _is_subtype_spec_core(s, sp, environment, is_subtype)
+    return _is_subtype_spec_core(environment, s, sp, is_subtype)

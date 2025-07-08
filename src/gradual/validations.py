@@ -11,6 +11,21 @@ from .propositions import (
     no_overloading,
 )
 from .types import GradualFunctionType, GradualType, Unknown
+from .functions import get_specifications
+from src.static.validations import (
+    _is_valid_node_core,
+    _is_valid_fun_core,
+    _is_valid_graph_core,
+    is_valid_edge,
+    is_valid_fun,
+    is_valid_graph,
+)
+
+__all__ = [
+    "is_valid_edge",
+    "is_valid_fun",
+    "is_valid_graph",
+]
 
 """ Validation of types
 """
@@ -79,43 +94,30 @@ def is_valid_node(environment: Environment, node: ClassName) -> bool:
     param edge: The edge to check.
     return: True if the edge is valid, False otherwise.
     """
-    spec = environment.sigma.get(node.name, [])
-    return (
-        minimal_specification(node, spec, environment)
-        and includes_node(node, spec, environment)
-        and exists_all_signatures(environment, node, spec)
-        and no_overloading(spec)
+    return _is_valid_node_core(
+        environment,
+        node,
+        get_specifications(environment, node),
+        minimal_specification,
+        includes_node,
+        exists_all_signatures,
+        no_overloading,
     )
 
 
-def is_valid_edge(
-    environment: Environment, class_name_1: ClassName, class_name_2: ClassName
+def is_valid_fun(
+    environment: Environment
 ) -> bool:
-    """Check if the given edge is valid in the Environment object.
-
-    :param environment: The Environment object representing the type system.
-    :param class_name_1: The first class name to check.
-    :param class_name_2: The second class name to check.
-    :return: True if the edge is valid, False otherwise.
-    """
-    return any(
-        edge.source == class_name_1 and edge.target == class_name_2
-        for edge in environment.Es
-    )
-
-
-def is_valid_fun(environment: Environment) -> bool:
     """Check if the given function is valid in the Environment object.
 
     :param environment: The Environment object representing the type system.
-    :param sigma: The function to check.
+    :param function: The function to check.
     :return: True if the function is valid, False otherwise.
     """
-    for class_name in environment.Ns:
-        if class_name.name in environment.sigma:
-            if not is_valid_signature(environment, environment.sigma[class_name.name]):
-                return False
-    return True
+    return _is_valid_fun_core(
+        environment,
+        is_valid_signature,
+    )
 
 
 def is_valid_graph(environment: Environment) -> bool:
@@ -124,16 +126,8 @@ def is_valid_graph(environment: Environment) -> bool:
     :param environment: The Environment object representing the type system.
     :return: True if the graph is valid, False otherwise.
     """
-    if not is_valid_fun(environment):
-        return False
-    for class_name in environment.Ns:
-        if class_name.name not in environment.sigma:
-            return False
-        if not is_valid_node(environment, class_name):
-            return False
-    for edge in environment.Es:
-        if not is_valid_edge(environment, edge.source, edge.target):
-            return False
-    if not acyclic(environment):
-        return False
-    return True
+    return _is_valid_graph_core(
+        environment,
+        is_valid_node,
+        is_valid_fun,
+    )
