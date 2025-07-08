@@ -2,6 +2,7 @@ from .definitions import (
     Environment,
     Specification,
 )
+from .functions import get_specifications
 from .propositions import (
     acyclic,
     exists_all_signatures,
@@ -10,7 +11,6 @@ from .propositions import (
     no_overloading,
 )
 from .types import BottomType, ClassName, FunctionType, TopType, Type
-from .functions import get_specifications
 
 """ Validation of types
 """
@@ -62,6 +62,7 @@ def is_valid_function(environment: Environment, function: FunctionType) -> bool:
 
 """ Validation of the graph
 """
+
 
 def _is_valid_node_core(
     environment: Environment,

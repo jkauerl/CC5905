@@ -7,7 +7,7 @@ from .definitions import (
 )
 from .functions import get_all_parent_specifications, names
 from .subtyping import is_subtype_spec
-from .types import ClassName, Type
+from .types import ClassName
 
 """ Node validation propositions
 """
@@ -49,10 +49,12 @@ def minimal_specification(
 
 
 def includes_node(
-    environment: Environment, class_name: ClassName, s: Specification, 
+    environment: Environment,
+    class_name: ClassName,
+    s: Specification,
 ) -> bool:
     """Check if all signatures of class_name in environment.sigma are included in s.
-    
+
     :param environment: The Environment object representing the type system.
     :param class_name: The class name to check.
     :param s: The specification to check.

@@ -8,7 +8,6 @@ from src.static.definitions import (
 )
 from src.static.types import ClassName, FunctionType
 from src.static.validations import (
-    acyclic,
     exists_all_signatures,
     includes_node,
     is_valid_edge,
@@ -21,6 +20,7 @@ from src.static.validations import (
     minimal_specification,
     no_overloading,
 )
+from src.static.propositions import acyclic
 
 
 class TestValidations(unittest.TestCase):

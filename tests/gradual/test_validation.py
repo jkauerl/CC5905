@@ -8,7 +8,6 @@ from src.gradual.definitions import (
 )
 from src.gradual.types import GradualFunctionType
 from src.gradual.validations import (
-    acyclic,
     exists_all_signatures,
     includes_node,
     is_valid_edge,
@@ -22,6 +21,7 @@ from src.gradual.validations import (
     no_overloading,
 )
 from src.static.types import ClassName
+from src.static.propositions import acyclic
 
 
 class TestValidations(unittest.TestCase):

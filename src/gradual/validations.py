@@ -1,30 +1,26 @@
+from src.static.validations import (
+    _is_valid_fun_core,
+    _is_valid_graph_core,
+    _is_valid_node_core,
+    is_valid_edge,
+)
+
 from ..static.types import BottomType, ClassName, TopType
 from .definitions import (
     Environment,
     Specification,
 )
+from .functions import get_specifications
 from .propositions import (
-    acyclic,
     exists_all_signatures,
     includes_node,
     minimal_specification,
     no_overloading,
 )
 from .types import GradualFunctionType, GradualType, Unknown
-from .functions import get_specifications
-from src.static.validations import (
-    _is_valid_node_core,
-    _is_valid_fun_core,
-    _is_valid_graph_core,
-    is_valid_edge,
-    is_valid_fun,
-    is_valid_graph,
-)
 
 __all__ = [
     "is_valid_edge",
-    "is_valid_fun",
-    "is_valid_graph",
 ]
 
 """ Validation of types
@@ -105,9 +101,7 @@ def is_valid_node(environment: Environment, node: ClassName) -> bool:
     )
 
 
-def is_valid_fun(
-    environment: Environment
-) -> bool:
+def is_valid_fun(environment: Environment) -> bool:
     """Check if the given function is valid in the Environment object.
 
     :param environment: The Environment object representing the type system.
