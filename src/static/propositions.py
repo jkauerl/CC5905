@@ -17,7 +17,9 @@ def _minimal_specification_core(
     environment: Environment,
     class_name: ClassName,
     s: Specification,
-    is_subtype_spec_function: Callable[[Environment, Specification, Specification], bool],
+    is_subtype_spec_function: Callable[
+        [Environment, Specification, Specification], bool
+    ],
 ) -> bool:
     """Core function to check if the given specification is minimal for the given
     class name.

@@ -62,7 +62,7 @@ def is_gradual_subtype(
 
 
 def is_subtype_spec(
-    environment: Environment,s: Specification, sp: Specification
+    environment: Environment, s: Specification, sp: Specification
 ) -> bool:
     """Wrapper function to check if a specification s is a subtype of another
     specification sp.

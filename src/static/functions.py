@@ -1,4 +1,4 @@
-from typing import Callable, Optional, Set, Any
+from typing import Any, Callable, Optional, Set
 
 from .definitions import Environment, Signature, Specification
 from .subtyping import is_direct_subtype, is_subtype

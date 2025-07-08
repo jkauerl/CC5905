@@ -102,7 +102,8 @@ def is_valid_node(environment: Environment, node: ClassName) -> bool:
 
 
 def is_valid_fun(environment: Environment) -> bool:
-    """Wrapper function to check if the given function is valid in the Environment object.
+    """Wrapper function to check if the given function is valid in the Environment
+        object.
 
     :param environment: The Environment object representing the type system.
     :return: True if the function is valid, False otherwise.

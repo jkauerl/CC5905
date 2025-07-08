@@ -64,7 +64,8 @@ def meet_evidence_specifications(
     :param environment: The Environment object representing the type system.
     :param spec_1: The first specification to meet.
     :param spec_2: The second specification to meet.
-    :return: A set of EvidenceSpecifications that are the meet of the two specifications.
+    :return: A set of EvidenceSpecifications that are the meet of the two
+        specifications.
     """
     result = set()
     sigs_1 = {sig.var: sig for sig in spec_1.signatures}
@@ -257,8 +258,8 @@ def interior_gradual_specification(
     :param environment: The Environment object representing the type system.
     :param spec_1: The first specification to compute the interior of.
     :param spec_2: The second specification to compute the interior of.
-    :return: A set of pairs of EvidenceSpecifications that represent the interior of the two
-        specifications.
+    :return: A set of pairs of EvidenceSpecifications that represent the interior of the
+        two specifications.
     """
     pairs = set()
 

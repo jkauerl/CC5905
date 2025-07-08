@@ -1,4 +1,5 @@
 from typing import Callable
+
 from .definitions import (
     Environment,
     Specification,
@@ -69,9 +70,13 @@ def _is_valid_node_core(
     environment: Environment,
     node: ClassName,
     spec: Specification,
-    minimal_specification_function: Callable[[Environment, ClassName, Specification], bool],
+    minimal_specification_function: Callable[
+        [Environment, ClassName, Specification], bool
+    ],
     includes_node_function: Callable[[Environment, ClassName, Specification], bool],
-    exists_all_signatures_function: Callable[[Environment, ClassName, Specification], bool],
+    exists_all_signatures_function: Callable[
+        [Environment, ClassName, Specification], bool
+    ],
     no_overloading_function: Callable[[Specification], bool],
 ) -> bool:
     """Core function to check if the given node is valid in the Environment object.
