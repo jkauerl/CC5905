@@ -6,6 +6,7 @@ from src.static.definitions import (
     Signature,
     Specification,
 )
+from src.static.propositions import acyclic
 from src.static.types import ClassName, FunctionType
 from src.static.validations import (
     exists_all_signatures,
@@ -20,7 +21,6 @@ from src.static.validations import (
     minimal_specification,
     no_overloading,
 )
-from src.static.propositions import acyclic
 
 
 class TestValidations(unittest.TestCase):

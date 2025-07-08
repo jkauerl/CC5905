@@ -20,8 +20,8 @@ from src.gradual.validations import (
     minimal_specification,
     no_overloading,
 )
-from src.static.types import ClassName
 from src.static.propositions import acyclic
+from src.static.types import ClassName
 
 
 class TestValidations(unittest.TestCase):
