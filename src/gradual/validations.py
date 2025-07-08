@@ -56,7 +56,7 @@ def is_valid_signature(environment: Environment, specification: Specification) -
     This is a list of signatures.
 
     :param environment: The Environment object representing the type system.
-    :param signature: The signature to check.
+    :param specification: The specification to check.
     :return: True if the signature is valid, False otherwise.
     """
     return all(
@@ -87,8 +87,8 @@ def is_valid_node(environment: Environment, node: ClassName) -> bool:
     """Wrapper function to check if the given node is valid in the Environment object.
 
     param environment: The Environment object representing the type system.
-    param edge: The edge to check.
-    return: True if the edge is valid, False otherwise.
+    param node: The node to check.
+    return: True if the node is valid, False otherwise.
     """
     return _is_valid_node_core(
         environment,
@@ -102,10 +102,9 @@ def is_valid_node(environment: Environment, node: ClassName) -> bool:
 
 
 def is_valid_fun(environment: Environment) -> bool:
-    """Check if the given function is valid in the Environment object.
+    """Wrapper function to check if the given function is valid in the Environment object.
 
     :param environment: The Environment object representing the type system.
-    :param function: The function to check.
     :return: True if the function is valid, False otherwise.
     """
     return _is_valid_fun_core(
@@ -115,7 +114,7 @@ def is_valid_fun(environment: Environment) -> bool:
 
 
 def is_valid_graph(environment: Environment) -> bool:
-    """Check if the given graph is valid in the Environment object.
+    """Wrapper function to check if the given graph is valid in the Environment object.
 
     :param environment: The Environment object representing the type system.
     :return: True if the graph is valid, False otherwise.

@@ -33,9 +33,9 @@ def meet_evidence_intervals(
     """Compute the meet of two intervals in the type system.
 
     :param environment: The Environment object representing the type system.
-    :param interval_1: The first interval to meet.
-    :param interval_2: The second interval to meet.
-    :return: A new Interval that is the meet of the two intervals.
+    :param sig_1: The first signature to meet.
+    :param sig_2: The second signature to meet.
+    :return: A set of EvidenceSignatures that are the meet of the two signatures.
     """
 
     lower_bounds = meet(
@@ -64,7 +64,7 @@ def meet_evidence_specifications(
     :param environment: The Environment object representing the type system.
     :param spec_1: The first specification to meet.
     :param spec_2: The second specification to meet.
-    :return: A new Specification that is the meet of the two specifications.
+    :return: A set of EvidenceSpecifications that are the meet of the two specifications.
     """
     result = set()
     sigs_1 = {sig.var: sig for sig in spec_1.signatures}
@@ -100,7 +100,7 @@ def meet_evidences(
     :param environment: The Environment object representing the type system.
     :param evidence_1: The first evidence to meet.
     :param evidence_2: The second evidence to meet.
-    :return: A new Evidence that is the meet of the two evidences.
+    :return: A set of Evidence that are the meet of the two evidences.
     """
     s1_meet_s3 = meet_evidence_specifications(
         environment, evidence_1.specification_1, evidence_2.specification_1
@@ -175,7 +175,8 @@ def meet_precision_specification(
     :param environment: The Environment object representing the type system.
     :param spec1: The first specification to meet.
     :param spec2: The second specification to meet.
-    :return: A new Specification that is the precision meet of the two specifications.
+    :return: A set of EvidenceSpecifications that are the precision meet of the two
+        specifications.
     """
     result = set()
     sigs1 = {sig.var: sig for sig in spec1.signatures}
@@ -231,7 +232,7 @@ def interior_intervals(
     :param environment: The Environment object representing the type system.
     :param interval_1: The first interval to compute the interior of.
     :param interval_2: The second interval to compute the interior of.
-    :return: A list of intervals that are the interior of the two intervals.
+    :return: A set of pairs of EvidenceIntervals that are the interior of the two
     """
     lowers = meet(environment, interval_1.upper_bound, interval_2.upper_bound)
     uppers = join(environment, interval_1.lower_bound, interval_2.lower_bound)
@@ -256,8 +257,8 @@ def interior_gradual_specification(
     :param environment: The Environment object representing the type system.
     :param spec_1: The first specification to compute the interior of.
     :param spec_2: The second specification to compute the interior of.
-    :return: A list of pairs of specifications that are the interior of the two
-             specifications.
+    :return: A set of pairs of EvidenceSpecifications that represent the interior of the two
+        specifications.
     """
     pairs = set()
 
@@ -308,8 +309,8 @@ def interior_types(
     :param environment: The Environment object representing the type system.
     :param ti: The first gradual type.
     :param tj: The second gradual type.
-    :return: A pair of evidence intervals representing the interior, or None if
-        undefined.
+    :return: A pair of EvidenceIntervals that represent the interior of the two types,
+        or None if the types are not compatible.
     """
     match ti, tj:
         case GradualFunctionType(f1i, g2), GradualFunctionType(g3i, g4):
@@ -367,8 +368,8 @@ def interior_class_specification(
     :param environment: The Environment object representing the type system.
     :param spec_1: The first specification to compute the interior of.
     :param spec_2: The second specification to compute the interior of.
-    :return: A pair of EvidenceSpecifications that represent the interior of the two
-        specifications.
+    :return: A CompleteEvidence that represents the interior of the two specifications,
+             or None if the specifications are not compatible.
     """
     left_spec = set()
     right_spec = set()

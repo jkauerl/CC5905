@@ -1,4 +1,4 @@
-from typing import Callable, Optional, Set
+from typing import Callable, Optional, Set, Any
 
 from .definitions import Environment, Signature, Specification
 from .subtyping import is_direct_subtype, is_subtype
@@ -106,9 +106,6 @@ def meet_unique(environment: Environment, ti: Type, tj: Type) -> Optional[Type]:
 def join(environment: Environment, ti: Type, tj: Type) -> set[Type]:
     """Return the join (least upper bound) of two class names in the type system.
 
-    The join is the set of minimal elements in the intersection of the higher sets
-    of `ti` and `tj`.
-
     :param environment: The Environment object representing the type system.
     :param ti: The first class name.
     :param tj: The second class name.
@@ -168,7 +165,6 @@ def names(s: Specification) -> set[str]:
 def proj_many(var: str, ss: list[Specification]) -> list[Type]:
     """Project the list of specifications ss onto the class name t.
 
-    :param environment: The Environment object representing the type system.
     :param t: The class name to project onto.
     :param ss: The list of specifications to project.
     :return: A list of projected types.
@@ -211,14 +207,14 @@ def _inherited_core(
     environment: Environment,
     class_name: ClassName,
     proj_many_function: Callable[[str, Specification], Optional[Type]],
-    meet_unique_function: Callable[[Environment, Type, Type], Optional[Type]],
+    meet_unique_function: Callable[[Environment, Any, Any], Optional[Type]],
 ) -> Set[Signature]:
     """Core function to get the inherited variable names and their types.
 
-    Only includes variables inherited but not declared in the class.
-
     :param environment: The Environment object representing the type system.
     :param class_name: The class name to check.
+    :param proj_many_function: Function to project variable names from specifications.
+    :param meet_unique_function: Function to find the unique meet of two types.
     :return: A dictionary mapping variable names to their inferred types.
     """
     undeclared_names = undeclared(environment, class_name)
@@ -272,6 +268,7 @@ def _get_specifications_core(
 
     :param environment: The Environment object representing the type system.
     :param class_name: The class name to get the specification for.
+    :param inherited_function: Function to get inherited variables for the class name.
     :return: The combined Specification of the class name.
     """
     explicit_spec = environment.sigma.get(class_name.name)

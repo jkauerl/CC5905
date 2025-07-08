@@ -62,7 +62,7 @@ def is_gradual_subtype(
 
 
 def is_subtype_spec(
-    s: Specification, sp: Specification, environment: Environment
+    environment: Environment,s: Specification, sp: Specification
 ) -> bool:
     """Wrapper function to check if a specification s is a subtype of another
     specification sp.
@@ -72,4 +72,4 @@ def is_subtype_spec(
     :param environment: The Environment object representing the type system.
     :return: True if s is a subtype of sp, False otherwise.
     """
-    return _is_subtype_spec_core(s, sp, environment, is_gradual_subtype)
+    return _is_subtype_spec_core(environment, s, sp, is_gradual_subtype)

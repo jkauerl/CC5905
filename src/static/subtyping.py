@@ -78,13 +78,13 @@ def _is_subtype_spec_core(
     environment: Environment,
     s: Specification,
     sp: Specification,
-    is_subtype_fun: Callable[[Environment, Any, Any], bool],
+    is_subtype_function: Callable[[Environment, Any, Any], bool],
 ) -> bool:
     """Core function to check if specification s is a subtype of specification sp.
 
+    :param environment: The Environment object representing the type system.
     :param s: The first specification to check.
     :param sp: The second specification to check.
-    :param environment: The Environment object representing the type system.
     :return: True if s is a subtype of sp, False otherwise.
     """
     s_dict = {sig.var: sig.type for sig in s.signatures}
@@ -92,7 +92,7 @@ def _is_subtype_spec_core(
         if sig_p.var not in s_dict:
             return False
         s_type = s_dict[sig_p.var]
-        if not is_subtype_fun(environment, s_type, sig_p.type):
+        if not is_subtype_function(environment, s_type, sig_p.type):
             return False
     return True
 
@@ -102,9 +102,9 @@ def is_subtype_spec(
 ) -> bool:
     """Wrapper function to check if specification s is a subtype of specification sp.
 
+    :param environment: The Environment object representing the type system.
     :param s: The first specification to check.
     :param sp: The second specification to check.
-    :param environment: The Environment object representing the type system.
     :return: True if s is a subtype of sp, False otherwise.
     """
     return _is_subtype_spec_core(environment, s, sp, is_subtype)
