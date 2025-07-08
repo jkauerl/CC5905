@@ -84,7 +84,7 @@ def is_valid_function(environment: Environment, function: GradualFunctionType) -
 
 
 def is_valid_node(environment: Environment, node: ClassName) -> bool:
-    """Check if the given node is valid in the Environment object.
+    """Wrapper function to check if the given node is valid in the Environment object.
 
     param environment: The Environment object representing the type system.
     param edge: The edge to check.

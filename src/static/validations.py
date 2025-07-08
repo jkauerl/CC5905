@@ -93,7 +93,7 @@ def _is_valid_node_core(
 
 
 def is_valid_node(environment: Environment, node: ClassName) -> bool:
-    """Check if the given node is valid in the Environment object.
+    """Wrapper function to check if the given node is valid in the Environment object.
 
     param environment: The Environment object representing the type system.
     param edge: The edge to check.
@@ -147,7 +147,7 @@ def _is_valid_fun_core(
 
 
 def is_valid_fun(environment: Environment) -> bool:
-    """Check if the given function is valid in the Environment object.
+    """Wrapper function to check if the given function is valid in the Environment object.
 
     :param environment: The Environment object representing the type system.
     :param sigma: The function to check.
@@ -186,7 +186,7 @@ def _is_valid_graph_core(
 
 
 def is_valid_graph(environment: Environment) -> bool:
-    """Check if the given graph is valid in the Environment object.
+    """Wrapper function to check if the given graph is valid in the Environment object.
 
     :param environment: The Environment object representing the type system.
     :return: True if the graph is valid, False otherwise.
