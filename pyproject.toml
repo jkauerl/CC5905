@@ -3,7 +3,7 @@ name = "class_gradual_typing"
 version = "0.1.0"
 description = "Implementation of a static and gradual type system for classes in Python."
 authors = [
-    { name="Javier Kauer", email="kauer.javier01@gmail.com" }
+    { name="Javier Kauer", email="jkauer@dcc.uchile.cl" }
 ]
 readme = "README.md"
 requires-python = ">=3.8"
