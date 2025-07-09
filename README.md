@@ -21,5 +21,5 @@ Gradual typing means you can mix statically and dynamically typed code — ideal
 
 ```bash
 git clone https://github.com/yourusername/class_gradual_typing.git
-cd class_gradual_typing
+cd CC5905
 pip install .
