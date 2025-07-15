@@ -6,7 +6,7 @@ authors = [
     { name="Javier Kauer", email="jkauer@dcc.uchile.cl" }
 ]
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.13"
 license = { text = "MIT" }
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -16,7 +16,7 @@ classifiers = [
 
 [tool.ruff]
 line-length = 88
-target-version = "py38"
+target-version = "py313"
 # You can select rule sets here; for now we activate common ones
 lint.select = [
     "E",
