@@ -1,4 +1,4 @@
-# CC5905: Class Gradual Yyping
+# CC5905: Class Gradual Typing
 
 **Version**: 0.1.0  
 **License**: MIT  
