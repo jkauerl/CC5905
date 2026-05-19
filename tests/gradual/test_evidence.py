@@ -117,6 +117,16 @@ class TestEvidenceProgressive(unittest.TestCase):
         self.assertIn(self.spec_F, self.environment.sigma.values())
 
     def test_get_specifications_e(self):
+        expected_specs_e = Specification(
+            signatures={
+                Signature(var="x", type=self.E),
+                Signature(var="z", type=Unknown()),
+            }
+        )
+        result = get_specifications(self.environment, self.E)
+        self.assertEqual(expected_specs_e, result)
+
+    def test_get_specifications_d(self):
         expected_specs_d = Specification(
             signatures={
                 Signature(var="x", type=Unknown()),
