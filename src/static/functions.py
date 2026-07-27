@@ -2,7 +2,7 @@ from typing import Any, Callable, Optional, Set
 
 from .definitions import Environment, Signature, Specification
 from .subtyping import is_direct_subtype, is_subtype
-from .types import BottomType, ClassName, Type
+from .types import BottomType, ClassName, TopType, Type
 
 """ Function to get parent specifications
 """
@@ -57,7 +57,11 @@ def upper_set(environment: Environment, ti: Type) -> set[Type]:
     :param ti: The target class name.
     :return: A set of Types that are supertypes of ti.
     """
-    return {T for T in environment.Ns if is_subtype(environment, ti, T)}
+    result = {ti, TopType()}
+    for t in environment.Ns:
+        if is_subtype(environment, ti, t):
+            result.add(t)
+    return result
 
 
 def meet(environment: Environment, ti: Type, tj: Type) -> set[Type]:
@@ -111,6 +115,9 @@ def join(environment: Environment, ti: Type, tj: Type) -> set[Type]:
     :param tj: The second class name.
     :return: A set of Type representing the join.
     """
+    if ti == tj:
+        return {ti}
+
     common = upper_set(environment, ti).intersection(upper_set(environment, tj))
 
     join_set = set()

@@ -183,6 +183,9 @@ def meet_precision_specification(
     sigs1 = {sig.var: sig for sig in spec1.signatures}
     sigs2 = {sig.var: sig for sig in spec2.signatures}
 
+    if not sigs1.keys() <= sigs2.keys():
+        return set()
+
     common_vars = sigs1.keys() & sigs2.keys()
     meets_by_var: Dict[str, Set[EvidenceSignature]] = {}
 
@@ -241,6 +244,10 @@ def interior_intervals(
     pairs = set()
     for ti in lowers:
         for tj in uppers:
+            if not is_subtype(environment, interval_1.lower_bound, ti):
+                continue
+            if not is_subtype(environment, tj, interval_2.upper_bound):
+                continue
             first_interval = EvidenceInterval(interval_1.lower_bound, ti)
             second_interval = EvidenceInterval(tj, interval_2.upper_bound)
             pairs.add((first_interval, second_interval))
@@ -268,6 +275,9 @@ def interior_gradual_specification(
 
     if not spec_2.signatures:
         return {(spec_1, EvidenceSpecification(set()))}
+
+    if not sigs2_by_var.keys() <= sigs1_by_var.keys():
+        return set()
 
     common_vars = sigs1_by_var.keys() & sigs2_by_var.keys()
 
@@ -471,17 +481,22 @@ def transitivity_specifications(
     )
 
     for sm in middle_specs:
+        sm_vars = {sig.var for sig in sm.signatures}
+        restricted = EvidenceSpecification(
+            {sig for sig in par_spec_2.specification_2.signatures if sig.var in sm_vars}
+        )
         left_interior_pairs = interior_gradual_specification(
             environment, par_spec_1.specification_1, sm
         )
         right_interior_pairs = interior_gradual_specification(
-            environment, sm, par_spec_2.specification_2
+            environment, sm, restricted
         )
 
-        for left_spec, _ in left_interior_pairs:
-            for _, right_spec in right_interior_pairs:
-                combined = Evidence(left_spec, right_spec)
-                result.add(combined)
+        for left_spec, left_middle in left_interior_pairs:
+            for right_middle, right_spec in right_interior_pairs:
+                if left_middle == right_middle:
+                    combined = Evidence(left_spec, right_spec)
+                    result.add(combined)
     return result
 
 
