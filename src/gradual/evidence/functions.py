@@ -365,6 +365,12 @@ def interior_types(
             left = lift_gradual_type(Unknown())
             right = EvidenceInterval(unknown_fun, GradualFunctionType(fi, fj))
             return (left, right)
+        # cross-shape cases: bottom is below every type and top above
+        # every type, so each slot is the lift of its own side.
+        case BottomType(), GradualFunctionType():
+            return (lift_gradual_type(ti), lift_gradual_type(tj))
+        case GradualFunctionType(), TopType():
+            return (lift_gradual_type(ti), lift_gradual_type(tj))
         case _:
             return None
 
