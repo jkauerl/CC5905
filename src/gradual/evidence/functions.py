@@ -343,7 +343,7 @@ def interior_types(
         case Type(), Type():
             if is_gradual_subtype(environment, ti, tj):
                 left = lift_gradual_type(ti)
-                right = EvidenceInterval(ti, tj)
+                right = lift_gradual_type(tj)
                 return (left, right)
             return None
         case Type(), Unknown():

@@ -56,20 +56,27 @@ def meet_unique_consistent(
             if ret is None:
                 return None
             return GradualFunctionType(args, ret)
-        case Type(), Type():
-            return meet_unique(environment, ti, tj)
-        case BottomType(), _:
-            return BottomType()
-        case _, BottomType():
-            return BottomType()
         case TopType(), _:
             return tj
         case _, TopType():
             return ti
+        case BottomType(), _:
+            return BottomType()
+        case _, BottomType():
+            return BottomType()
         case Unknown(), _:
             return Unknown()
         case _, Unknown():
             return Unknown()
+        # order-sensitive: must stay below the Top/Bottom/Unknown arms
+        # (fun meet Top = fun, fun meet ? = ?); these arms only cover
+        # function vs class name, which have no common lower bound.
+        case GradualFunctionType(), _:
+            return BottomType()
+        case _, GradualFunctionType():
+            return BottomType()
+        case Type(), Type():
+            return meet_unique(environment, ti, tj)
 
     return None
 
@@ -87,32 +94,35 @@ def join_unique_consistent(
     match ti, tj:
         case GradualFunctionType(fi1, fj1), GradualFunctionType(fi2, fj2):
             if len(fi1) != len(fi2):
-                raise ValueError(
-                    "Function types must have the same number of arguments"
-                )
-            args = [
-                meet_unique_consistent(environment, a1, a2) for a1, a2 in zip(fi1, fi2)
-            ]
+                raise ValueError("Function types must have the same number of arguments")
+            args = [meet_unique_consistent(environment, a1, a2) for a1, a2 in zip(fi1, fi2)]
             if any(a is None for a in args):
                 return None
             ret = join_unique_consistent(environment, fj1, fj2)
             if ret is None:
                 return None
             return GradualFunctionType(args, ret)
-        case Type(), Type():
-            return meet_unique(environment, ti, tj)
-        case BottomType(), _:
-            return BottomType()
-        case _, BottomType():
-            return BottomType()
         case TopType(), _:
-            return tj
+            return TopType()
         case _, TopType():
+            return TopType()
+        case BottomType(), _:
+            return tj
+        case _, BottomType():
             return ti
         case Unknown(), _:
             return Unknown()
         case _, Unknown():
             return Unknown()
+        # order-sensitive: must stay below the Top/Bottom/Unknown arms
+        # (fun join Bottom = fun, fun join ? = ?); these arms only cover
+        # function vs class name, whose only common upper bound is Top.
+        case GradualFunctionType(), _:
+            return TopType()
+        case _, GradualFunctionType():
+            return TopType()
+        case Type(), Type():
+            return join_unique(environment, ti, tj)
 
     return None
 

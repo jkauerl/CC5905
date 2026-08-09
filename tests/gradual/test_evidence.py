@@ -20,9 +20,11 @@ from src.gradual.evidence.functions import (
 )
 from src.gradual.functions import (
     get_specifications,
+    inherited,
+    meet_unique_consistent,
 )
 from src.gradual.types import Unknown
-from src.gradual.validations import is_valid_graph
+from src.gradual.validations import is_valid_graph, is_valid_node, is_valid_signature
 from src.static.types import BottomType, ClassName, TopType
 
 
@@ -106,6 +108,76 @@ class TestEvidenceProgressive(unittest.TestCase):
             },
         )
 
+    def test_is_valid_node_A(self):
+        self.assertTrue(is_valid_node(self.environment, self.A))
+
+    def test_is_valid_node_B(self):
+        self.assertTrue(is_valid_node(self.environment, self.B))
+
+    def test_is_valid_node_C(self):
+        self.assertTrue(is_valid_node(self.environment, self.C))
+
+    def test_is_valid_node_D(self):
+        self.assertTrue(is_valid_node(self.environment, self.D))
+
+    def test_is_valid_node_E(self):
+        self.assertTrue(is_valid_node(self.environment, self.E))
+
+    def test_is_valid_node_F(self):
+        self.assertTrue(is_valid_node(self.environment, self.F))
+
+    def test_F_minimal_specification(self):
+        expected_spec_f = Specification(
+            signatures={
+                Signature(var="x", type=Unknown()),
+                Signature(var="y", type=self.A),
+                Signature(var="z", type=self.D),
+            }
+        )
+        result = get_specifications(self.environment, self.F)
+        self.assertEqual(expected_spec_f, result)
+
+    def test_F_includes_node(self):
+        expected_spec_f = Specification(
+            signatures={
+                Signature(var="x", type=Unknown()),
+                Signature(var="y", type=self.A),
+                Signature(var="z", type=self.D),
+            }
+        )
+        result = get_specifications(self.environment, self.F)
+        self.assertEqual(expected_spec_f, result)
+
+    def test_F_exists_all_signatures(self):
+        expected_spec_f = Specification(
+            signatures={
+                Signature(var="x", type=Unknown()),
+                Signature(var="y", type=self.A),
+                Signature(var="z", type=self.D),
+            }
+        )
+        result = get_specifications(self.environment, self.F)
+        self.assertEqual(expected_spec_f, result)
+
+    def test_F_no_overloading(self):
+        expected_spec_f = Specification(
+            signatures={
+                Signature(var="x", type=Unknown()),
+                Signature(var="y", type=self.A),
+                Signature(var="z", type=self.D),
+            }
+        )
+        result = get_specifications(self.environment, self.F)
+        self.assertEqual(expected_spec_f, result)
+
+    def test_is_valid_signature(self):
+        self.assertTrue(is_valid_signature(self.environment, self.spec_A))
+        self.assertTrue(is_valid_signature(self.environment, self.spec_B))
+        self.assertTrue(is_valid_signature(self.environment, self.spec_C))
+        self.assertTrue(is_valid_signature(self.environment, self.spec_D))
+        self.assertTrue(is_valid_signature(self.environment, self.spec_E))
+        self.assertTrue(is_valid_signature(self.environment, self.spec_F))
+
     def test_is_valid_graph(self):
         self.assertTrue(is_valid_graph(self.environment))
 
@@ -147,6 +219,21 @@ class TestEvidenceProgressive(unittest.TestCase):
         )
         result = get_specifications(self.environment, self.F)
         self.assertEqual(expected_specs_f, result)
+
+    def test_inherited_signatures_from_f(self):
+        expected_inherited_f = {
+            Signature(var="x", type=Unknown()),
+            Signature(var="y", type=self.A)
+        }
+
+        result = inherited(self.environment, self.F)
+        self.assertEqual(expected_inherited_f, result)
+
+    def test_unique_meet_e_d_field_x(self):
+        expected = Unknown()
+
+        result = meet_unique_consistent(self.environment, self.E, Unknown())
+        self.assertEqual(expected, result)
 
     def test_interior_b_a(self):
         expected = CompleteEvidence(
@@ -274,7 +361,7 @@ class TestEvidenceProgressive(unittest.TestCase):
                     ),
                     EvidenceSpecification(
                         {
-                            EvidenceSignature("x", EvidenceInterval(self.E, self.B)),
+                            EvidenceSignature("x", EvidenceInterval(self.B, self.B)),
                         }
                     ),
                 )
@@ -303,7 +390,7 @@ class TestEvidenceProgressive(unittest.TestCase):
                     ),
                     EvidenceSpecification(
                         {
-                            EvidenceSignature("x", EvidenceInterval(self.E, self.C)),
+                            EvidenceSignature("x", EvidenceInterval(self.C, self.C)),
                             EvidenceSignature(
                                 "z", EvidenceInterval(BottomType(), TopType())
                             ),
