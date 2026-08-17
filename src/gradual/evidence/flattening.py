@@ -1,42 +1,39 @@
-from typing import Dict, List, Optional, Tuple
+from itertools import product
+from typing import Dict, Iterable, List, Optional, Set, Tuple
 
-from ...static.types import ClassName
+from ...static.functions import join
+from ...static.subtyping import is_subtype
+from ...static.types import BottomType, ClassName, Type
 from ..definitions import Environment, Specification
 from .definitions import (
-    CompleteEvidence,
     Evidence,
+    EvidenceInterval,
     EvidenceSignature,
     EvidenceSpecification,
 )
 from .functions import (
     interior_gradual_specification,
     lift_gradual_type,
-    meet_complete_evidences,
-    transitivity_complete_evidences,
+    meet_evidences,
+    transitivity_specifications,
 )
 
-""" Flattening of the hierarchy: per-node evidence computed in two passes.
+""" Flattening of the hierarchy, in two passes over a topological order:
 
-Two implementations of the same equations:
-
-- the *naive* one evaluates the recursive equations directly, recomputing
-  the evidence of shared ancestors once per path reaching them;
-- the *table-driven* (dynamic-programming) one evaluates the nodes in
-  topological order, storing each node's evidence in a table so every
-  node is computed exactly once.
-
-Both compute, for every node N:
-
-    E_top(N) = MEET_{P in parents(N)} ( edge(N, P) . E_top(P) )   [identity at roots]
-    E_bot(N) = MEET_{C in children(N)} ( E_bot(C) . edge(C, N) )  [identity at leaves]
+    E_top(N) = MEET_{P in parents(N)}  ( edge(N, P) . E_top(P) )   [identity at roots]
+    E_bot(N) = MEET_{C in children(N)} ( E_bot(C) . edge(C, N) )   [identity at leaves]
     E_comb(N) = combine(E_top(N), E_bot(N))
 
-and the graph is flattening-valid iff E_comb(N) is non-empty at every node.
+Valid iff E_comb(N) is non-empty at every node.  The anchored variant stores
+combine(E_top(N), E_bot(N) ∪ anchor_N(E_bot(N))) per node, acceptance still
+gated on the un-anchored combination.  Evidence sets are mutable sets of
+Evidence updated in place.
 """
 
 
 Sigma = Dict[str, Specification]
 Adjacency = Dict[str, List[ClassName]]
+EvidenceSet = Set[Evidence]
 
 
 def adjacency(environment: Environment) -> Tuple[Adjacency, Adjacency]:
@@ -69,169 +66,121 @@ def lift_specification(specification: Specification) -> EvidenceSpecification:
 
 def edge_evidence(
     environment: Environment, sigma: Sigma, node: ClassName, parent: ClassName
-) -> CompleteEvidence:
+) -> EvidenceSet:
     """Edge evidence: the spec-level interior of the two lifted complete specs.
 
     :param environment: The Environment object representing the type system.
     :param sigma: The complete specification assignment.
     :param node: The child endpoint of the edge.
     :param parent: The parent endpoint of the edge.
-    :return: The CompleteEvidence of the edge (possibly empty).
+    :return: The set of edge Evidences (possibly empty).
     """
     lifted_node = lift_specification(sigma[node.name])
     lifted_parent = lift_specification(sigma[parent.name])
     pairs = interior_gradual_specification(environment, lifted_node, lifted_parent)
-    return CompleteEvidence({Evidence(s1, s2) for (s1, s2) in pairs})
+    return {Evidence(s1, s2) for (s1, s2) in pairs}
 
 
-def identity_complete(sigma: Sigma, node: ClassName) -> CompleteEvidence:
-    """Identity complete evidence at a node: the singleton of its lifted spec.
+def edge_table(
+    environment: Environment, sigma: Sigma
+) -> Dict[Tuple[str, str], EvidenceSet]:
+    """Edge evidence for every edge, computed once and shared by both passes.
+
+    :param environment: The Environment object representing the type system.
+    :param sigma: The complete specification assignment.
+    :return: A map from (child name, parent name) to the edge evidence set.
+    """
+    lifted = {node.name: lift_specification(sigma[node.name]) for node in environment.Ns}
+    table: Dict[Tuple[str, str], EvidenceSet] = {}
+    for edge in environment.Es:
+        pairs = interior_gradual_specification(
+            environment, lifted[edge.source.name], lifted[edge.target.name]
+        )
+        table[(edge.source.name, edge.target.name)] = {
+            Evidence(s1, s2) for (s1, s2) in pairs
+        }
+    return table
+
+
+def identity_evidences(sigma: Sigma, node: ClassName) -> EvidenceSet:
+    """Identity evidence at a node: the singleton of its lifted spec.
 
     :param sigma: The complete specification assignment.
     :param node: The node to build the identity evidence for.
-    :return: The identity CompleteEvidence at the node.
+    :return: The identity evidence set at the node.
     """
     lifted = lift_specification(sigma[node.name])
-    return CompleteEvidence({Evidence(lifted, lifted)})
+    return {Evidence(lifted, lifted)}
 
 
-def _transitivity(
-    environment: Environment,
-    complete_evidence_1: CompleteEvidence,
-    complete_evidence_2: CompleteEvidence,
-) -> CompleteEvidence:
-    """Consistent transitivity, normalising the empty result to the empty set."""
-    result = transitivity_complete_evidences(
-        environment, complete_evidence_1, complete_evidence_2
-    )
-    if result is None:
-        return CompleteEvidence(set())
+def trans_evidences(
+    environment: Environment, evidences_1: EvidenceSet, evidences_2: EvidenceSet
+) -> EvidenceSet:
+    """Consistent transitivity of two evidence sets, accumulated in place.
+
+    :param environment: The Environment object representing the type system.
+    :param evidences_1: The first evidence set.
+    :param evidences_2: The second evidence set.
+    :return: The set of composed Evidences (possibly empty).
+    """
+    result: EvidenceSet = set()
+    for evidence_1 in evidences_1:
+        for evidence_2 in evidences_2:
+            result.update(
+                transitivity_specifications(environment, evidence_1, evidence_2)
+            )
+    return result
+
+
+def meet_evidence_sets(
+    environment: Environment, evidences_1: EvidenceSet, evidences_2: EvidenceSet
+) -> EvidenceSet:
+    """Meet of two evidence sets, accumulated in place.
+
+    :param environment: The Environment object representing the type system.
+    :param evidences_1: The first evidence set.
+    :param evidences_2: The second evidence set.
+    :return: The set of met Evidences (possibly empty).
+    """
+    result: EvidenceSet = set()
+    for evidence_1 in evidences_1:
+        for evidence_2 in evidences_2:
+            result.update(meet_evidences(environment, evidence_1, evidence_2))
     return result
 
 
 def _meet_fold(
-    environment: Environment, complete_evidences: List[CompleteEvidence]
-) -> CompleteEvidence:
-    """Right fold of the complete-evidence meet across the sibling chains."""
-    result = complete_evidences[-1]
-    for complete_evidence in reversed(complete_evidences[:-1]):
-        result = meet_complete_evidences(environment, complete_evidence, result)
+    environment: Environment, evidence_sets: List[EvidenceSet]
+) -> EvidenceSet:
+    """Right fold of the evidence-set meet across the sibling chains."""
+    result = evidence_sets[-1]
+    for evidence_set in reversed(evidence_sets[:-1]):
+        result = meet_evidence_sets(environment, evidence_set, result)
     return result
 
 
 def combine_evidences(
     environment: Environment,
-    complete_top: CompleteEvidence,
-    complete_bot: CompleteEvidence,
-) -> CompleteEvidence:
+    top_evidences: EvidenceSet,
+    bot_evidences: Iterable[Evidence],
+) -> EvidenceSet:
     """Per-node combination: spec-level interior on the two "N at N" slots.
 
     :param environment: The Environment object representing the type system.
-    :param complete_top: The downward (ancestors) complete evidence.
-    :param complete_bot: The upward (descendants) complete evidence.
-    :return: The combined CompleteEvidence (possibly empty).
+    :param top_evidences: The downward (ancestors) evidence set.
+    :param bot_evidences: The upward (descendants) evidences.
+    :return: The combined evidence set (possibly empty).
     """
-    combined = set()
-    for evidence_top in complete_top.evidences:
-        for evidence_bot in complete_bot.evidences:
+    combined: EvidenceSet = set()
+    for evidence_top in top_evidences:
+        for evidence_bot in bot_evidences:
             pairs = interior_gradual_specification(
                 environment,
                 evidence_bot.specification_2,
                 evidence_top.specification_1,
             )
             combined.update(Evidence(s1, s2) for (s1, s2) in pairs)
-    return CompleteEvidence(combined)
-
-
-""" Naive evaluation: direct recursion, no table
-"""
-
-
-def _e_top_naive(
-    environment: Environment, sigma: Sigma, parents: Adjacency, node: ClassName
-) -> CompleteEvidence:
-    """Downward pass at a node by direct recursion (shared ancestors recomputed)."""
-    node_parents = parents[node.name]
-    if not node_parents:
-        return identity_complete(sigma, node)
-    chains = [
-        _transitivity(
-            environment,
-            edge_evidence(environment, sigma, node, parent),
-            _e_top_naive(environment, sigma, parents, parent),
-        )
-        for parent in node_parents
-    ]
-    return _meet_fold(environment, chains)
-
-
-def _e_bot_naive(
-    environment: Environment, sigma: Sigma, children: Adjacency, node: ClassName
-) -> CompleteEvidence:
-    """Upward pass at a node by direct recursion (shared descendants recomputed)."""
-    node_children = children[node.name]
-    if not node_children:
-        return identity_complete(sigma, node)
-    chains = [
-        _transitivity(
-            environment,
-            _e_bot_naive(environment, sigma, children, child),
-            edge_evidence(environment, sigma, child, node),
-        )
-        for child in node_children
-    ]
-    return _meet_fold(environment, chains)
-
-
-def e_top_naive(
-    environment: Environment, sigma: Sigma, node: ClassName
-) -> CompleteEvidence:
-    """Downward pass at a node, evaluated by direct recursion.
-
-    :param environment: The Environment object representing the type system.
-    :param sigma: The complete specification assignment.
-    :param node: The node to compute the evidence for.
-    :return: The node's downward CompleteEvidence.
-    """
-    parents, _ = adjacency(environment)
-    return _e_top_naive(environment, sigma, parents, node)
-
-
-def e_bot_naive(
-    environment: Environment, sigma: Sigma, node: ClassName
-) -> CompleteEvidence:
-    """Upward pass at a node, evaluated by direct recursion.
-
-    :param environment: The Environment object representing the type system.
-    :param sigma: The complete specification assignment.
-    :param node: The node to compute the evidence for.
-    :return: The node's upward CompleteEvidence.
-    """
-    _, children = adjacency(environment)
-    return _e_bot_naive(environment, sigma, children, node)
-
-
-def flatten_naive(environment: Environment, sigma: Sigma) -> bool:
-    """Flattening validator, naive evaluation (recomputes shared ancestors).
-
-    :param environment: The Environment object representing the type system.
-    :param sigma: The complete specification assignment.
-    :return: True iff the combined evidence is non-empty at every node.
-    """
-    parents, children = adjacency(environment)
-    for node in environment.Ns:
-        combined = combine_evidences(
-            environment,
-            _e_top_naive(environment, sigma, parents, node),
-            _e_bot_naive(environment, sigma, children, node),
-        )
-        if not combined.evidences:
-            return False
-    return True
-
-
-""" Table-driven (dynamic-programming) evaluation: topological order
-"""
+    return combined
 
 
 def topological_order(environment: Environment) -> Optional[List[ClassName]]:
@@ -257,26 +206,32 @@ def topological_order(environment: Environment) -> Optional[List[ClassName]]:
 
 
 def e_top_table(
-    environment: Environment, sigma: Sigma, order: List[ClassName]
-) -> Dict[str, CompleteEvidence]:
+    environment: Environment,
+    sigma: Sigma,
+    order: List[ClassName],
+    edges: Optional[Dict[Tuple[str, str], EvidenceSet]] = None,
+) -> Dict[str, EvidenceSet]:
     """Downward pass over the whole graph, each node computed once.
 
     :param environment: The Environment object representing the type system.
     :param sigma: The complete specification assignment.
     :param order: A topological order (parents before children).
-    :return: The table of downward CompleteEvidences, indexed by node name.
+    :param edges: An edge_table to reuse; computed on the spot when absent.
+    :return: The table of downward evidence sets, indexed by node name.
     """
+    if edges is None:
+        edges = edge_table(environment, sigma)
     parents, _ = adjacency(environment)
-    table: Dict[str, CompleteEvidence] = {}
+    table: Dict[str, EvidenceSet] = {}
     for node in order:
         node_parents = parents[node.name]
         if not node_parents:
-            table[node.name] = identity_complete(sigma, node)
+            table[node.name] = identity_evidences(sigma, node)
             continue
         chains = [
-            _transitivity(
+            trans_evidences(
                 environment,
-                edge_evidence(environment, sigma, node, parent),
+                edges[(node.name, parent.name)],
                 table[parent.name],
             )
             for parent in node_parents
@@ -286,27 +241,33 @@ def e_top_table(
 
 
 def e_bot_table(
-    environment: Environment, sigma: Sigma, order: List[ClassName]
-) -> Dict[str, CompleteEvidence]:
+    environment: Environment,
+    sigma: Sigma,
+    order: List[ClassName],
+    edges: Optional[Dict[Tuple[str, str], EvidenceSet]] = None,
+) -> Dict[str, EvidenceSet]:
     """Upward pass over the whole graph, each node computed once.
 
     :param environment: The Environment object representing the type system.
     :param sigma: The complete specification assignment.
     :param order: A topological order (parents before children); traversed reversed.
-    :return: The table of upward CompleteEvidences, indexed by node name.
+    :param edges: An edge_table to reuse; computed on the spot when absent.
+    :return: The table of upward evidence sets, indexed by node name.
     """
+    if edges is None:
+        edges = edge_table(environment, sigma)
     _, children = adjacency(environment)
-    table: Dict[str, CompleteEvidence] = {}
+    table: Dict[str, EvidenceSet] = {}
     for node in reversed(order):
         node_children = children[node.name]
         if not node_children:
-            table[node.name] = identity_complete(sigma, node)
+            table[node.name] = identity_evidences(sigma, node)
             continue
         chains = [
-            _transitivity(
+            trans_evidences(
                 environment,
                 table[child.name],
-                edge_evidence(environment, sigma, child, node),
+                edges[(child.name, node.name)],
             )
             for child in node_children
         ]
@@ -315,7 +276,7 @@ def e_bot_table(
 
 
 def flatten_dp(environment: Environment, sigma: Sigma) -> bool:
-    """Flattening validator, table-driven evaluation (each node computed once).
+    """Flattening validator: each node's evidence computed exactly once.
 
     :param environment: The Environment object representing the type system.
     :param sigma: The complete specification assignment.
@@ -324,10 +285,121 @@ def flatten_dp(environment: Environment, sigma: Sigma) -> bool:
     order = topological_order(environment)
     if order is None:
         return False
-    top = e_top_table(environment, sigma, order)
-    bot = e_bot_table(environment, sigma, order)
+    edges = edge_table(environment, sigma)
+    top = e_top_table(environment, sigma, order, edges)
+    bot = e_bot_table(environment, sigma, order, edges)
     for node in environment.Ns:
-        combined = combine_evidences(environment, top[node.name], bot[node.name])
-        if not combined.evidences:
+        if not combine_evidences(environment, top[node.name], bot[node.name]):
             return False
+    return True
+
+
+""" The value anchor: alongside each upward element, the variant whose view
+lower bound is the value slot's lower bound joined with the node's own lifted
+declaration bound (upper bounds kept, filtered by interval well-formedness).
+"""
+
+
+def anchor_floor(sigma: Sigma, node: ClassName) -> Dict[str, Type]:
+    """Per-field floor at a node: the lower bound of its lifted declaration.
+
+    :param sigma: The complete specification assignment.
+    :param node: The node whose declaration provides the floors.
+    :return: A map from field name to the declared lower bound.
+    """
+    lifted = lift_specification(sigma[node.name])
+    return {sig.var: sig.interval.lower_bound for sig in lifted.signatures}
+
+
+def anchor_views(
+    environment: Environment,
+    value_spec: EvidenceSpecification,
+    floor: Dict[str, Type],
+    view_spec: EvidenceSpecification,
+) -> Set[EvidenceSpecification]:
+    """All anchored variants of a view spec against its value spec.
+
+    Per field: the new lower bound ranges over the join of the value slot's
+    lower bound (the view's own when the field has no value entry) with the
+    node's floor, kept only when it stays below the view's upper bound.
+
+    :param environment: The Environment object representing the type system.
+    :param value_spec: The element's value slot.
+    :param floor: The node's per-field declaration floors.
+    :param view_spec: The element's view slot.
+    :return: The set of anchored view specifications (possibly empty).
+    """
+    value_by_var = {sig.var: sig for sig in value_spec.signatures}
+    per_var: List[Set[EvidenceSignature]] = []
+    for sig in view_spec.signatures:
+        interval = sig.interval
+        value_sig = value_by_var.get(sig.var)
+        value_lower = (
+            value_sig.interval.lower_bound
+            if value_sig is not None
+            else interval.lower_bound
+        )
+        floor_lower = floor.get(sig.var, BottomType())
+        candidates = set()
+        for t in join(environment, value_lower, floor_lower):
+            if is_subtype(environment, t, interval.upper_bound):
+                candidates.add(
+                    EvidenceSignature(
+                        sig.var, EvidenceInterval(t, interval.upper_bound)
+                    )
+                )
+        if not candidates:
+            return set()
+        per_var.append(candidates)
+    views = set()
+    for combo in product(*per_var):
+        views.add(EvidenceSpecification(set(combo)))
+    return views
+
+
+def anchored_evidences(
+    environment: Environment, sigma: Sigma, node: ClassName, evidences: EvidenceSet
+) -> EvidenceSet:
+    """The anchored variants of an upward evidence set at a node.
+
+    :param environment: The Environment object representing the type system.
+    :param sigma: The complete specification assignment.
+    :param node: The node whose declaration anchors the views.
+    :param evidences: The node's upward evidence set.
+    :return: The set of anchored variants (value slots kept).
+    """
+    floor = anchor_floor(sigma, node)
+    result: EvidenceSet = set()
+    for evidence in evidences:
+        for view in anchor_views(
+            environment, evidence.specification_1, floor, evidence.specification_2
+        ):
+            result.add(Evidence(evidence.specification_1, view))
+    return result
+
+
+def flatten_anchored(environment: Environment, sigma: Sigma) -> bool:
+    """Anchored flattening: the validator that also builds the anchored table.
+
+    Acceptance is gated on the un-anchored combination; the anchored entry
+    grows the same set in place with the combinations against the anchored
+    variants.
+
+    :param environment: The Environment object representing the type system.
+    :param sigma: The complete specification assignment.
+    :return: True iff the combined evidence is non-empty at every node.
+    """
+    order = topological_order(environment)
+    if order is None:
+        return False
+    edges = edge_table(environment, sigma)
+    top = e_top_table(environment, sigma, order, edges)
+    bot = e_bot_table(environment, sigma, order, edges)
+    for node in environment.Ns:
+        entry = combine_evidences(environment, top[node.name], bot[node.name])
+        if not entry:
+            return False
+        extra = anchored_evidences(environment, sigma, node, bot[node.name])
+        if extra:
+            entry.update(combine_evidences(environment, top[node.name], extra))
     return True

@@ -26,21 +26,49 @@ def is_direct_subtype(
     return False
 
 
+def _ancestor_closure(environment: Environment) -> dict:
+    """The transitive closure of the (name-level) edge relation, computed
+    once per environment and cached on it: name -> set of ancestor names."""
+    cache = getattr(environment, "_ancestor_closure", None)
+    if cache is None:
+        parents: dict = {}
+        for edge in environment.Es:
+            parents.setdefault(edge.source.name, []).append(edge.target.name)
+        cache = {}
+
+        def ancestors(name: str) -> set:
+            known = cache.get(name)
+            if known is not None:
+                return known
+            cache[name] = set()  # cycle guard
+            reached: set = set()
+            for parent in parents.get(name, ()):
+                reached.add(parent)
+                reached |= ancestors(parent)
+            cache[name] = reached
+            return reached
+
+        for node in environment.Ns:
+            ancestors(node.name)
+        environment._ancestor_closure = cache
+    return cache
+
+
 def is_subtype(environment: Environment, t1: Type, t2: Type, visited=None) -> bool:
     """Check if t1 is a subtype of t2 in the Environment type system.
+
+    Name-level subtyping is answered from the environment's cached
+    transitive closure; function types recurse structurally.
 
     :param environment: The Environment object representing the type system.
     :param t1: The first type to check.
     :param t2: The second type to check.
-    :param visited: A set of visited types to avoid cycles.
+    :param visited: Pairs already under consideration; a pre-seeded pair is
+        reported as not-a-subtype, preserving the cycle-guard contract.
     :return: True if t1 is a subtype of t2, False otherwise.
     """
-    if visited is None:
-        visited = set()
-
-    if (t1, t2) in visited:
+    if visited is not None and (t1, t2) in visited:
         return False
-    visited.add((t1, t2))
 
     if t1 == t2:
         return True
@@ -56,20 +84,13 @@ def is_subtype(environment: Environment, t1: Type, t2: Type, visited=None) -> bo
         if len(t1.domain) != len(t2.domain):
             return False
         domain_check = all(
-            is_subtype(environment, t2_arg, t1_arg, visited)
+            is_subtype(environment, t2_arg, t1_arg)
             for t1_arg, t2_arg in zip(t1.domain, t2.domain)
         )
-        codomain_check = is_subtype(environment, t1.codomain, t2.codomain, visited)
-        return domain_check and codomain_check
+        return domain_check and is_subtype(environment, t1.codomain, t2.codomain)
 
-    # ClassName subtype with explicit direct check + recursion (transitivity)
     if isinstance(t1, ClassName) and isinstance(t2, ClassName):
-        if is_direct_subtype(environment, t1, t2):
-            return True
-        for edge in environment.Es:
-            if edge.source == t1:
-                if is_subtype(environment, edge.target, t2, visited):
-                    return True
+        return t2.name in _ancestor_closure(environment).get(t1.name, ())
 
     return False
 

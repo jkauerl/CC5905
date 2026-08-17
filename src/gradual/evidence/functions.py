@@ -293,8 +293,6 @@ def interior_gradual_specification(
 
         interval_pairs_by_var[var] = interval_pairs
 
-    from itertools import product
-
     for combo in product(*interval_pairs_by_var.values()):
         sigs1 = set()
         sigs2 = set()

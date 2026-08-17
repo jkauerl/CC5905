@@ -37,30 +37,48 @@ def get_all_parent_specifications(
 def lower_set(environment: Environment, ti: Type) -> set[Type]:
     """Return the set of all Type T such that T <: ti.
 
+    Memoised on the environment; callers must not mutate the result.
+
     :param environment: The Environment object representing the type system.
     :param ti: The target class name.
     :return: A set of Types that are subtypes of ti.
     """
+    cache = getattr(environment, "_lower_sets", None)
+    if cache is None:
+        cache = environment._lower_sets = {}
+    cached = cache.get(ti)
+    if cached is not None:
+        return cached
     result = {ti}
     for t in environment.Ns:
         if is_subtype(environment, t, ti) and t != ti:
             result.add(t)
     if is_subtype(environment, BottomType(), ti):
         result.add(BottomType())
+    cache[ti] = result
     return result
 
 
 def upper_set(environment: Environment, ti: Type) -> set[Type]:
     """Return the set of all Type T such that ti <: T.
 
+    Memoised on the environment; callers must not mutate the result.
+
     :param environment: The Environment object representing the type system.
     :param ti: The target class name.
     :return: A set of Types that are supertypes of ti.
     """
+    cache = getattr(environment, "_upper_sets", None)
+    if cache is None:
+        cache = environment._upper_sets = {}
+    cached = cache.get(ti)
+    if cached is not None:
+        return cached
     result = {ti, TopType()}
     for t in environment.Ns:
         if is_subtype(environment, ti, t):
             result.add(t)
+    cache[ti] = result
     return result
 
 
@@ -74,6 +92,13 @@ def meet(environment: Environment, ti: Type, tj: Type) -> set[Type]:
     """
     if ti == tj:
         return {ti}
+
+    cache = getattr(environment, "_meet_cache", None)
+    if cache is None:
+        cache = environment._meet_cache = {}
+    cached = cache.get((ti, tj))
+    if cached is not None:
+        return cached
 
     lower_ti = lower_set(environment, ti)
     lower_tj = lower_set(environment, tj)
@@ -89,6 +114,7 @@ def meet(environment: Environment, ti: Type, tj: Type) -> set[Type]:
         ):
             meet_set.add(t)
 
+    cache[(ti, tj)] = meet_set
     return meet_set
 
 
@@ -118,6 +144,13 @@ def join(environment: Environment, ti: Type, tj: Type) -> set[Type]:
     if ti == tj:
         return {ti}
 
+    cache = getattr(environment, "_join_cache", None)
+    if cache is None:
+        cache = environment._join_cache = {}
+    cached = cache.get((ti, tj))
+    if cached is not None:
+        return cached
+
     common = upper_set(environment, ti).intersection(upper_set(environment, tj))
 
     join_set = set()
@@ -129,6 +162,7 @@ def join(environment: Environment, ti: Type, tj: Type) -> set[Type]:
         ):
             join_set.add(t)
 
+    cache[(ti, tj)] = join_set
     return join_set
 
 

@@ -1,9 +1,0 @@
-family,nodes,edges,paths,naive_s,dp_s
-chain (control),121,120,7260,0.980006,0.016410
-binary tree (control),127,126,642,0.089959,0.019408
-sparse mi dag,34,47,210,0.029607,0.007574
-sparse mi dag,121,176,1437,0.206862,0.028735
-dense mi dag,34,76,1316,0.189219,0.012062
-dense mi dag,121,280,20475,3.116572,0.048142
-diamond stack,34,44,32642,4.462906,0.006531
-diamond stack,121,160,17592186044000,-,0.023846

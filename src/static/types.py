@@ -1,10 +1,14 @@
-from abc import ABC
 from dataclasses import dataclass
 from typing import Tuple
 
 
-class Type(ABC):
-    """Abstract base class for all types."""
+class Type:
+    """Base class for all types.
+
+    Deliberately not an ABC: these classes sit on the hot path of the
+    validators and ABCMeta's __instancecheck__ makes every isinstance
+    (and match/case) dispatch an order of magnitude slower.
+    """
 
     def __eq__(self, other):
         return isinstance(other, self.__class__)

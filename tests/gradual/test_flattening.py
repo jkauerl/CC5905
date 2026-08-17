@@ -1,5 +1,6 @@
 from src.gradual.definitions import Edge, Environment, Signature, Specification
-from src.gradual.evidence.flattening import flatten_dp, flatten_naive
+from src.gradual.evidence.flattening import flatten_dp
+from src.gradual.pair_validation import pair_valid
 from src.gradual.types import Unknown
 from src.static.types import ClassName
 
@@ -56,22 +57,16 @@ def incompatible_edge():
 def test_stacked_diamonds_accepted_and_agree():
     for k in range(1, 5):
         environment, sigma = stacked_diamonds(k)
-        naive = flatten_naive(environment, sigma)
-        dp = flatten_dp(environment, sigma)
-        assert naive is True
-        assert dp is True
+        assert flatten_dp(environment, sigma) is True
+        assert pair_valid(environment, sigma) is True
 
 
 def test_incompatible_edge_rejected_and_agree():
     environment, sigma = incompatible_edge()
-    naive = flatten_naive(environment, sigma)
-    dp = flatten_dp(environment, sigma)
-    assert naive is False
-    assert dp is False
+    assert flatten_dp(environment, sigma) is False
+    assert pair_valid(environment, sigma) is False
 
 
 def test_crossing_diamond_agree():
     environment, sigma = crossing_diamond()
-    naive = flatten_naive(environment, sigma)
-    dp = flatten_dp(environment, sigma)
-    assert naive == dp
+    assert flatten_dp(environment, sigma) == pair_valid(environment, sigma)

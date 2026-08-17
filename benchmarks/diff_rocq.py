@@ -8,15 +8,18 @@ from typing import Dict, List, Optional, Tuple
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.gradual.definitions import Edge, Environment, Signature, Specification  # noqa: E402
-from src.gradual.evidence.flattening import flatten_dp, flatten_naive  # noqa: E402
+from src.gradual.evidence.flattening import flatten_dp  # noqa: E402
+from src.gradual.pair_validation import pair_valid  # noqa: E402
 from src.gradual.types import Unknown  # noqa: E402
 from src.static.types import BottomType, ClassName, TopType  # noqa: E402
 
 ROCQ_DIR = r"C:\Users\kauer\Documents\Universidad\Magister\thesis\rocq"
 
-""" Differential test: the Python flattening (naive and table-driven) against
-the mechanized Rocq validators (flatten_graph and flatten_graph_table), on the
-same graph instances.
+""" Differential test: the Python flattening and per-pair validator against
+the mechanized Rocq validators (flatten_check and flatten_table_check, the
+Boolean forms of flatten_graph and flatten_graph_table), on the
+same graph instances.  All four must agree on every instance --- the flattening
+and the per-pair validator by the flattening correctness theorem.
 
 An instance is (nodes, edges, specs):
   - nodes: 1..n  (Rocq Name = nat; Python ClassName(str(i)))
@@ -147,7 +150,7 @@ def py_verdicts(inst: Instance) -> Tuple[bool, bool]:
         for i in range(1, n + 1)
     }
     environment = Environment(nodes, es, sigma)
-    return flatten_naive(environment, sigma), flatten_dp(environment, sigma)
+    return flatten_dp(environment, sigma), pair_valid(environment, sigma)
 
 
 # ---------------------------------------------------------------- Rocq side
@@ -181,7 +184,7 @@ Definition Sigma{idx} (N : Name) : GSpec :=
   | _ => []
   end.
 Definition phi{idx} : GGraph := mkGGraph env{idx} Sigma{idx}.
-Eval lazy in ("{name}", flatten_graph phi{idx} Sigma{idx}, flatten_graph_table phi{idx} Sigma{idx}).
+Eval lazy in ("{name}", flatten_check phi{idx} Sigma{idx}, flatten_table_check phi{idx} Sigma{idx}).
 """
 
 
@@ -195,7 +198,6 @@ def rocq_verdicts(instances: List[Instance]) -> Dict[str, Tuple[bool, bool]]:
         "Require Import GradualSystem.",
         "Require Import EvidenceSystem.",
         "Require Import EvidenceComputable.",
-        "Require Import FlattenTable.",
     ]
     for idx, inst in enumerate(instances):
         parts.append(rocq_instance(idx, inst))
@@ -206,7 +208,7 @@ def rocq_verdicts(instances: List[Instance]) -> Dict[str, Tuple[bool, bool]]:
         f.write(source)
     try:
         result = subprocess.run(
-            ["rocq", "compile", "DiffCheck.v"],
+            ["rocq", "compile", "-Q", ".", "", "DiffCheck.v"],
             cwd=ROCQ_DIR, capture_output=True, text=True, timeout=1200,
         )
         if result.returncode != 0:
@@ -239,26 +241,26 @@ def main() -> None:
     if len(rocq) != len(instances):
         print(f"WARNING: parsed {len(rocq)} Rocq verdicts for {len(instances)} instances")
 
-    header = f"{'instance':<18} {'py naive':>9} {'py dp':>7} {'rocq':>6} {'rocq tbl':>9}  status"
+    header = f"{'instance':<18} {'py flat':>8} {'py pair':>8} {'rocq':>6} {'rocq tbl':>9}  status"
     print(header)
     agree = 0
     diverge: List[str] = []
     for inst in instances:
         name = inst[0]
-        pn, pd = py_verdicts(inst)
+        pf, pp = py_verdicts(inst)
         rq = rocq.get(name)
         if rq is None:
-            print(f"{name:<18} {str(pn):>9} {str(pd):>7} {'?':>6} {'?':>9}  MISSING")
+            print(f"{name:<18} {str(pf):>8} {str(pp):>8} {'?':>6} {'?':>9}  MISSING")
             diverge.append(name)
             continue
         rf, rt = rq
-        ok = pn == pd == rf == rt
+        ok = pf == pp == rf == rt
         status = "ok" if ok else "DIVERGE"
         if ok:
             agree += 1
         else:
             diverge.append(name)
-        print(f"{name:<18} {str(pn):>9} {str(pd):>7} {str(rf):>6} {str(rt):>9}  {status}")
+        print(f"{name:<18} {str(pf):>8} {str(pp):>8} {str(rf):>6} {str(rt):>9}  {status}")
 
     print(f"\nagreement: {agree}/{len(instances)}")
     if diverge:

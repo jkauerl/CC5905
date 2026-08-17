@@ -1,11 +1,10 @@
-from abc import ABC
 from dataclasses import dataclass
 from typing import Tuple
 
 
 @dataclass(frozen=True)
-class GradualType(ABC):
-    """Abstract base class for all types."""
+class GradualType:
+    """Base class for all gradual types.  Not an ABC (see static.types.Type)."""
 
     pass
 
