@@ -140,6 +140,94 @@ def meet_complete_evidences(
     return CompleteEvidence(evidences)
 
 
+""" Join
+"""
+
+
+def join_evidence_intervals(
+    environment: Environment, sig_1: EvidenceSignature, sig_2: EvidenceSignature
+) -> Set[EvidenceSignature]:
+    """Compute the join of two intervals in the type system.
+
+    [T1,T2] join [T3,T4] = {[Ti,Tj] | Ti in T1 join T3, Tj in T2 join T4, Ti <: Tj}
+
+    :param environment: The Environment object representing the type system.
+    :param sig_1: The first signature to join.
+    :param sig_2: The second signature to join.
+    :return: A set of EvidenceSignatures that are the join of the two signatures.
+    """
+    lower_bounds = join(
+        environment, sig_1.interval.lower_bound, sig_2.interval.lower_bound
+    )
+    upper_bounds = join(
+        environment, sig_1.interval.upper_bound, sig_2.interval.upper_bound
+    )
+
+    signatures = set()
+    for lower in lower_bounds:
+        for upper in upper_bounds:
+            if is_subtype(environment, lower, upper):
+                interval = EvidenceInterval(lower, upper)
+                signatures.add(EvidenceSignature(sig_1.var, interval))
+    return signatures
+
+
+def join_evidence_specifications(
+    environment: Environment,
+    spec_1: EvidenceSpecification,
+    spec_2: EvidenceSpecification,
+) -> Set[EvidenceSpecification]:
+    """Compute the join of two specifications in the type system: the
+    intersection of their fields, joined pointwise.
+
+    :param environment: The Environment object representing the type system.
+    :param spec_1: The first specification to join.
+    :param spec_2: The second specification to join.
+    :return: A set of EvidenceSpecifications that are the join of the two
+        specifications.
+    """
+    result = set()
+    sigs_1 = {sig.var: sig for sig in spec_1.signatures}
+    sigs_2 = {sig.var: sig for sig in spec_2.signatures}
+
+    joins_by_var = {}
+    for var in sigs_1.keys() & sigs_2.keys():
+        joins = join_evidence_intervals(environment, sigs_1[var], sigs_2[var])
+        if not joins:
+            return set()
+        joins_by_var[var] = joins
+
+    for combo in product(*joins_by_var.values()):
+        result.add(EvidenceSpecification(set(combo)))
+
+    return result
+
+
+def join_evidences(
+    environment: Environment, evidence_1: Evidence, evidence_2: Evidence
+) -> Set[Evidence]:
+    """Compute the join of two evidences in the type system.
+
+    :param environment: The Environment object representing the type system.
+    :param evidence_1: The first evidence to join.
+    :param evidence_2: The second evidence to join.
+    :return: A set of Evidence that are the join of the two evidences.
+    """
+    s1_join_s3 = join_evidence_specifications(
+        environment, evidence_1.specification_1, evidence_2.specification_1
+    )
+    s2_join_s4 = join_evidence_specifications(
+        environment, evidence_1.specification_2, evidence_2.specification_2
+    )
+
+    evidences = set()
+    for s_prime_1 in s1_join_s3:
+        for s_prime_2 in s2_join_s4:
+            if is_subtype_evidence_spec(environment, s_prime_1, s_prime_2):
+                evidences.add(Evidence(s_prime_1, s_prime_2))
+    return evidences
+
+
 """ Precision meet
 """
 

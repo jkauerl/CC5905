@@ -12,11 +12,12 @@ from benchmarks.bench_shapes import (  # noqa: E402
     dense_mi_dag,
     random_dag,
 )
-from src.gradual.evidence.flattening import flatten_anchored, flatten_dp  # noqa: E402
+from src.gradual.evidence.flattening import flatten_dp  # noqa: E402
+from src.gradual.non_degenerate import non_degenerate  # noqa: E402
 from src.gradual.pair_validation import pair_valid, reachable_pairs  # noqa: E402
 
-""" The benchmark: anchored flattening vs the per-pair validator, alternating
-specs, on every family.  Prints the pgfplots coordinates for the three thesis
+""" The benchmark: the flattening vs the per-pair validator and the direct
+non-degeneracy check, alternating specs, on every family.  Prints the pgfplots coordinates for the three thesis
 figures and records the measurements in three CSVs next to this file:
 
   validators_diamonds.csv          fig:flatten-benchmark
@@ -41,28 +42,34 @@ def _print_coords(header, coords):
 def emit(label, instances, rows):
     pair_coords = []
     anch_coords = []
+    nd_coords = []
     stats = []
     for environment, sigma in instances:
         nodes = len(environment.Ns)
         verdict = pair_valid(environment, sigma)
         assert verdict == flatten_dp(environment, sigma)
-        assert verdict == flatten_anchored(environment, sigma)
+        assert verdict == non_degenerate(environment, sigma)
         pair_mean, _ = measure(lambda: pair_valid(environment, sigma))
-        anch_mean, _ = measure(lambda: flatten_anchored(environment, sigma))
+        anch_mean, _ = measure(lambda: flatten_dp(environment, sigma))
+        nd_mean, _ = measure(lambda: non_degenerate(environment, sigma))
         pair_coords.append(f"({nodes},{pair_mean:.6f})")
         anch_coords.append(f"({nodes},{anch_mean:.6f})")
+        nd_coords.append(f"({nodes},{nd_mean:.6f})")
         stats.append((nodes, len(environment.Es),
-                      len(reachable_pairs(environment)), pair_mean, anch_mean))
+                      len(reachable_pairs(environment)), pair_mean, anch_mean,
+                      nd_mean))
 
     print(f"\n% {label}")
-    _print_coords("anchored flattening", anch_coords)
+    _print_coords("flattening", anch_coords)
     _print_coords("per-pair validator", pair_coords)
-    print(f"%   {'nodes':>6} {'edges':>6} {'pairs':>8} {'pair_s':>10} {'anch_s':>10}")
-    for nodes, edges, pairs, pair_mean, anch_mean in stats:
+    _print_coords("non-degeneracy check", nd_coords)
+    print(f"%   {'nodes':>6} {'edges':>6} {'pairs':>8} {'pair_s':>10} "
+          f"{'flat_s':>10} {'nd_s':>10}")
+    for nodes, edges, pairs, pair_mean, anch_mean, nd_mean in stats:
         print(f"%   {nodes:>6} {edges:>6} {pairs:>8} "
-              f"{pair_mean:>10.6f} {anch_mean:>10.6f}")
+              f"{pair_mean:>10.6f} {anch_mean:>10.6f} {nd_mean:>10.6f}")
         rows.append((label, nodes, edges, pairs,
-                     f"{pair_mean:.6f}", f"{anch_mean:.6f}",
+                     f"{pair_mean:.6f}", f"{anch_mean:.6f}", f"{nd_mean:.6f}",
                      f"{pairs / edges:.2f}", f"{pair_mean / anch_mean:.4f}"))
 
 
@@ -71,7 +78,7 @@ def write_csv(name, rows):
     with open(path, "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(["family", "nodes", "edges", "reachable_pairs",
-                         "pair_seconds", "flatten_seconds",
+                         "pair_seconds", "flatten_seconds", "nd_seconds",
                          "pairs_per_edge", "pair_over_flatten"])
         writer.writerows(rows)
     print(f"% written: {path}")
@@ -121,9 +128,8 @@ def main() -> None:
     for label, fam_rows in by_family.items():
         print(f"\n% {label}")
         _print_coords("pair/flattening time ratio vs pairs-per-edge",
-                      [f"({r[6]},{r[7]})" for r in fam_rows])
-    write_csv("validators_crossover_model.csv",
-              [(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7]) for r in model])
+                      [f"({r[7]},{r[8]})" for r in fam_rows])
+    write_csv("validators_crossover_model.csv", model)
 
 
 if __name__ == "__main__":

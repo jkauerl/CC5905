@@ -1,10 +1,9 @@
+from benchmarks.bench_flattening import stacked_diamonds
 from src.gradual.definitions import Edge, Environment, Signature, Specification
 from src.gradual.evidence.flattening import flatten_dp
 from src.gradual.pair_validation import pair_valid
 from src.gradual.types import Unknown
 from src.static.types import ClassName
-
-from benchmarks.bench_flattening import stacked_diamonds
 
 
 def crossing_diamond():
@@ -67,6 +66,7 @@ def test_incompatible_edge_rejected_and_agree():
     assert pair_valid(environment, sigma) is False
 
 
-def test_crossing_diamond_agree():
+def test_crossing_diamond_pair_valid_but_rejected():
     environment, sigma = crossing_diamond()
-    assert flatten_dp(environment, sigma) == pair_valid(environment, sigma)
+    assert pair_valid(environment, sigma) is True
+    assert flatten_dp(environment, sigma) is False

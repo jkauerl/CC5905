@@ -5,8 +5,17 @@ from typing import Dict, List, Tuple
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.gradual.definitions import Edge, Environment, Signature, Specification  # noqa: E402
-from src.gradual.evidence.flattening import Sigma, adjacency, topological_order  # noqa: E402
+from src.gradual.definitions import (  # noqa: E402
+    Edge,
+    Environment,
+    Signature,
+    Specification,
+)
+from src.gradual.evidence.flattening import (  # noqa: E402
+    Sigma,
+    adjacency,
+    topological_order,
+)
 from src.gradual.types import Unknown  # noqa: E402
 from src.static.types import ClassName  # noqa: E402
 

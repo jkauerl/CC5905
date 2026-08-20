@@ -3,11 +3,16 @@ import random
 import re
 import subprocess
 import sys
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.gradual.definitions import Edge, Environment, Signature, Specification  # noqa: E402
+from src.gradual.definitions import (  # noqa: E402
+    Edge,
+    Environment,
+    Signature,
+    Specification,
+)
 from src.gradual.evidence.flattening import flatten_dp  # noqa: E402
 from src.gradual.pair_validation import pair_valid  # noqa: E402
 from src.gradual.types import Unknown  # noqa: E402

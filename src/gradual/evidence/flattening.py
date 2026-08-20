@@ -1,18 +1,15 @@
-from itertools import product
 from typing import Dict, Iterable, List, Optional, Set, Tuple
 
-from ...static.functions import join
-from ...static.subtyping import is_subtype
-from ...static.types import BottomType, ClassName, Type
+from ...static.types import ClassName
 from ..definitions import Environment, Specification
 from .definitions import (
     Evidence,
-    EvidenceInterval,
     EvidenceSignature,
     EvidenceSpecification,
 )
 from .functions import (
     interior_gradual_specification,
+    join_evidences,
     lift_gradual_type,
     meet_evidences,
     transitivity_specifications,
@@ -21,12 +18,12 @@ from .functions import (
 """ Flattening of the hierarchy, in two passes over a topological order:
 
     E_top(N) = MEET_{P in parents(N)}  ( edge(N, P) . E_top(P) )   [identity at roots]
-    E_bot(N) = MEET_{C in children(N)} ( E_bot(C) . edge(C, N) )   [identity at leaves]
+    E_bot(N) = JOIN_{C in children(N)} ( E_bot(C) . edge(C, N) )   [identity at leaves]
     E_comb(N) = combine(E_top(N), E_bot(N))
 
-Valid iff E_comb(N) is non-empty at every node.  The anchored variant stores
-combine(E_top(N), E_bot(N) ∪ anchor_N(E_bot(N))) per node, acceptance still
-gated on the un-anchored combination.  Evidence sets are mutable sets of
+Valid iff E_comb(N) is non-empty at every node; this decides NonDegenerate
+(src/gradual/non_degenerate.py).  The top pass meets across parents, the
+bottom pass joins across children.  Evidence sets are mutable sets of
 Evidence updated in place.
 """
 
@@ -159,6 +156,33 @@ def _meet_fold(
     return result
 
 
+def join_evidence_sets(
+    environment: Environment, evidences_1: EvidenceSet, evidences_2: EvidenceSet
+) -> EvidenceSet:
+    """Join of two evidence sets, accumulated in place.
+
+    :param environment: The Environment object representing the type system.
+    :param evidences_1: The first evidence set.
+    :param evidences_2: The second evidence set.
+    :return: The set of joined Evidences (possibly empty).
+    """
+    result: EvidenceSet = set()
+    for evidence_1 in evidences_1:
+        for evidence_2 in evidences_2:
+            result.update(join_evidences(environment, evidence_1, evidence_2))
+    return result
+
+
+def _join_fold(
+    environment: Environment, evidence_sets: List[EvidenceSet]
+) -> EvidenceSet:
+    """Right fold of the evidence-set join across the sibling chains."""
+    result = evidence_sets[-1]
+    for evidence_set in reversed(evidence_sets[:-1]):
+        result = join_evidence_sets(environment, evidence_set, result)
+    return result
+
+
 def combine_evidences(
     environment: Environment,
     top_evidences: EvidenceSet,
@@ -271,7 +295,7 @@ def e_bot_table(
             )
             for child in node_children
         ]
-        table[node.name] = _meet_fold(environment, chains)
+        table[node.name] = _join_fold(environment, chains)
     return table
 
 
@@ -291,115 +315,4 @@ def flatten_dp(environment: Environment, sigma: Sigma) -> bool:
     for node in environment.Ns:
         if not combine_evidences(environment, top[node.name], bot[node.name]):
             return False
-    return True
-
-
-""" The value anchor: alongside each upward element, the variant whose view
-lower bound is the value slot's lower bound joined with the node's own lifted
-declaration bound (upper bounds kept, filtered by interval well-formedness).
-"""
-
-
-def anchor_floor(sigma: Sigma, node: ClassName) -> Dict[str, Type]:
-    """Per-field floor at a node: the lower bound of its lifted declaration.
-
-    :param sigma: The complete specification assignment.
-    :param node: The node whose declaration provides the floors.
-    :return: A map from field name to the declared lower bound.
-    """
-    lifted = lift_specification(sigma[node.name])
-    return {sig.var: sig.interval.lower_bound for sig in lifted.signatures}
-
-
-def anchor_views(
-    environment: Environment,
-    value_spec: EvidenceSpecification,
-    floor: Dict[str, Type],
-    view_spec: EvidenceSpecification,
-) -> Set[EvidenceSpecification]:
-    """All anchored variants of a view spec against its value spec.
-
-    Per field: the new lower bound ranges over the join of the value slot's
-    lower bound (the view's own when the field has no value entry) with the
-    node's floor, kept only when it stays below the view's upper bound.
-
-    :param environment: The Environment object representing the type system.
-    :param value_spec: The element's value slot.
-    :param floor: The node's per-field declaration floors.
-    :param view_spec: The element's view slot.
-    :return: The set of anchored view specifications (possibly empty).
-    """
-    value_by_var = {sig.var: sig for sig in value_spec.signatures}
-    per_var: List[Set[EvidenceSignature]] = []
-    for sig in view_spec.signatures:
-        interval = sig.interval
-        value_sig = value_by_var.get(sig.var)
-        value_lower = (
-            value_sig.interval.lower_bound
-            if value_sig is not None
-            else interval.lower_bound
-        )
-        floor_lower = floor.get(sig.var, BottomType())
-        candidates = set()
-        for t in join(environment, value_lower, floor_lower):
-            if is_subtype(environment, t, interval.upper_bound):
-                candidates.add(
-                    EvidenceSignature(
-                        sig.var, EvidenceInterval(t, interval.upper_bound)
-                    )
-                )
-        if not candidates:
-            return set()
-        per_var.append(candidates)
-    views = set()
-    for combo in product(*per_var):
-        views.add(EvidenceSpecification(set(combo)))
-    return views
-
-
-def anchored_evidences(
-    environment: Environment, sigma: Sigma, node: ClassName, evidences: EvidenceSet
-) -> EvidenceSet:
-    """The anchored variants of an upward evidence set at a node.
-
-    :param environment: The Environment object representing the type system.
-    :param sigma: The complete specification assignment.
-    :param node: The node whose declaration anchors the views.
-    :param evidences: The node's upward evidence set.
-    :return: The set of anchored variants (value slots kept).
-    """
-    floor = anchor_floor(sigma, node)
-    result: EvidenceSet = set()
-    for evidence in evidences:
-        for view in anchor_views(
-            environment, evidence.specification_1, floor, evidence.specification_2
-        ):
-            result.add(Evidence(evidence.specification_1, view))
-    return result
-
-
-def flatten_anchored(environment: Environment, sigma: Sigma) -> bool:
-    """Anchored flattening: the validator that also builds the anchored table.
-
-    Acceptance is gated on the un-anchored combination; the anchored entry
-    grows the same set in place with the combinations against the anchored
-    variants.
-
-    :param environment: The Environment object representing the type system.
-    :param sigma: The complete specification assignment.
-    :return: True iff the combined evidence is non-empty at every node.
-    """
-    order = topological_order(environment)
-    if order is None:
-        return False
-    edges = edge_table(environment, sigma)
-    top = e_top_table(environment, sigma, order, edges)
-    bot = e_bot_table(environment, sigma, order, edges)
-    for node in environment.Ns:
-        entry = combine_evidences(environment, top[node.name], bot[node.name])
-        if not entry:
-            return False
-        extra = anchored_evidences(environment, sigma, node, bot[node.name])
-        if extra:
-            entry.update(combine_evidences(environment, top[node.name], extra))
     return True
