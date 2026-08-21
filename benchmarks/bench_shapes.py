@@ -98,3 +98,11 @@ def dense_mi_dag(n: int, seed: int) -> Tuple[Environment, Sigma]:
             edges.append(Edge(ClassName(str(child)), ClassName(str(p))))
     sigma = uniform_specs(nodes)
     return Environment(nodes, edges, sigma), sigma
+
+
+def complete_binary_tree(n: int) -> Tuple[Environment, Sigma]:
+    """Complete binary tree on exactly n nodes (node i's parent is i // 2)."""
+    nodes = [ClassName(str(i)) for i in range(1, n + 1)]
+    edges = [Edge(ClassName(str(i)), ClassName(str(i // 2))) for i in range(2, n + 1)]
+    sigma = uniform_specs(nodes)
+    return Environment(nodes, edges, sigma), sigma

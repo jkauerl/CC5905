@@ -9,6 +9,7 @@ from benchmarks.bench_shapes import (  # noqa: E402
     alternate,
     binary_tree,
     chain,
+    complete_binary_tree,
     dense_mi_dag,
     random_dag,
 )
@@ -103,17 +104,19 @@ def main() -> None:
     emit("dense multiple inheritance",
          [alternate(dense_mi_dag(n, seed=7)[0])
           for n in (8, 16, 32, 64, 121, 200, 290, 375, 600, 1200, 2000, 3000,
-                    4500, 6000, 8000)],
+                    4500, 6000, 8000, 9000)],
          families)
     emit("sparse multiple inheritance",
          [alternate(random_dag(n, 2, seed=7)[0])
-          for n in (8, 16, 32, 64, 121, 200, 290, 375)],
+          for n in (8, 16, 32, 64, 121, 200, 290, 375, 600, 1000, 1488)],
          families)
     emit("chain",
-         [alternate(chain(n)[0]) for n in (8, 16, 32, 64, 121, 180, 250)],
+         [alternate(chain(n)[0])
+          for n in (8, 16, 32, 64, 121, 180, 250, 400, 600, 800, 1000)],
          families)
     emit("binary tree",
-         [alternate(binary_tree(d)[0]) for d in (3, 4, 5, 6, 7, 8)],
+         [alternate(binary_tree(d)[0]) for d in (3, 4, 5, 6, 7, 8, 9, 10)]
+         + [alternate(complete_binary_tree(1490)[0])],
          families)
     write_csv("validators_families.csv", families)
 
