@@ -1,8 +1,9 @@
+from itertools import product
 from typing import Any, Callable, Optional, Set
 
 from .definitions import Environment, Signature, Specification
 from .subtyping import is_direct_subtype, is_subtype
-from .types import BottomType, ClassName, TopType, Type
+from .types import BottomType, ClassName, FunctionType, TopType, Type
 
 """ Function to get parent specifications
 """
@@ -181,6 +182,114 @@ def join_unique(environment: Environment, ti: Type, tj: Type) -> Optional[Type]:
         return None
 
 
+def _maximal_lower(environment: Environment, candidates: set[Type]) -> set[Type]:
+    return {
+        t
+        for t in candidates
+        if all(not is_subtype(environment, t, u) for u in candidates if u != t)
+    }
+
+
+def _minimal_upper(environment: Environment, candidates: set[Type]) -> set[Type]:
+    return {
+        t
+        for t in candidates
+        if all(not is_subtype(environment, u, t) for u in candidates if u != t)
+    }
+
+
+def meet_many(environment: Environment, types: list[Type]) -> set[Type]:
+    """The meet of a family of types: its maximal common lower bounds, taken over
+    the whole family (Rocq ``Meet``; computable ``static_unique_meet``).
+
+    ⊥ absorbs, ⊤ is neutral, function types meet by the join of their domains and
+    the meet of their codomains, and a class name beside a function type has no
+    common lower bound but ⊥.
+
+    :param environment: The Environment object representing the type system.
+    :param types: The family of types.
+    :return: The set of maximal common lower bounds.
+    """
+    ts = list(types)
+    if any(isinstance(t, BottomType) for t in ts):
+        return {BottomType()}
+    ts = [t for t in ts if not isinstance(t, TopType)]
+    if not ts:
+        return {TopType()}
+    if all(isinstance(t, FunctionType) for t in ts):
+        arity = len(ts[0].domain)
+        if any(len(t.domain) != arity for t in ts):
+            return {BottomType()}
+        dom_sets = [
+            join_many(environment, [t.domain[i] for t in ts]) for i in range(arity)
+        ]
+        cod_set = meet_many(environment, [t.codomain for t in ts])
+        return {
+            FunctionType(tuple(ds), c) for ds in product(*dom_sets) for c in cod_set
+        }
+    if all(isinstance(t, ClassName) for t in ts):
+        common = set.intersection(*(lower_set(environment, t) for t in ts))
+        return _maximal_lower(environment, common)
+    return {BottomType()}
+
+
+def meet_unique_many(environment: Environment, types: list[Type]) -> Optional[Type]:
+    """The unique meet of a family of types, when ``meet_many`` is a singleton.
+
+    :param environment: The Environment object representing the type system.
+    :param types: The family of types.
+    :return: The unique meet, or None when it is absent or ambiguous.
+    """
+    meet_set = meet_many(environment, types)
+    if len(meet_set) == 1:
+        return next(iter(meet_set))
+    return None
+
+
+def join_many(environment: Environment, types: list[Type]) -> set[Type]:
+    """The join of a family of types: its minimal common upper bounds, taken over
+    the whole family (Rocq ``Join``; computable ``static_unique_join``).
+
+    :param environment: The Environment object representing the type system.
+    :param types: The family of types.
+    :return: The set of minimal common upper bounds.
+    """
+    ts = list(types)
+    if any(isinstance(t, TopType) for t in ts):
+        return {TopType()}
+    ts = [t for t in ts if not isinstance(t, BottomType)]
+    if not ts:
+        return {BottomType()}
+    if all(isinstance(t, FunctionType) for t in ts):
+        arity = len(ts[0].domain)
+        if any(len(t.domain) != arity for t in ts):
+            return {TopType()}
+        dom_sets = [
+            meet_many(environment, [t.domain[i] for t in ts]) for i in range(arity)
+        ]
+        cod_set = join_many(environment, [t.codomain for t in ts])
+        return {
+            FunctionType(tuple(ds), c) for ds in product(*dom_sets) for c in cod_set
+        }
+    if all(isinstance(t, ClassName) for t in ts):
+        common = set.intersection(*(upper_set(environment, t) for t in ts))
+        return _minimal_upper(environment, common)
+    return {TopType()}
+
+
+def join_unique_many(environment: Environment, types: list[Type]) -> Optional[Type]:
+    """The unique join of a family of types, when ``join_many`` is a singleton.
+
+    :param environment: The Environment object representing the type system.
+    :param types: The family of types.
+    :return: The unique join, or None when it is absent or ambiguous.
+    """
+    join_set = join_many(environment, types)
+    if len(join_set) == 1:
+        return next(iter(join_set))
+    return None
+
+
 def proj(x: str, s: Specification) -> Optional[Type]:
     """Returns the type of the variable x in the specification s.
 
@@ -248,14 +357,14 @@ def _inherited_core(
     environment: Environment,
     class_name: ClassName,
     proj_many_function: Callable[[str, Specification], Optional[Type]],
-    meet_unique_function: Callable[[Environment, Any, Any], Optional[Type]],
+    meet_unique_function: Callable[[Environment, list], Optional[Type]],
 ) -> Set[Signature]:
     """Core function to get the inherited variable names and their types.
 
     :param environment: The Environment object representing the type system.
     :param class_name: The class name to check.
     :param proj_many_function: Function to project variable names from specifications.
-    :param meet_unique_function: Function to find the unique meet of two types.
+    :param meet_unique_function: The unique meet of a family of types.
     :return: A dictionary mapping variable names to their inferred types.
     """
     undeclared_names = undeclared(environment, class_name)
@@ -269,14 +378,7 @@ def _inherited_core(
         if not projected_types:
             continue
 
-        current_meet = projected_types[0]
-
-        for other_type in projected_types[1:]:
-            m = meet_unique_function(environment, current_meet, other_type)
-            if m is None:
-                current_meet = None
-                break
-            current_meet = m
+        current_meet = meet_unique_function(environment, projected_types)
 
         if current_meet is not None:
             inherited_vars.add(Signature(var=var, type=current_meet))
@@ -295,7 +397,7 @@ def inherited(environment: Environment, class_name: ClassName) -> Set[Signature]
         environment,
         class_name,
         proj_many,
-        meet_unique,
+        meet_unique_many,
     )
 
 

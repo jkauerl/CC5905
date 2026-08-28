@@ -15,7 +15,7 @@ from benchmarks.bench_shapes import (  # noqa: E402
 )
 from src.gradual.evidence.flattening import flatten_dp  # noqa: E402
 from src.gradual.non_degenerate import non_degenerate  # noqa: E402
-from src.gradual.pair_validation import pair_valid, reachable_pairs  # noqa: E402
+from src.gradual.pair_validation import pair_valid, strict_ancestor_pairs  # noqa: E402
 
 """ The benchmark: the flattening vs the per-pair validator and the direct
 non-degeneracy check, alternating specs, on every family.  Prints the pgfplots coordinates for the three thesis
@@ -57,7 +57,7 @@ def emit(label, instances, rows):
         anch_coords.append(f"({nodes},{anch_mean:.6f})")
         nd_coords.append(f"({nodes},{nd_mean:.6f})")
         stats.append((nodes, len(environment.Es),
-                      len(reachable_pairs(environment)), pair_mean, anch_mean,
+                      len(strict_ancestor_pairs(environment)), pair_mean, anch_mean,
                       nd_mean))
 
     print(f"\n% {label}")
@@ -78,7 +78,7 @@ def write_csv(name, rows):
     path = os.path.join(HERE, name)
     with open(path, "w", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow(["family", "nodes", "edges", "reachable_pairs",
+        writer.writerow(["family", "nodes", "edges", "ancestor_pairs",
                          "pair_seconds", "flatten_seconds", "nd_seconds",
                          "pairs_per_edge", "pair_over_flatten"])
         writer.writerows(rows)

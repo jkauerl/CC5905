@@ -1,11 +1,16 @@
 from collections import defaultdict
-from typing import Callable
+from typing import Any, Callable
 
 from .definitions import (
     Environment,
     Specification,
 )
-from .functions import get_all_parent_specifications, names
+from .functions import (
+    get_all_parent_specifications,
+    meet_unique_many,
+    names,
+    proj_many,
+)
 from .subtyping import is_subtype_spec
 from .types import ClassName
 
@@ -20,18 +25,34 @@ def _minimal_specification_core(
     is_subtype_spec_function: Callable[
         [Environment, Specification, Specification], bool
     ],
+    proj_many_function: Callable[[str, list], list],
+    meet_unique_many_function: Callable[[Environment, list], Any],
 ) -> bool:
     """Core function to check if the given specification is minimal for the given
-    class name.
+    class name: s is below every parent spec, and every member the class
+    inherits without declaring is entered at the defined meet of the parents'
+    entries.
 
     :param class_name: The class name to check.
     :param s: The specification to check.
     :param environment: The Environment object representing the type system.
+    :param proj_many_function: Function to project a member from specifications.
+    :param meet_unique_many_function: The unique meet of a family of types.
     :return: True if the specification is minimal, False otherwise.
     """
     parent_specs = get_all_parent_specifications(environment, class_name)
     for sp in parent_specs:
         if not is_subtype_spec_function(environment, s, sp):
+            return False
+    declared = environment.sigma.get(class_name.name)
+    declared_names = names(declared) if declared is not None else set()
+    for sig in s.signatures:
+        if sig.var in declared_names:
+            continue
+        m = meet_unique_many_function(
+            environment, proj_many_function(sig.var, parent_specs)
+        )
+        if m is None or m != sig.type:
             return False
     return True
 
@@ -47,7 +68,9 @@ def minimal_specification(
     :param s: The specification to check.
     :return: True if the specification is minimal, False otherwise.
     """
-    return _minimal_specification_core(environment, class_name, s, is_subtype_spec)
+    return _minimal_specification_core(
+        environment, class_name, s, is_subtype_spec, proj_many, meet_unique_many
+    )
 
 
 def includes_node(

@@ -64,7 +64,7 @@ verdicts agree on every instance.
 ## FILES
 
 ```
-src/gradual/pair_validation.py       pair_valid, reachable_pairs
+src/gradual/pair_validation.py       pair_valid, strict_ancestor_pairs
 src/gradual/evidence/flattening.py   flatten_dp (⋎ bottom fold, ⋏ top fold, no anchor)
 src/gradual/evidence/functions.py    join_evidence_intervals/_specifications, join_evidences
 src/gradual/non_degenerate.py        non_degenerate, degenerate_nodes (the oracle)

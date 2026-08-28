@@ -8,7 +8,7 @@ import src.gradual.evidence.flattening as flat  # noqa: E402
 from benchmarks.bench_flattening import measure, stacked_diamonds  # noqa: E402
 from benchmarks.bench_shapes import alternate  # noqa: E402
 from src.gradual.non_degenerate import non_degenerate  # noqa: E402
-from src.gradual.pair_validation import pair_valid, reachable_pairs  # noqa: E402
+from src.gradual.pair_validation import pair_valid, strict_ancestor_pairs  # noqa: E402
 
 """ Audit of the benchmark, on alternating-spec stacked diamonds.
 
@@ -103,7 +103,7 @@ def main() -> None:
     for k in (8, 32, 128):
         environment, sigma = alternate(stacked_diamonds(k)[0])
         ops = sum(counted_run(environment, sigma))
-        pairs = len(reachable_pairs(environment))
+        pairs = len(strict_ancestor_pairs(environment))
         flat_mean, _ = measure(lambda: flat.flatten_dp(environment, sigma))
         pair_mean, _ = measure(lambda: pair_valid(environment, sigma))
         us_op = flat_mean / ops * 1e6

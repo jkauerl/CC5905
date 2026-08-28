@@ -4,9 +4,13 @@ from src.static.functions import (
     _get_specifications_core,
     _inherited_core,
     get_all_parent_specifications,
+    join_many,
     join_unique,
+    join_unique_many,
     lower_set,
+    meet_many,
     meet_unique,
+    meet_unique_many,
     names,
     undeclared,
     upper_set,
@@ -127,6 +131,104 @@ def join_unique_consistent(
     return None
 
 
+def meet_unique_consistent_many(
+    environment: Environment, types: list[GradualType]
+) -> Optional[GradualType]:
+    """The gradual unique meet of a family of types (Rocq ``gunique_meet_set``):
+    the abstraction of the static meets of the family's concretizations.
+
+    ⊥ absorbs and ⊤ is neutral.  With a ? among the rest, the result is ⊥ when
+    the remaining types are a class name beside a function type, or class names
+    with no common lower node, and ? otherwise.  Without ?, class names meet as
+    static types, function types by the join of their domains and the meet of
+    their codomains, and a name beside a function type gives ⊥.
+
+    :param environment: The Environment object representing the type system.
+    :param types: The family of gradual types.
+    :return: The unique meet, or None when it is absent or ambiguous.
+    """
+    ts = list(types)
+    if any(isinstance(t, BottomType) for t in ts):
+        return BottomType()
+    ts = [t for t in ts if not isinstance(t, TopType)]
+    if not ts:
+        return TopType()
+    if any(isinstance(t, Unknown) for t in ts):
+        rest = [t for t in ts if not isinstance(t, Unknown)]
+        if not rest:
+            return Unknown()
+        if all(isinstance(t, ClassName) for t in rest):
+            if meet_many(environment, rest) == {BottomType()}:
+                return BottomType()
+            return Unknown()
+        if all(isinstance(t, GradualFunctionType) for t in rest):
+            return Unknown()
+        return BottomType()
+    if all(isinstance(t, ClassName) for t in ts):
+        return meet_unique_many(environment, ts)
+    if all(isinstance(t, GradualFunctionType) for t in ts):
+        arity = len(ts[0].domain)
+        if any(len(t.domain) != arity for t in ts):
+            return BottomType()
+        args = [
+            join_unique_consistent_many(environment, [t.domain[i] for t in ts])
+            for i in range(arity)
+        ]
+        if any(a is None for a in args):
+            return None
+        ret = meet_unique_consistent_many(environment, [t.codomain for t in ts])
+        if ret is None:
+            return None
+        return GradualFunctionType(tuple(args), ret)
+    return BottomType()
+
+
+def join_unique_consistent_many(
+    environment: Environment, types: list[GradualType]
+) -> Optional[GradualType]:
+    """The gradual unique join of a family of types (Rocq ``gunique_join_set``),
+    dual to ``meet_unique_consistent_many``.
+
+    :param environment: The Environment object representing the type system.
+    :param types: The family of gradual types.
+    :return: The unique join, or None when it is absent or ambiguous.
+    """
+    ts = list(types)
+    if any(isinstance(t, TopType) for t in ts):
+        return TopType()
+    ts = [t for t in ts if not isinstance(t, BottomType)]
+    if not ts:
+        return BottomType()
+    if any(isinstance(t, Unknown) for t in ts):
+        rest = [t for t in ts if not isinstance(t, Unknown)]
+        if not rest:
+            return Unknown()
+        if all(isinstance(t, ClassName) for t in rest):
+            if join_many(environment, rest) == {TopType()}:
+                return TopType()
+            return Unknown()
+        if all(isinstance(t, GradualFunctionType) for t in rest):
+            return Unknown()
+        return TopType()
+    if all(isinstance(t, ClassName) for t in ts):
+        return join_unique_many(environment, ts)
+    if all(isinstance(t, GradualFunctionType) for t in ts):
+        arity = len(ts[0].domain)
+        if any(len(t.domain) != arity for t in ts):
+            return TopType()
+        args = [
+            meet_unique_consistent_many(environment, [t.domain[i] for t in ts])
+            for i in range(arity)
+        ]
+        if any(a is None for a in args):
+            return None
+        ret = join_unique_consistent_many(environment, [t.codomain for t in ts])
+        if ret is None:
+            return None
+        return GradualFunctionType(tuple(args), ret)
+    return TopType()
+
+
 def proj(x: str, s: Specification) -> Optional[GradualType]:
     """Project a variable name from a specification to its type.
 
@@ -162,7 +264,9 @@ def inherited(environment: Environment, class_name: ClassName) -> Signature:
     :param class_name: The class name to get inherited specifications for.
     :return: A list of inherited specifications.
     """
-    return _inherited_core(environment, class_name, proj_many, meet_unique_consistent)
+    return _inherited_core(
+        environment, class_name, proj_many, meet_unique_consistent_many
+    )
 
 
 def get_specifications(

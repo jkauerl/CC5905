@@ -54,6 +54,40 @@ def _ancestor_closure(environment: Environment) -> dict:
     return cache
 
 
+def _descendant_closure(environment: Environment) -> dict:
+    """The inverse of the ancestor closure, cached: name -> set of names
+    reaching it."""
+    cache = getattr(environment, "_descendant_closure", None)
+    if cache is None:
+        cache = {}
+        for name, ancestors in _ancestor_closure(environment).items():
+            cache.setdefault(name, set())
+            for ancestor in ancestors:
+                cache.setdefault(ancestor, set()).add(name)
+        environment._descendant_closure = cache
+    return cache
+
+
+def supertype_names(environment: Environment, name: str) -> set:
+    """{ A | N <: A } on names: N itself and everything it reaches.
+
+    :param environment: The Environment object representing the type system.
+    :param name: The name N.
+    :return: The set of names A with N <: A.
+    """
+    return {name} | _ancestor_closure(environment).get(name, set())
+
+
+def subtype_names(environment: Environment, name: str) -> set:
+    """{ C | C <: N } on names: N itself and everything reaching it.
+
+    :param environment: The Environment object representing the type system.
+    :param name: The name N.
+    :return: The set of names C with C <: N.
+    """
+    return {name} | _descendant_closure(environment).get(name, set())
+
+
 def is_subtype(environment: Environment, t1: Type, t2: Type, visited=None) -> bool:
     """Check if t1 is a subtype of t2 in the Environment type system.
 

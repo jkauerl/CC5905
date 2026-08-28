@@ -1,20 +1,22 @@
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Tuple
 
-from ..static.subtyping import _ancestor_closure, is_subtype
+from ..static.subtyping import is_subtype
 from ..static.types import BottomType, TopType, Type
 from .definitions import Environment, Specification
+from .neighbours import ancestors, descendants
 from .types import GradualFunctionType, GradualType, Unknown
 
 """ Non-degeneracy: the specification the flattening decides.
 
-    NonDegenerate(Sigma)  <=>  for all N.  exists t_N in gamma(Sigma(N)).
-        ( for all A.  N ->+ A  =>  exists t_A in gamma(Sigma(A)).  t_N <:s t_A )
+    NonDegenerate(Sigma)  <=>  for all N in nodes.  exists t_N in gamma(Sigma(N)).
+        ( for all A in Anc(N).   exists t_A in gamma(Sigma(A)).  t_N <:s t_A )
       and
-        ( for all C.  C ->+ N  =>  exists t_C in gamma(Sigma(C)).  t_C <:s t_N )
+        ( for all C in Desc(N).  exists t_C in gamma(Sigma(C)).  t_C <:s t_N )
 
-One concrete witness per node, shared by every pair through it.  It implies
-PairValid (each pair's witnesses are t_N and t_A); the converse fails on
-graphs with non-unique meets (the crossing diamond).
+One concrete witness per node, shared by every pair through it (ancestors
+and descendants from src/gradual/neighbours.py).  It implies PairValid (each
+pair's witnesses are t_N and t_A); the converse fails on graphs with
+non-unique meets (the crossing diamond).
 
 Decision procedure.  Static spec subtyping t <:s t' is width + pointwise
 covariant, and gamma keeps a spec's fields, so the witness exists iff the
@@ -28,18 +30,6 @@ function-typed fields are out of scope here and rejected.
 
 
 Sigma = Dict[str, Specification]
-
-
-def _descendant_closure(environment: Environment) -> Dict[str, Set[str]]:
-    """Invert the cached ancestor closure: name -> names reaching it."""
-    cache = getattr(environment, "_descendant_closure", None)
-    if cache is None:
-        cache = {node.name: set() for node in environment.Ns}
-        for name, ancestors in _ancestor_closure(environment).items():
-            for ancestor in ancestors:
-                cache.setdefault(ancestor, set()).add(name)
-        environment._descendant_closure = cache
-    return cache
 
 
 def concretizations(environment: Environment, t: GradualType) -> List[Type]:
@@ -71,14 +61,12 @@ def degenerate_nodes(
     :return: The list of (node, field) pairs; field is None when the domains
         fail to nest.
     """
-    ancestors = _ancestor_closure(environment)
-    descendants = _descendant_closure(environment)
     specs = {node.name: _by_var(sigma[node.name]) for node in environment.Ns}
     failures: List[Tuple[str, Optional[str]]] = []
     for node in environment.Ns:
         own = specs[node.name]
-        above = [specs[a] for a in ancestors.get(node.name, ())]
-        below = [specs[c] for c in descendants.get(node.name, ())]
+        above = [specs[a] for a in ancestors(environment, node.name)]
+        below = [specs[c] for c in descendants(environment, node.name)]
         if any(not spec.keys() <= own.keys() for spec in above) or any(
             not own.keys() <= spec.keys() for spec in below
         ):

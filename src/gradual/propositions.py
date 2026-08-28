@@ -1,3 +1,4 @@
+from src.gradual.functions import meet_unique_consistent_many, proj_many
 from src.gradual.subtyping import is_subtype_spec
 from src.static.propositions import (
     _minimal_specification_core,
@@ -32,4 +33,11 @@ def minimal_specification(
     :param s: The specification to check.
     :return: True if the specification is minimal, False otherwise.
     """
-    return _minimal_specification_core(environment, class_name, s, is_subtype_spec)
+    return _minimal_specification_core(
+        environment,
+        class_name,
+        s,
+        is_subtype_spec,
+        proj_many,
+        meet_unique_consistent_many,
+    )
