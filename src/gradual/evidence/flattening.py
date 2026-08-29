@@ -28,10 +28,12 @@ Valid iff E_comb(N) is non-empty at every node; this decides NonDegenerate
 bottom pass joins across children.  Evidence sets are mutable sets of
 Evidence updated in place.
 
-The filtered flattening (flatten_max) keeps, after every pair step of the
-top fold, only the evidences that are maximal in the componentwise bound
-order (evidence_below), and dually the minimal ones in the bottom fold; it
-decides the same specification (Rocq flatten_graph_max_NonDegenerate_equiv).
+The sibling meet keeps, after every pair step of the top fold, only the
+evidences that are maximal in the componentwise bound order (evidence_below),
+and the sibling join dually the minimal ones, so that both are operations on
+sets (Rocq flatten_graph, flatten_graph_NonDegenerate_equiv).
+flatten_unfiltered keeps every candidate; it is the proof engine of the Rocq
+completeness proof (flatten_graph_unfiltered).
 """
 
 
@@ -345,7 +347,7 @@ def e_top_table(
     sigma: Sigma,
     order: List[ClassName],
     edges: Optional[Dict[Tuple[str, str], EvidenceSet]] = None,
-    filtered: bool = False,
+    filtered: bool = True,
 ) -> Dict[str, EvidenceSet]:
     """Downward pass over the whole graph, each node computed once.
 
@@ -383,7 +385,7 @@ def e_bot_table(
     sigma: Sigma,
     order: List[ClassName],
     edges: Optional[Dict[Tuple[str, str], EvidenceSet]] = None,
-    filtered: bool = False,
+    filtered: bool = True,
 ) -> Dict[str, EvidenceSet]:
     """Upward pass over the whole graph, each node computed once.
 
@@ -416,40 +418,35 @@ def e_bot_table(
     return table
 
 
+def _flatten(environment: Environment, sigma: Sigma, filtered: bool) -> bool:
+    order = topological_order(environment)
+    if order is None:
+        return False
+    edges = edge_table(environment, sigma)
+    top = e_top_table(environment, sigma, order, edges, filtered=filtered)
+    bot = e_bot_table(environment, sigma, order, edges, filtered=filtered)
+    for node in environment.Ns:
+        if not combine_evidences(environment, top[node.name], bot[node.name]):
+            return False
+    return True
+
+
 def flatten_dp(environment: Environment, sigma: Sigma) -> bool:
-    """Flattening validator: each node's evidence computed exactly once.
+    """Flattening validator: each node's evidence computed exactly once, the
+    maximal evidences kept in the top pass and the minimal ones in the bottom.
 
     :param environment: The Environment object representing the type system.
     :param sigma: The complete specification assignment.
     :return: True iff the combined evidence is non-empty at every node.
     """
-    order = topological_order(environment)
-    if order is None:
-        return False
-    edges = edge_table(environment, sigma)
-    top = e_top_table(environment, sigma, order, edges)
-    bot = e_bot_table(environment, sigma, order, edges)
-    for node in environment.Ns:
-        if not combine_evidences(environment, top[node.name], bot[node.name]):
-            return False
-    return True
+    return _flatten(environment, sigma, filtered=True)
 
 
-def flatten_max(environment: Environment, sigma: Sigma) -> bool:
-    """Filtered flattening validator: the maximal evidences are kept in the
-    top pass and the minimal ones in the bottom pass.
+def flatten_unfiltered(environment: Environment, sigma: Sigma) -> bool:
+    """Unfiltered flattening: every candidate evidence kept at every merge.
 
     :param environment: The Environment object representing the type system.
     :param sigma: The complete specification assignment.
     :return: True iff the combined evidence is non-empty at every node.
     """
-    order = topological_order(environment)
-    if order is None:
-        return False
-    edges = edge_table(environment, sigma)
-    top = e_top_table(environment, sigma, order, edges, filtered=True)
-    bot = e_bot_table(environment, sigma, order, edges, filtered=True)
-    for node in environment.Ns:
-        if not combine_evidences(environment, top[node.name], bot[node.name]):
-            return False
-    return True
+    return _flatten(environment, sigma, filtered=False)

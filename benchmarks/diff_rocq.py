@@ -13,20 +13,21 @@ from src.gradual.definitions import (  # noqa: E402
     Signature,
     Specification,
 )
-from src.gradual.evidence.flattening import flatten_dp, flatten_max  # noqa: E402
+from src.gradual.evidence.flattening import flatten_dp, flatten_unfiltered  # noqa: E402
 from src.gradual.pair_validation import pair_valid  # noqa: E402
 from src.gradual.types import Unknown  # noqa: E402
 from src.static.types import BottomType, ClassName, TopType  # noqa: E402
 
 ROCQ_DIR = r"C:\Users\kauer\Documents\Universidad\Magister\thesis\rocq"
 
-""" Differential test: the Python flattening and filtered flattening against
-the mechanized Rocq validators (flatten_check, the Boolean form of
-flatten_graph, and flatten_graph_max), on the same graph instances.  All
-four must agree on every instance: each decides NonDegenerate
-(flatten_graph_NonDegenerate_equiv, flatten_graph_max_NonDegenerate_equiv).
-The per-pair verdict is reported for information only; it is strictly weaker
-(the separation instance is PairValid and rejected).
+""" Differential test: the Python flattening and its unfiltered engine against
+the mechanized Rocq validator flatten_graph and its unfiltered engine
+(flatten_check_unfiltered, the Boolean form of flatten_graph_unfiltered), on
+the same graph instances.  All four must agree on every instance: each
+decides NonDegenerate (flatten_graph_NonDegenerate_equiv,
+flatten_graph_unfiltered_NonDegenerate_equiv).  The per-pair verdict is
+reported for information only; it is strictly weaker (the separation instance
+is PairValid and rejected).
 
 An instance is (nodes, edges, specs):
   - nodes: 1..n  (Rocq Name = nat; Python ClassName(str(i)))
@@ -159,7 +160,7 @@ def py_verdicts(inst: Instance) -> Tuple[bool, bool, bool]:
     environment = Environment(nodes, es, sigma)
     return (
         flatten_dp(environment, sigma),
-        flatten_max(environment, sigma),
+        flatten_unfiltered(environment, sigma),
         pair_valid(environment, sigma),
     )
 
@@ -195,8 +196,9 @@ Definition Sigma{idx} (N : Name) : GSpec :=
   | _ => []
   end.
 Definition phi{idx} : GGraph := mkGGraph env{idx} Sigma{idx}.
-Eval lazy in ("{name}", flatten_check phi{idx} Sigma{idx},
-  match flatten_graph_max phi{idx} Sigma{idx} with Some _ => true | None => false end).
+Eval lazy in ("{name}",
+  match flatten_graph phi{idx} Sigma{idx} with Some _ => true | None => false end,
+  flatten_check_unfiltered phi{idx} Sigma{idx}).
 """
 
 
@@ -253,8 +255,8 @@ def main() -> None:
     if len(rocq) != len(instances):
         print(f"WARNING: parsed {len(rocq)} Rocq verdicts for {len(instances)} instances")
 
-    header = (f"{'instance':<18} {'py flat':>8} {'py max':>8} {'rocq':>6} "
-              f"{'rocq max':>9} {'py pair':>8}  status")
+    header = (f"{'instance':<18} {'py flat':>8} {'py unfl':>8} {'rocq':>6} "
+              f"{'rocq unfl':>9} {'py pair':>8}  status")
     print(header)
     agree = 0
     diverge: List[str] = []

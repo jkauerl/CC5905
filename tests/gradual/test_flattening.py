@@ -12,7 +12,7 @@ from src.gradual.evidence.flattening import (
     edge_table,
     evidence_below,
     flatten_dp,
-    flatten_max,
+    flatten_unfiltered,
     max_filter,
     min_filter,
     topological_order,
@@ -88,14 +88,14 @@ def test_crossing_diamond_pair_valid_but_rejected():
     assert flatten_dp(environment, sigma) is False
 
 
-def test_filtered_flattening_agrees_with_flattening():
+def test_unfiltered_flattening_agrees_with_flattening():
     for k in range(1, 5):
         environment, sigma = stacked_diamonds(k)
-        assert flatten_max(environment, sigma) is True
+        assert flatten_unfiltered(environment, sigma) is True
     environment, sigma = incompatible_edge()
-    assert flatten_max(environment, sigma) is False
+    assert flatten_unfiltered(environment, sigma) is False
     environment, sigma = crossing_diamond()
-    assert flatten_max(environment, sigma) is False
+    assert flatten_unfiltered(environment, sigma) is False
 
 
 def test_filtered_tables_are_inside_the_unfiltered_ones():
@@ -103,10 +103,10 @@ def test_filtered_tables_are_inside_the_unfiltered_ones():
         environment, sigma = instance
         order = topological_order(environment)
         edges = edge_table(environment, sigma)
-        top = e_top_table(environment, sigma, order, edges)
-        top_max = e_top_table(environment, sigma, order, edges, filtered=True)
-        bot = e_bot_table(environment, sigma, order, edges)
-        bot_min = e_bot_table(environment, sigma, order, edges, filtered=True)
+        top = e_top_table(environment, sigma, order, edges, filtered=False)
+        top_max = e_top_table(environment, sigma, order, edges)
+        bot = e_bot_table(environment, sigma, order, edges, filtered=False)
+        bot_min = e_bot_table(environment, sigma, order, edges)
         for node in environment.Ns:
             assert top_max[node.name] <= top[node.name]
             assert bot_min[node.name] <= bot[node.name]
