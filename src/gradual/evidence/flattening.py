@@ -4,6 +4,7 @@ from ...static.types import ClassName
 from ..definitions import Environment, Specification
 from .definitions import (
     Evidence,
+    EvidenceInterval,
     EvidenceSignature,
     EvidenceSpecification,
 )
@@ -14,6 +15,7 @@ from .functions import (
     meet_evidences,
     transitivity_specifications,
 )
+from .subtyping import is_subtype_interval
 
 """ Flattening of the hierarchy, in two passes over a topological order:
 
@@ -25,6 +27,11 @@ Valid iff E_comb(N) is non-empty at every node; this decides NonDegenerate
 (src/gradual/non_degenerate.py).  The top pass meets across parents, the
 bottom pass joins across children.  Evidence sets are mutable sets of
 Evidence updated in place.
+
+The filtered flattening (flatten_max) keeps, after every pair step of the
+top fold, only the evidences that are maximal in the componentwise bound
+order (evidence_below), and dually the minimal ones in the bottom fold; it
+decides the same specification (Rocq flatten_graph_max_NonDegenerate_equiv).
 """
 
 
@@ -183,6 +190,110 @@ def _join_fold(
     return result
 
 
+def _lookup_interval(
+    specification: EvidenceSpecification, var: str
+) -> Optional[EvidenceInterval]:
+    for signature in specification.signatures:
+        if signature.var == var:
+            return signature.interval
+    return None
+
+
+def _specification_below(
+    environment: Environment,
+    specification_1: EvidenceSpecification,
+    specification_2: EvidenceSpecification,
+) -> bool:
+    """Componentwise bound order on evidence specifications: every field of
+    the first has an entry in the second with both bounds below."""
+    for signature in specification_1.signatures:
+        other = _lookup_interval(specification_2, signature.var)
+        if other is None or not is_subtype_interval(
+            environment, signature.interval, other
+        ):
+            return False
+    return True
+
+
+def evidence_below(
+    environment: Environment, evidence_1: Evidence, evidence_2: Evidence
+) -> bool:
+    """Componentwise bound order on evidences, both slots.
+
+    :param environment: The Environment object representing the type system.
+    :param evidence_1: The first evidence.
+    :param evidence_2: The second evidence.
+    :return: True iff evidence_1 is below evidence_2 in both slots.
+    """
+    return _specification_below(
+        environment, evidence_1.specification_1, evidence_2.specification_1
+    ) and _specification_below(
+        environment, evidence_1.specification_2, evidence_2.specification_2
+    )
+
+
+def max_filter(environment: Environment, evidences: EvidenceSet) -> EvidenceSet:
+    """Keep the evidences maximal in the bound order (no strict dominator).
+
+    :param environment: The Environment object representing the type system.
+    :param evidences: The evidence set to filter.
+    :return: The maximal evidences of the set.
+    """
+    kept: EvidenceSet = set()
+    for evidence in evidences:
+        if not any(
+            evidence_below(environment, evidence, other)
+            and not evidence_below(environment, other, evidence)
+            for other in evidences
+        ):
+            kept.add(evidence)
+    return kept
+
+
+def min_filter(environment: Environment, evidences: EvidenceSet) -> EvidenceSet:
+    """Keep the evidences minimal in the bound order (no strict dominatee).
+
+    :param environment: The Environment object representing the type system.
+    :param evidences: The evidence set to filter.
+    :return: The minimal evidences of the set.
+    """
+    kept: EvidenceSet = set()
+    for evidence in evidences:
+        if not any(
+            evidence_below(environment, other, evidence)
+            and not evidence_below(environment, evidence, other)
+            for other in evidences
+        ):
+            kept.add(evidence)
+    return kept
+
+
+def _meet_fold_max(
+    environment: Environment, evidence_sets: List[EvidenceSet]
+) -> EvidenceSet:
+    """Right fold of the evidence-set meet, keeping the maximal evidences
+    after every pair step (a single chain is not filtered)."""
+    result = evidence_sets[-1]
+    for evidence_set in reversed(evidence_sets[:-1]):
+        result = max_filter(
+            environment, meet_evidence_sets(environment, evidence_set, result)
+        )
+    return result
+
+
+def _join_fold_min(
+    environment: Environment, evidence_sets: List[EvidenceSet]
+) -> EvidenceSet:
+    """Right fold of the evidence-set join, keeping the minimal evidences
+    after every pair step (a single chain is not filtered)."""
+    result = evidence_sets[-1]
+    for evidence_set in reversed(evidence_sets[:-1]):
+        result = min_filter(
+            environment, join_evidence_sets(environment, evidence_set, result)
+        )
+    return result
+
+
 def combine_evidences(
     environment: Environment,
     top_evidences: EvidenceSet,
@@ -234,6 +345,7 @@ def e_top_table(
     sigma: Sigma,
     order: List[ClassName],
     edges: Optional[Dict[Tuple[str, str], EvidenceSet]] = None,
+    filtered: bool = False,
 ) -> Dict[str, EvidenceSet]:
     """Downward pass over the whole graph, each node computed once.
 
@@ -241,10 +353,12 @@ def e_top_table(
     :param sigma: The complete specification assignment.
     :param order: A topological order (parents before children).
     :param edges: An edge_table to reuse; computed on the spot when absent.
+    :param filtered: Keep only the maximal evidences after every pair step.
     :return: The table of downward evidence sets, indexed by node name.
     """
     if edges is None:
         edges = edge_table(environment, sigma)
+    fold = _meet_fold_max if filtered else _meet_fold
     parents, _ = adjacency(environment)
     table: Dict[str, EvidenceSet] = {}
     for node in order:
@@ -260,7 +374,7 @@ def e_top_table(
             )
             for parent in node_parents
         ]
-        table[node.name] = _meet_fold(environment, chains)
+        table[node.name] = fold(environment, chains)
     return table
 
 
@@ -269,6 +383,7 @@ def e_bot_table(
     sigma: Sigma,
     order: List[ClassName],
     edges: Optional[Dict[Tuple[str, str], EvidenceSet]] = None,
+    filtered: bool = False,
 ) -> Dict[str, EvidenceSet]:
     """Upward pass over the whole graph, each node computed once.
 
@@ -276,10 +391,12 @@ def e_bot_table(
     :param sigma: The complete specification assignment.
     :param order: A topological order (parents before children); traversed reversed.
     :param edges: An edge_table to reuse; computed on the spot when absent.
+    :param filtered: Keep only the minimal evidences after every pair step.
     :return: The table of upward evidence sets, indexed by node name.
     """
     if edges is None:
         edges = edge_table(environment, sigma)
+    fold = _join_fold_min if filtered else _join_fold
     _, children = adjacency(environment)
     table: Dict[str, EvidenceSet] = {}
     for node in reversed(order):
@@ -295,7 +412,7 @@ def e_bot_table(
             )
             for child in node_children
         ]
-        table[node.name] = _join_fold(environment, chains)
+        table[node.name] = fold(environment, chains)
     return table
 
 
@@ -312,6 +429,26 @@ def flatten_dp(environment: Environment, sigma: Sigma) -> bool:
     edges = edge_table(environment, sigma)
     top = e_top_table(environment, sigma, order, edges)
     bot = e_bot_table(environment, sigma, order, edges)
+    for node in environment.Ns:
+        if not combine_evidences(environment, top[node.name], bot[node.name]):
+            return False
+    return True
+
+
+def flatten_max(environment: Environment, sigma: Sigma) -> bool:
+    """Filtered flattening validator: the maximal evidences are kept in the
+    top pass and the minimal ones in the bottom pass.
+
+    :param environment: The Environment object representing the type system.
+    :param sigma: The complete specification assignment.
+    :return: True iff the combined evidence is non-empty at every node.
+    """
+    order = topological_order(environment)
+    if order is None:
+        return False
+    edges = edge_table(environment, sigma)
+    top = e_top_table(environment, sigma, order, edges, filtered=True)
+    bot = e_bot_table(environment, sigma, order, edges, filtered=True)
     for node in environment.Ns:
         if not combine_evidences(environment, top[node.name], bot[node.name]):
             return False

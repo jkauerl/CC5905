@@ -13,18 +13,20 @@ from src.gradual.definitions import (  # noqa: E402
     Signature,
     Specification,
 )
-from src.gradual.evidence.flattening import flatten_dp  # noqa: E402
+from src.gradual.evidence.flattening import flatten_dp, flatten_max  # noqa: E402
 from src.gradual.pair_validation import pair_valid  # noqa: E402
 from src.gradual.types import Unknown  # noqa: E402
 from src.static.types import BottomType, ClassName, TopType  # noqa: E402
 
 ROCQ_DIR = r"C:\Users\kauer\Documents\Universidad\Magister\thesis\rocq"
 
-""" Differential test: the Python flattening and per-pair validator against
-the mechanized Rocq validators (flatten_check and flatten_table_check, the
-Boolean forms of flatten_graph and flatten_graph_table), on the
-same graph instances.  All four must agree on every instance --- the flattening
-and the per-pair validator by the flattening correctness theorem.
+""" Differential test: the Python flattening and filtered flattening against
+the mechanized Rocq validators (flatten_check, the Boolean form of
+flatten_graph, and flatten_graph_max), on the same graph instances.  All
+four must agree on every instance: each decides NonDegenerate
+(flatten_graph_NonDegenerate_equiv, flatten_graph_max_NonDegenerate_equiv).
+The per-pair verdict is reported for information only; it is strictly weaker
+(the separation instance is PairValid and rejected).
 
 An instance is (nodes, edges, specs):
   - nodes: 1..n  (Rocq Name = nat; Python ClassName(str(i)))
@@ -144,7 +146,7 @@ def py_type(t: Ty):
             return Unknown()
 
 
-def py_verdicts(inst: Instance) -> Tuple[bool, bool]:
+def py_verdicts(inst: Instance) -> Tuple[bool, bool, bool]:
     _, n, edges, specs = inst
     nodes = [ClassName(str(i)) for i in range(1, n + 1)]
     es = [Edge(ClassName(str(c)), ClassName(str(p))) for (c, p) in edges]
@@ -155,7 +157,11 @@ def py_verdicts(inst: Instance) -> Tuple[bool, bool]:
         for i in range(1, n + 1)
     }
     environment = Environment(nodes, es, sigma)
-    return flatten_dp(environment, sigma), pair_valid(environment, sigma)
+    return (
+        flatten_dp(environment, sigma),
+        flatten_max(environment, sigma),
+        pair_valid(environment, sigma),
+    )
 
 
 # ---------------------------------------------------------------- Rocq side
@@ -189,7 +195,8 @@ Definition Sigma{idx} (N : Name) : GSpec :=
   | _ => []
   end.
 Definition phi{idx} : GGraph := mkGGraph env{idx} Sigma{idx}.
-Eval lazy in ("{name}", flatten_check phi{idx} Sigma{idx}, flatten_table_check phi{idx} Sigma{idx}).
+Eval lazy in ("{name}", flatten_check phi{idx} Sigma{idx},
+  match flatten_graph_max phi{idx} Sigma{idx} with Some _ => true | None => false end).
 """
 
 
@@ -222,7 +229,7 @@ def rocq_verdicts(instances: List[Instance]) -> Dict[str, Tuple[bool, bool]]:
             raise RuntimeError("rocq compile DiffCheck.v failed")
         out = result.stdout
     finally:
-        for ext in (".v", ".vo", ".glob"):
+        for ext in (".v", ".vo", ".vos", ".vok", ".glob"):
             p = os.path.join(ROCQ_DIR, "DiffCheck" + ext)
             if os.path.exists(p):
                 os.remove(p)
@@ -246,32 +253,35 @@ def main() -> None:
     if len(rocq) != len(instances):
         print(f"WARNING: parsed {len(rocq)} Rocq verdicts for {len(instances)} instances")
 
-    header = f"{'instance':<18} {'py flat':>8} {'py pair':>8} {'rocq':>6} {'rocq tbl':>9}  status"
+    header = (f"{'instance':<18} {'py flat':>8} {'py max':>8} {'rocq':>6} "
+              f"{'rocq max':>9} {'py pair':>8}  status")
     print(header)
     agree = 0
     diverge: List[str] = []
     for inst in instances:
         name = inst[0]
-        pf, pp = py_verdicts(inst)
+        pf, pm, pp = py_verdicts(inst)
         rq = rocq.get(name)
         if rq is None:
-            print(f"{name:<18} {str(pf):>8} {str(pp):>8} {'?':>6} {'?':>9}  MISSING")
+            print(f"{name:<18} {str(pf):>8} {str(pm):>8} {'?':>6} {'?':>9} "
+                  f"{str(pp):>8}  MISSING")
             diverge.append(name)
             continue
-        rf, rt = rq
-        ok = pf == pp == rf == rt
+        rf, rm = rq
+        ok = pf == pm == rf == rm
         status = "ok" if ok else "DIVERGE"
         if ok:
             agree += 1
         else:
             diverge.append(name)
-        print(f"{name:<18} {str(pf):>8} {str(pp):>8} {str(rf):>6} {str(rt):>9}  {status}")
+        print(f"{name:<18} {str(pf):>8} {str(pm):>8} {str(rf):>6} {str(rm):>9} "
+              f"{str(pp):>8}  {status}")
 
     print(f"\nagreement: {agree}/{len(instances)}")
     if diverge:
         print("divergent instances:", ", ".join(diverge))
         sys.exit(1)
-    print("all four validators agree on every instance")
+    print("the four NonDegenerate deciders agree on every instance")
 
 
 if __name__ == "__main__":

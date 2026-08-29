@@ -13,13 +13,14 @@ from benchmarks.bench_shapes import (  # noqa: E402
     dense_mi_dag,
     random_dag,
 )
-from src.gradual.evidence.flattening import flatten_dp  # noqa: E402
+from src.gradual.evidence.flattening import flatten_dp, flatten_max  # noqa: E402
 from src.gradual.non_degenerate import non_degenerate  # noqa: E402
 from src.gradual.pair_validation import pair_valid, strict_ancestor_pairs  # noqa: E402
 
-""" The benchmark: the flattening vs the per-pair validator and the direct
-non-degeneracy check, alternating specs, on every family.  Prints the pgfplots coordinates for the three thesis
-figures and records the measurements in three CSVs next to this file:
+""" The benchmark: the flattening (unfiltered and filtered) vs the per-pair
+validator and the direct non-degeneracy check, alternating specs, on every
+family.  Prints the pgfplots coordinates for the three thesis figures and
+records the measurements in three CSVs next to this file:
 
   validators_diamonds.csv          fig:flatten-benchmark
   validators_families.csv          fig:flatten-shapes-panels
@@ -43,35 +44,42 @@ def _print_coords(header, coords):
 def emit(label, instances, rows):
     pair_coords = []
     anch_coords = []
+    max_coords = []
     nd_coords = []
     stats = []
     for environment, sigma in instances:
         nodes = len(environment.Ns)
         verdict = pair_valid(environment, sigma)
         assert verdict == flatten_dp(environment, sigma)
+        assert verdict == flatten_max(environment, sigma)
         assert verdict == non_degenerate(environment, sigma)
         pair_mean, _ = measure(lambda: pair_valid(environment, sigma))
         anch_mean, _ = measure(lambda: flatten_dp(environment, sigma))
+        max_mean, _ = measure(lambda: flatten_max(environment, sigma))
         nd_mean, _ = measure(lambda: non_degenerate(environment, sigma))
         pair_coords.append(f"({nodes},{pair_mean:.6f})")
         anch_coords.append(f"({nodes},{anch_mean:.6f})")
+        max_coords.append(f"({nodes},{max_mean:.6f})")
         nd_coords.append(f"({nodes},{nd_mean:.6f})")
         stats.append((nodes, len(environment.Es),
                       len(strict_ancestor_pairs(environment)), pair_mean, anch_mean,
-                      nd_mean))
+                      max_mean, nd_mean))
 
     print(f"\n% {label}")
     _print_coords("flattening", anch_coords)
+    _print_coords("filtered flattening", max_coords)
     _print_coords("per-pair validator", pair_coords)
     _print_coords("non-degeneracy check", nd_coords)
     print(f"%   {'nodes':>6} {'edges':>6} {'pairs':>8} {'pair_s':>10} "
-          f"{'flat_s':>10} {'nd_s':>10}")
-    for nodes, edges, pairs, pair_mean, anch_mean, nd_mean in stats:
+          f"{'flat_s':>10} {'max_s':>10} {'nd_s':>10}")
+    for nodes, edges, pairs, pair_mean, anch_mean, max_mean, nd_mean in stats:
         print(f"%   {nodes:>6} {edges:>6} {pairs:>8} "
-              f"{pair_mean:>10.6f} {anch_mean:>10.6f} {nd_mean:>10.6f}")
+              f"{pair_mean:>10.6f} {anch_mean:>10.6f} {max_mean:>10.6f} "
+              f"{nd_mean:>10.6f}")
         rows.append((label, nodes, edges, pairs,
                      f"{pair_mean:.6f}", f"{anch_mean:.6f}", f"{nd_mean:.6f}",
-                     f"{pairs / edges:.2f}", f"{pair_mean / anch_mean:.4f}"))
+                     f"{pairs / edges:.2f}", f"{pair_mean / anch_mean:.4f}",
+                     f"{max_mean:.6f}"))
 
 
 def write_csv(name, rows):
@@ -80,7 +88,8 @@ def write_csv(name, rows):
         writer = csv.writer(f)
         writer.writerow(["family", "nodes", "edges", "ancestor_pairs",
                          "pair_seconds", "flatten_seconds", "nd_seconds",
-                         "pairs_per_edge", "pair_over_flatten"])
+                         "pairs_per_edge", "pair_over_flatten",
+                         "flatten_max_seconds"])
         writer.writerows(rows)
     print(f"% written: {path}")
 

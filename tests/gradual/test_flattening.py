@@ -1,6 +1,22 @@
 from benchmarks.bench_flattening import stacked_diamonds
 from src.gradual.definitions import Edge, Environment, Signature, Specification
-from src.gradual.evidence.flattening import flatten_dp
+from src.gradual.evidence.definitions import (
+    Evidence,
+    EvidenceInterval,
+    EvidenceSignature,
+    EvidenceSpecification,
+)
+from src.gradual.evidence.flattening import (
+    e_bot_table,
+    e_top_table,
+    edge_table,
+    evidence_below,
+    flatten_dp,
+    flatten_max,
+    max_filter,
+    min_filter,
+    topological_order,
+)
 from src.gradual.pair_validation import pair_valid
 from src.gradual.types import Unknown
 from src.static.types import ClassName
@@ -70,3 +86,52 @@ def test_crossing_diamond_pair_valid_but_rejected():
     environment, sigma = crossing_diamond()
     assert pair_valid(environment, sigma) is True
     assert flatten_dp(environment, sigma) is False
+
+
+def test_filtered_flattening_agrees_with_flattening():
+    for k in range(1, 5):
+        environment, sigma = stacked_diamonds(k)
+        assert flatten_max(environment, sigma) is True
+    environment, sigma = incompatible_edge()
+    assert flatten_max(environment, sigma) is False
+    environment, sigma = crossing_diamond()
+    assert flatten_max(environment, sigma) is False
+
+
+def test_filtered_tables_are_inside_the_unfiltered_ones():
+    for instance in (stacked_diamonds(3), crossing_diamond()):
+        environment, sigma = instance
+        order = topological_order(environment)
+        edges = edge_table(environment, sigma)
+        top = e_top_table(environment, sigma, order, edges)
+        top_max = e_top_table(environment, sigma, order, edges, filtered=True)
+        bot = e_bot_table(environment, sigma, order, edges)
+        bot_min = e_bot_table(environment, sigma, order, edges, filtered=True)
+        for node in environment.Ns:
+            assert top_max[node.name] <= top[node.name]
+            assert bot_min[node.name] <= bot[node.name]
+            assert bool(top_max[node.name]) == bool(top[node.name])
+            assert bool(bot_min[node.name]) == bool(bot[node.name])
+
+
+def test_filters_drop_exactly_the_strictly_dominated():
+    p, d = ClassName("P"), ClassName("D")
+    nodes = [p, d]
+    edges = [Edge(d, p)]
+    empty = Specification(set())
+    sigma = {"P": empty, "D": empty}
+    environment = Environment(nodes, edges, sigma)
+
+    def evidence(lower, upper):
+        interval = EvidenceInterval(lower, upper)
+        spec = EvidenceSpecification({EvidenceSignature("x", interval)})
+        return Evidence(spec, spec)
+
+    low = evidence(d, d)
+    high = evidence(d, p)
+    assert evidence_below(environment, low, high)
+    assert not evidence_below(environment, high, low)
+    assert max_filter(environment, {low, high}) == {high}
+    assert min_filter(environment, {low, high}) == {low}
+    assert max_filter(environment, {low}) == {low}
+    assert min_filter(environment, {high}) == {high}
